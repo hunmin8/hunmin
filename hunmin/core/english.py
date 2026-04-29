@@ -277,6 +277,38 @@ def _try_load_external_cmu():
 _EXT_CMU = _try_load_external_cmu()
 
 
+# === Optional g2p-en (ML G2P) ===
+# pip install hunmin[ml] 또는 pip install g2p-en로 설치되면 활성화
+_G2P_EN = None
+def _try_load_g2p():
+    global _G2P_EN
+    try:
+        from g2p_en import G2p
+        _G2P_EN = G2p()
+    except Exception:
+        _G2P_EN = False  # mark as failed (don't retry)
+
+
+def _g2p_en_phonemes(word):
+    """g2p-en 라이브러리로 word → ARPABET. None if 미설치."""
+    global _G2P_EN
+    if _G2P_EN is None:
+        _try_load_g2p()
+    if _G2P_EN is False or _G2P_EN is None:
+        return None
+    try:
+        phs = _G2P_EN(word)
+        # strip stress digits & non-phoneme tokens
+        out = []
+        for p in phs:
+            p = re.sub(r'[0-9]', '', str(p))
+            if p and p.isalpha():
+                out.append(p)
+        return out if out else None
+    except Exception:
+        return None
+
+
 def get_phonemes(word):
     """word → ARPABET list (stress stripped). None if not found."""
     w = word.lower()
@@ -491,6 +523,385 @@ _HANGUL_OVERRIDES = {
     'logo': '로고',
     'photo': '포토',
     'piano': '피아노',
+    # === -al 어말 (modal/global/normal 등) ===
+    'modal': '모달',
+    'global': '글로벌',
+    'normal': '노멀',
+    'signal': '시그널',
+    'journal': '저널',
+    'metal': '메탈',
+    'central': '센트럴',
+    'general': '제너럴',
+    'manual': '매뉴얼',
+    'visual': '비주얼',
+    'digital': '디지털',
+    'final': '파이널',
+    'royal': '로열',
+    'capital': '캐피털',
+    'hospital': '호스피털',
+    # === Food (더 많이) ===
+    'yogurt': '요거트',
+    'salmon': '살몬',
+    'tuna': '참치',  # Korean uses native 참치
+    'shrimp': '슈림프',
+    'lobster': '랍스터',
+    'beef': '비프',
+    'pork': '포크',
+    'chicken': '치킨',
+    'lamb': '램',
+    'tomato': '토마토',
+    'potato': '포테이토',
+    'onion': '어니언',
+    'garlic': '갈릭',
+    'carrot': '캐럿',
+    'mushroom': '머시룸',
+    'lemon': '레몬',
+    'lime': '라임',
+    'apricot': '애프리콧',
+    'peach': '피치',
+    'grape': '그레이프',
+    'mango': '망고',
+    'kiwi': '키위',
+    'avocado': '아보카도',
+    'broccoli': '브로콜리',
+    'spinach': '시금치',
+    'cabbage': '캐비지',
+    'corn': '콘',
+    'beans': '빈스',
+    'cereal': '시리얼',
+    'oatmeal': '오트밀',
+    'pancake': '팬케이크',
+    'waffle': '와플',
+    'donut': '도넛',
+    'muffin': '머핀',
+    'biscuit': '비스킷',
+    'pretzel': '프레첼',
+    # === Drinks ===
+    'cola': '콜라',
+    'coke': '콜라',  # Coca-Cola
+    'soda': '소다',
+    'beer': '비어',
+    'wine': '와인',
+    'vodka': '보드카',
+    'whiskey': '위스키',
+    'rum': '럼',
+    'cocktail': '칵테일',
+    'lemonade': '레모네이드',
+    'smoothie': '스무디',
+    'latte': '라테',
+    'espresso': '에스프레소',
+    'cappuccino': '카푸치노',
+    'mocha': '모카',
+    # === Sports ===
+    'soccer': '사커',
+    'tennis': '테니스',
+    'badminton': '배드민턴',
+    'volleyball': '발리볼',
+    'golf': '골프',
+    'swimming': '스위밍',
+    'surfing': '서핑',
+    'skating': '스케이팅',
+    'skiing': '스키',
+    'boxing': '복싱',
+    'wrestling': '레슬링',
+    'judo': '유도',
+    'karate': '가라테',
+    'taekwondo': '태권도',
+    'marathon': '마라톤',
+    'olympics': '올림픽',
+    'champion': '챔피언',
+    'team': '팀',
+    'coach': '코치',
+    'player': '플레이어',
+    'goal': '골',
+    'score': '스코어',
+    # === Music ===
+    'jazz': '재즈',
+    'classical': '클래시컬',
+    'piano': '피아노',
+    'guitar': '기타',
+    'violin': '바이올린',
+    'drum': '드럼',
+    'bass': '베이스',
+    'orchestra': '오케스트라',
+    'concert': '콘서트',
+    'opera': '오페라',
+    'choir': '합창단',
+    'symphony': '심포니',
+    'rhythm': '리듬',
+    'melody': '멜로디',
+    'beat': '비트',
+    'rap': '랩',
+    'hiphop': '힙합',
+    'metal': '메탈',
+    'punk': '펑크',
+    'album': '앨범',
+    # === Fashion / clothes ===
+    'shirt': '셔츠',
+    'tshirt': '티셔츠',
+    'pants': '팬츠',
+    'jeans': '진',
+    'dress': '드레스',
+    'skirt': '스커트',
+    'jacket': '재킷',
+    'coat': '코트',
+    'hat': '햇',
+    'cap': '캡',
+    'glove': '글러브',
+    'sock': '삭',
+    'shoes': '슈즈',
+    'boots': '부츠',
+    'belt': '벨트',
+    'tie': '타이',
+    'scarf': '스카프',
+    'suit': '슈트',
+    'sweater': '스웨터',
+    'hoodie': '후디',
+    'jumper': '점퍼',
+    # === Daily / household ===
+    'house': '하우스',
+    'room': '룸',
+    'kitchen': '키친',
+    'bathroom': '배스룸',
+    'garden': '가든',
+    'window': '윈도우',
+    'door': '도어',
+    'table': '테이블',
+    'chair': '체어',
+    'sofa': '소파',
+    'bed': '베드',
+    'lamp': '램프',
+    'mirror': '미러',
+    'towel': '타월',
+    'soap': '솝',
+    'shampoo': '샴푸',
+    'toothbrush': '칫솔',
+    'pillow': '필로우',
+    'blanket': '블랭킷',
+    'curtain': '커튼',
+    # === Tech extras ===
+    'program': '프로그램',
+    'code': '코드',
+    'app': '앱',
+    'page': '페이지',
+    'screen': '스크린',
+    'network': '네트워크',
+    'cloud': '클라우드',
+    'login': '로그인',
+    'logout': '로그아웃',
+    'password': '패스워드',
+    'username': '유저네임',
+    'version': '버전',
+    'file': '파일',
+    'folder': '폴더',
+    'icon': '아이콘',
+    'menu': '메뉴',
+    'tab': '탭',
+    'window': '윈도우',
+    'browser': '브라우저',
+    'cookie': '쿠키',
+    'bug': '버그',
+    'feature': '피처',
+    'update': '업데이트',
+    'install': '인스톨',
+    'cancel': '캔슬',
+    'delete': '딜리트',
+    'copy': '카피',
+    'paste': '페이스트',
+    'save': '세이브',
+    'open': '오픈',
+    'close': '클로즈',
+    'enter': '엔터',
+    'space': '스페이스',
+    # === Business / office ===
+    'market': '마켓',
+    'company': '컴퍼니',
+    'office': '오피스',
+    'meeting': '미팅',
+    'project': '프로젝트',
+    'manager': '매니저',
+    'client': '클라이언트',
+    'customer': '커스터머',
+    'service': '서비스',
+    'product': '프로덕트',
+    'design': '디자인',
+    'brand': '브랜드',
+    'sales': '세일즈',
+    'profit': '프로핏',
+    'budget': '버짓',
+    'invoice': '인보이스',
+    'contract': '컨트랙트',
+    'deadline': '데드라인',
+    'startup': '스타트업',
+    'partner': '파트너',
+    'consulting': '컨설팅',
+    'event': '이벤트',
+    'campaign': '캠페인',
+    # === Greetings / common ===
+    'yes': '예스',
+    'no': '노',
+    'please': '플리즈',
+    'thanks': '땡스',
+    'thank': '땡크',
+    'sorry': '쏘리',
+    'hi': '하이',
+    'bye': '바이',
+    'okay': '오케이',
+    'ok': '오케이',
+    'right': '라이트',
+    'left': '레프트',
+    'top': '톱',
+    'bottom': '바텀',
+    'high': '하이',
+    'low': '로',
+    # === People / family ===
+    'baby': '베이비',
+    'boy': '보이',
+    'girl': '걸',
+    'man': '맨',
+    'woman': '우먼',
+    'father': '파더',
+    'mother': '마더',
+    'son': '선',
+    'daughter': '도터',
+    'family': '패밀리',
+    'friend': '프렌드',
+    'lover': '러버',
+    'fan': '팬',
+    'star': '스타',
+    'idol': '아이돌',
+    'hero': '히어로',
+    'queen': '퀸',
+    'king': '킹',
+    # === Cities/places extra ===
+    'newyork': '뉴욕',
+    'la': '엘에이',
+    'hollywood': '할리우드',
+    'manhattan': '맨해튼',
+    'broadway': '브로드웨이',
+    'silicon': '실리콘',
+    'wallstreet': '월스트리트',
+    'amsterdam': '암스테르담',
+    'venice': '베네치아',
+    'milan': '밀라노',
+    'barcelona': '바르셀로나',
+    'lisbon': '리스본',
+    'athens': '아테네',
+    'cairo': '카이로',
+    'dubai': '두바이',
+    'mumbai': '뭄바이',
+    'jakarta': '자카르타',
+    'manila': '마닐라',
+    'bangkok': '방콕',
+    # === Brands extra ===
+    'tesla': '테슬라',
+    'spacex': '스페이스엑스',
+    'meta': '메타',
+    'tiktok': '틱톡',
+    'uber': '우버',
+    'airbnb': '에어비앤비',
+    'paypal': '페이팔',
+    'stripe': '스트라이프',
+    'shopify': '쇼피파이',
+    'reddit': '레딧',
+    'discord': '디스코드',
+    'slack': '슬랙',
+    'zoom': '줌',
+    'salesforce': '세일즈포스',
+    'oracle': '오라클',
+    'ibm': '아이비엠',
+    'cisco': '시스코',
+    'huawei': '화웨이',
+    'xiaomi': '샤오미',
+    'lenovo': '레노버',
+    'asus': '에이수스',
+    'razer': '레이저',
+    # === Sports extras / brands ===
+    'puma': '푸마',
+    'reebok': '리복',
+    'gucci': '구찌',
+    'prada': '프라다',
+    'chanel': '샤넬',
+    'dior': '디올',
+    'rolex': '롤렉스',
+    'nestle': '네슬레',
+    'unilever': '유니레버',
+    'ferrari': '페라리',
+    'porsche': '포르쉐',
+    'lamborghini': '람보르기니',
+    'bmw': '비엠더블유',
+    'audi': '아우디',
+    'mercedes': '메르세데스',
+    'volkswagen': '폭스바겐',
+    # === Verbs/adjs more ===
+    'beautiful': '뷰티풀',
+    'amazing': '어메이징',
+    'awesome': '오섬',
+    'perfect': '퍼펙트',
+    'super': '슈퍼',
+    'fine': '파인',
+    'great': '그레이트',
+    'best': '베스트',
+    'worst': '워스트',
+    'easy': '이지',
+    'hard': '하드',
+    'simple': '심플',
+    'crazy': '크레이지',
+    'cute': '큐트',
+    'pretty': '프리티',
+    'funny': '퍼니',
+    'smart': '스마트',
+    'rich': '리치',
+    'poor': '푸어',
+    'free': '프리',
+    'busy': '비지',
+    'lazy': '레이지',
+    'hungry': '헝그리',
+    'thirsty': '서스티',
+    'tired': '타이어드',
+    'happy': '해피',
+    'sad': '새드',
+    'angry': '앵그리',
+    'cool': '쿨',
+    'warm': '웜',
+    'sweet': '스위트',
+    'sour': '사워',
+    'spicy': '스파이시',
+    'fresh': '프레시',
+    # === Animals ===
+    'dog': '도그',
+    'cat': '캣',
+    'bird': '버드',
+    'lion': '라이언',
+    'tiger': '타이거',
+    'elephant': '엘리펀트',
+    'monkey': '몽키',
+    'rabbit': '래빗',
+    'horse': '호스',
+    'cow': '카우',
+    'pig': '피그',
+    'sheep': '시프',
+    'duck': '덕',
+    'snake': '스네이크',
+    'shark': '샤크',
+    'whale': '웨일',
+    'penguin': '펭귄',
+    'panda': '판다',
+    'koala': '코알라',
+    # === Colors ===
+    'red': '레드',
+    'blue': '블루',
+    'green': '그린',
+    'yellow': '옐로',
+    'black': '블랙',
+    'white': '화이트',
+    'pink': '핑크',
+    'purple': '퍼플',
+    'orange': '오렌지',
+    'gold': '골드',
+    'silver': '실버',
+    'brown': '브라운',
+    'gray': '그레이',
 }
 
 
@@ -580,6 +991,108 @@ def _compound_phonemes(word):
             return None
         out.extend(phs)
     return out
+
+
+# === Morphology fallback (suffix/prefix strip) ===
+# CMU 미수록 단어를 어미/접두사 분리해서 base form lookup
+_SUFFIXES = [
+    # (suffix, phonemes, base_replacement_for_y_stem)
+    ('ies',  ['IY','Z'],     'y'),    # cities → city
+    ('iest', ['IY','AH','S','T'], 'y'),
+    ('ied',  ['IY','D'],     'y'),    # cried → cry
+    ('ily',  ['AH','L','IY'], 'y'),   # easily → easy
+    ('iness', ['IY','N','AH','S'], 'y'),
+    ('ication', ['AH','K','EY','SH','AH','N'], 'y'),
+    ('ously', ['AH','S','L','IY'], ''),
+    ('ation', ['EY','SH','AH','N'], 'e'),  # creation → creat(e)
+    ('tion',  ['SH','AH','N'], ''),
+    ('sion',  ['ZH','AH','N'], ''),
+    ('ness',  ['N','AH','S'], ''),
+    ('less',  ['L','AH','S'], ''),
+    ('ful',   ['F','AH','L'], ''),
+    ('able',  ['AH','B','AH','L'], 'e'),   # reproducible → reproduc(e)
+    ('ible',  ['IH','B','AH','L'], 'e'),
+    ('ize',   ['AY','Z'], ''),
+    ('ise',   ['AY','Z'], ''),
+    ('ment',  ['M','AH','N','T'], ''),
+    ('ish',   ['IH','SH'], ''),
+    ('est',   ['IH','S','T'], ''),
+    ('ing',   ['IH','NG'], 'e'),  # making → make (also raw 'ing' if 'e' base not found)
+    ('ed',    ['D'],     'e'),    # raked → rake
+    ('er',    ['ER'],    'e'),    # baker → bake
+    ('ly',    ['L','IY'], ''),
+    ('es',    ['IH','Z'], ''),     # boxes → box
+    ('s',     ['Z'],     ''),      # plural
+]
+
+_PREFIXES = [
+    ('crypto', ['K','R','IH','P','T','OW']),
+    ('inter',  ['IH','N','T','ER']),
+    ('multi',  ['M','AH','L','T','IY']),
+    ('super',  ['S','UW','P','ER']),
+    ('under',  ['AH','N','D','ER']),
+    ('over',   ['OW','V','ER']),
+    ('anti',   ['AE','N','T','IY']),
+    ('auto',   ['AO','T','OW']),
+    ('post',   ['P','OW','S','T']),
+    ('semi',   ['S','EH','M','IY']),
+    ('pre',    ['P','R','IY']),
+    ('dis',    ['D','IH','S']),
+    ('mis',    ['M','IH','S']),
+    ('non',    ['N','AA','N']),
+    ('un',     ['AH','N']),
+    ('re',     ['R','IY']),
+    ('co',     ['K','OW']),
+    ('de',     ['D','IY']),
+    ('ex',     ['EH','K','S']),
+]
+
+
+def _morphology_phonemes(word):
+    """Strip suffix/prefix and look up base. Concatenate phonemes."""
+    w = word.lower()
+    if len(w) < 5:
+        return None
+    # Suffix strip
+    for suf, suf_phs, base_repl in _SUFFIXES:
+        if w.endswith(suf) and len(w) - len(suf) >= 3:
+            base = w[:-len(suf)] + base_repl
+            base_phs = get_phonemes(base)
+            if base_phs:
+                return base_phs + suf_phs
+            # try without 'e' restoration
+            if base_repl:
+                base2 = w[:-len(suf)]
+                base_phs2 = get_phonemes(base2)
+                if base_phs2:
+                    return base_phs2 + suf_phs
+    # Prefix strip
+    for pre, pre_phs in _PREFIXES:
+        if w.startswith(pre) and len(w) - len(pre) >= 3:
+            rest = w[len(pre):]
+            rest_phs = get_phonemes(rest)
+            if rest_phs:
+                return pre_phs + rest_phs
+            # also try the rest as compound
+            rest_compound = _compound_phonemes(rest)
+            if rest_compound:
+                return pre_phs + rest_compound
+    # Prefix + suffix combined (e.g., reproducible = re + produce + ible)
+    for pre, pre_phs in _PREFIXES:
+        if w.startswith(pre):
+            rest = w[len(pre):]
+            for suf, suf_phs, base_repl in _SUFFIXES:
+                if rest.endswith(suf) and len(rest) - len(suf) >= 3:
+                    base = rest[:-len(suf)] + base_repl
+                    base_phs = get_phonemes(base)
+                    if base_phs:
+                        return pre_phs + base_phs + suf_phs
+                    if base_repl:
+                        base2 = rest[:-len(suf)]
+                        base_phs2 = get_phonemes(base2)
+                        if base_phs2:
+                            return pre_phs + base_phs2 + suf_phs
+    return None
 
 
 # === Phonics fallback (letter-cluster → ARPABET 근사) ===
@@ -815,6 +1328,37 @@ _YOD_LESS_WORDS = {
     'tomb', 'womb',
     # S+UW는 yod 대상 아님 (default ㅜ). suit/super 같은 yod 단어는 사전에 Y 명시
 }
+
+
+_SYLLABIC_NEXT = {'N', 'M', 'L'}
+
+
+def _drop_syllabic_schwa(phs, aligned):
+    """자음 + AH(schwa) + 자음군 N/M/L → AH drop. 단, 첫 모음(stressed)은 보호.
+    예: button (B AH1 T AH0 N) → 둘째 AH만 drop → B AH T N → 버튼
+        bottle (B AA T AH L) → B AA T L → 보틀
+        run (R AH N) → AH가 첫 모음 → drop 안 함 → 런
+        trump (T R AH M P) → AH가 첫 모음 → drop 안 함 → 트럼프
+    """
+    out_phs, out_aln = [], []
+    seen_vowel = False
+    i = 0
+    n = len(phs)
+    while i < n:
+        p = phs[i]
+        prev = phs[i-1] if i > 0 else ''
+        nxt = phs[i+1] if i+1 < n else ''
+        if (p == 'AH' and seen_vowel and prev and prev not in _VOWEL_PHS
+                and nxt in _SYLLABIC_NEXT
+                and i + 2 >= n):  # AH + sonorant이 어말 마지막 2 phoneme일 때만
+            # 첫 모음 이후의 schwa, 자음 사이에 sonorant 다음, 어말 → drop
+            i += 1
+            continue
+        if p in _VOWEL_PHS:
+            seen_vowel = True
+        out_phs.append(p); out_aln.append(aligned[i])
+        i += 1
+    return out_phs, out_aln
 
 
 def _spelling_resolve_er(phs, aligned):
@@ -1100,19 +1644,33 @@ def _assemble(phonemes, precise):
             last_is_long = bool(syll_long and syll_long[-1])
             last_jung = _last_jung(syllables)
             real_short = (last_jung in _REAL_SHORT_JUNG) and not last_is_long
+            # 다음 phoneme이 sonorant 자음 (N/M/L) — 단, 그 다음에 모음이 없을 때만 cluster-coda
+            # (sonorant 다음에 모음 있으면 onset 역할: script SKR_IH = 크+리, NOT 클+IH)
+            next_is_sonorant_C = (i+1 < n
+                and phonemes[i+1][0] == 'C'
+                and phonemes[i+1][1] in {'ㄴ', 'ㅁ', 'ㄹ'}
+                and (i+2 >= n or phonemes[i+2][0] not in ('V', 'SV')))
             if cho in ALLOW_AS_FINAL and not (syllables and _has_jong(syllables[-1])):
                 if _add_jong_to_last(syllables, cho):
                     i += 1; continue
-            # k/t/p/g/b 어말 받침: 진짜 짧은 모음 뒤에서만
+            # k/t/p/g/b 어말 받침: 진짜 짧은 모음 뒤에서만, sonorant 앞 차단
             # Korean Loanword: k/g→ㄱ (back, big), t→ㅅ (cat), p/b→ㅂ (cap, cab).
             # D는 보통 으-suffix (bed→베드), 그래서 d 제외.
-            if real_short and syllables and not _has_jong(syllables[-1]):
+            if real_short and not next_is_sonorant_C and syllables and not _has_jong(syllables[-1]):
                 if src in ('k', 'g'):
                     if _add_jong_to_last(syllables, 'ㄱ'): i += 1; continue
                 if src == 't':
                     if _add_jong_to_last(syllables, 'ㅅ'): i += 1; continue
                 if src in ('p', 'b'):
                     if _add_jong_to_last(syllables, 'ㅂ'): i += 1; continue
+            # Cluster-coda merge: C + sonorant N/M/L → 으-syll with sonorant jong
+            # 예: button → 튼, bottle → 틀, table → 블, circle → 클
+            if next_is_sonorant_C:
+                next_cho = phonemes[i+1][1]
+                syllables.append(_compose(cho, 'ㅡ', next_cho))
+                syll_long.append(False)
+                i += 2
+                continue
             # 그 외 → 으-syll
             syllables.append(_compose(cho, 'ㅡ'))
             syll_long.append(False)
@@ -1152,8 +1710,9 @@ def transcribe_en(text, precise=True, mode='hangul'):
         if not part: continue
         if not re.match(r"^[A-Za-z']+$", part):
             out.append(part); continue
-        # 0a. Hangul direct override (NIKL conventions; hangul mode only)
-        if mode == 'hangul' and part.lower() in _HANGUL_OVERRIDES:
+        # 0a. Hangul direct override (NIKL conventions; level 1/2 only — precise=False)
+        # L3/L4 (precise=True)는 룰 거쳐서 옛한글/jamo 생성
+        if mode == 'hangul' and not precise and part.lower() in _HANGUL_OVERRIDES:
             out.append(_HANGUL_OVERRIDES[part.lower()])
             continue
         # 0b. acronym 감지 (letter-by-letter, 각 letter 독립 변환)
@@ -1179,7 +1738,13 @@ def transcribe_en(text, precise=True, mode='hangul'):
             # 1. compound decomposer (firebase → fire+base)
             phs = _compound_phonemes(part)
         if phs is None:
-            # 2. phonics fallback
+            # 2. morphology (suffix/prefix strip): reproducible → re+produce+ible
+            phs = _morphology_phonemes(part)
+        if phs is None:
+            # 3. g2p-en (optional ML fallback)
+            phs = _g2p_en_phonemes(part)
+        if phs is None:
+            # 4. phonics fallback (rough but mostly right)
             phs = _phonics_fallback(part)
             if not phs:
                 out.append(f'[?{part}]')
@@ -1187,6 +1752,7 @@ def transcribe_en(text, precise=True, mode='hangul'):
         # Letter alignment (CMU phs vs spelling)
         aligned = _align_phonemes(part, phs)
         phs, aligned = _spelling_resolve_er(phs, aligned)
+        phs, aligned = _drop_syllabic_schwa(phs, aligned)
         phs, aligned = _yod_insert(phs, aligned, part)
         phs, aligned = _expand_er_before_vowel(phs, aligned)
         phs, aligned = _drop_postvocalic_r(phs, aligned)

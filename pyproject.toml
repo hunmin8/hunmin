@@ -4,29 +4,48 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hunmin"
-version = "1.3.1"
-description = "Universal phonetic Hangul transcription — convert any language into readable Korean."
+version = "1.8.1"
+description = "외국어를 한글로 — 14개 언어를 한국어 한글 발음 표기로 변환. Universal phonetic Hangul transcription for 14 languages with NIKL conventions, CMU dictionary, and Old Hangul precision."
 authors = [{name = "Hunmin Project"}]
 license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.8"
-keywords = ["hangul", "korean", "transcription", "phonetic", "pronunciation", "g2p", "linguistics"]
+keywords = [
+    "hangul", "korean", "transcription", "phonetic", "pronunciation",
+    "g2p", "linguistics", "loanword", "외래어", "한글", "발음",
+    "transliteration", "cjk", "japanese", "chinese", "ipa",
+]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Text Processing :: Linguistic",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Education :: Computer Aided Instruction (CAI)",
     "Natural Language :: Korean",
     "Natural Language :: Japanese",
     "Natural Language :: Chinese (Simplified)",
     "Natural Language :: English",
+    "Natural Language :: French",
+    "Natural Language :: German",
+    "Natural Language :: Italian",
+    "Natural Language :: Spanish",
+    "Natural Language :: Russian",
+    "Natural Language :: Portuguese",
+    "Natural Language :: Dutch",
+    "Natural Language :: Polish",
+    "Natural Language :: Turkish",
+    "Natural Language :: Indonesian",
 ]
 dependencies = []
 
@@ -36,6 +55,9 @@ cjk = [
     "pypinyin>=0.50",  # for Mandarin Chinese
     "hanja>=0.13",     # for Korean (Sino-Korean reading)
 ]
+ml = [
+    "g2p-en>=2.1",     # neural G2P fallback for English unknown words
+]
 demo = [
     "gradio>=4.0",
 ]
@@ -43,13 +65,16 @@ all = [
     "pykakasi>=2.2",
     "pypinyin>=0.50",
     "hanja>=0.13",
+    "g2p-en>=2.1",
     "gradio>=4.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/hunmin"
-Documentation = "https://github.com/yourusername/hunmin#readme"
-Repository = "https://github.com/yourusername/hunmin"
+Homepage = "https://github.com/meshpop/hunmin"
+Documentation = "https://github.com/meshpop/hunmin#readme"
+Repository = "https://github.com/meshpop/hunmin"
+Issues = "https://github.com/meshpop/hunmin/issues"
+Changelog = "https://github.com/meshpop/hunmin#-변경-이력-changelog"
 
 [project.scripts]
 hunmin = "hunmin.cli:main"

@@ -23,7 +23,8 @@ Supported languages:
     ap.add_argument('--lang', help='Language code')
     ap.add_argument('--level', type=int, default=1, choices=[1, 2, 3, 4],
                     help='1: kid-friendly, 2: natural, 3: precise (old Hangul), 4: UHPS jamo')
-    ap.add_argument('--demo', action='store_true', help='Run demo with 14 languages')
+    ap.add_argument('--demo', action='store_true', help='Run text demo with 14 languages')
+    ap.add_argument('--web', action='store_true', help='Launch Gradio web demo (requires hunmin[demo])')
     ap.add_argument('--list-langs', action='store_true', help='List supported languages')
     ap.add_argument('--version', action='version', version=f'hunmin {__version__}')
     args = ap.parse_args()
@@ -31,6 +32,10 @@ Supported languages:
     if args.list_langs:
         h = Hunmin()
         print(' '.join(sorted(h.supported())))
+        return
+
+    if args.web:
+        run_web()
         return
 
     if args.demo:
@@ -73,6 +78,66 @@ def run_demo():
             print(f'{lang:<5} {text:<22} {l1:<14} {l3:<14} {l4:<22}')
         except Exception as e:
             print(f'{lang:<5} {text:<22} [ERROR: {e}]')
+
+
+def run_web():
+    """Launch Gradio web demo."""
+    try:
+        import gradio  # noqa: F401
+    except ImportError:
+        print("Gradio가 설치되지 않았습니다. 설치:")
+        print("  pip install hunmin[demo]")
+        print("또는:")
+        print("  pip install gradio")
+        return
+    # Inline minimal version (avoid demo/ folder import dependency)
+    import gradio as gr
+    h = Hunmin()
+    LANG_LABELS = {
+        'en': 'English', 'es': 'Español', 'it': 'Italiano',
+        'de': 'Deutsch', 'ru': 'Русский', 'fr': 'Français',
+        'pt': 'Português', 'nl': 'Nederlands', 'pl': 'Polski',
+        'tr': 'Türkçe', 'id': 'Bahasa', 'ja': '日本語',
+        'zh': '中文', 'ko': '한국어',
+    }
+    inv = {v: k for k, v in LANG_LABELS.items()}
+
+    def fn(text, label):
+        lang = inv.get(label, label)
+        if not text.strip():
+            return '', '', '', ''
+        try:
+            return (h.transcribe(text, lang, level=1),
+                    h.transcribe(text, lang, level=2),
+                    h.transcribe(text, lang, level=3),
+                    h.transcribe(text, lang, level=4))
+        except Exception as e:
+            return f'Error: {e}', '', '', ''
+
+    examples = [
+        ['student', 'English'], ['hello', 'English'],
+        ['firebase', 'English'], ['LSTM', 'English'],
+        ['Москва', 'Русский'], ['Versailles', 'Français'],
+        ['pizza', 'Italiano'], ['Mozart', 'Deutsch'],
+        ['東京', '日本語'], ['中国', '中文'],
+    ]
+    with gr.Blocks(title='Hunmin', theme=gr.themes.Soft()) as app:
+        gr.Markdown('# 🎼 Hunmin\n### Universal phonetic Hangul transcription')
+        with gr.Row():
+            text_in = gr.Textbox(label='Text', lines=2, scale=2)
+            lang_in = gr.Dropdown(choices=list(LANG_LABELS.values()),
+                                  value='English', label='Language', scale=1)
+        btn = gr.Button('Transcribe', variant='primary')
+        with gr.Row():
+            l1 = gr.Textbox(label='Level 1 — 아이용', interactive=False)
+            l2 = gr.Textbox(label='Level 2 — 자연 발음', interactive=False)
+        with gr.Row():
+            l3 = gr.Textbox(label='Level 3 — 옛한글 (ㆄ/ㅸ/ㅿ)', interactive=False)
+            l4 = gr.Textbox(label='Level 4 — UHPS jamo', interactive=False)
+        btn.click(fn, [text_in, lang_in], [l1, l2, l3, l4])
+        text_in.submit(fn, [text_in, lang_in], [l1, l2, l3, l4])
+        gr.Examples(examples=examples, inputs=[text_in, lang_in])
+    app.launch(server_name='0.0.0.0', share=False)
 
 
 if __name__ == '__main__':

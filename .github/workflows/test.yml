@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.8', '3.10', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package + test deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[cjk]"
+          python -m pip install pytest
+
+      - name: Run tests (default install)
+        run: pytest tests/ -v
+
+      - name: Run benchmarks (smoke)
+        run: |
+          python tests/bench_en.py
+          python tests/bench_multi.py
