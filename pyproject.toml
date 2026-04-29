@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hunmin"
+version = "1.0.0"
+description = "Universal phonetic Hangul transcription — convert any language into readable Korean."
+authors = [{name = "Hunmin Project"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["hangul", "korean", "transcription", "phonetic", "pronunciation", "g2p", "linguistics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Linguistic",
+    "Natural Language :: Korean",
+    "Natural Language :: Japanese",
+    "Natural Language :: Chinese (Simplified)",
+    "Natural Language :: English",
+]
+dependencies = []
+
+[project.optional-dependencies]
+cjk = [
+    "pykakasi>=2.2",   # for Japanese
+    "pypinyin>=0.50",  # for Mandarin Chinese
+    "hanja>=0.13",     # for Korean (Sino-Korean reading)
+]
+demo = [
+    "gradio>=4.0",
+]
+all = [
+    "pykakasi>=2.2",
+    "pypinyin>=0.50",
+    "hanja>=0.13",
+    "gradio>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/hunmin"
+Documentation = "https://github.com/yourusername/hunmin#readme"
+Repository = "https://github.com/yourusername/hunmin"
+
+[project.scripts]
+hunmin = "hunmin.cli:main"
+
+[tool.setuptools]
+packages = ["hunmin", "hunmin.core"]
+
+[tool.setuptools.package-data]
+hunmin = ["*.json", "core/*.json"]
