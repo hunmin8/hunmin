@@ -3,9 +3,12 @@
 [![PyPI](https://img.shields.io/pypi/v/hunmin)](https://pypi.org/project/hunmin/)
 [![Python](https://img.shields.io/pypi/pyversions/hunmin)](https://pypi.org/project/hunmin/)
 [![License](https://img.shields.io/pypi/l/hunmin)](https://github.com/meshpop/hunmin/blob/main/LICENSE)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/foolsai/hunmin)
 
 > **외국어를 한글로 — 아이도 읽을 수 있는 발음 악보**
 > *Convert any language into a readable phonetic Hangul score.*
+
+**[🎼 온라인 데모 사용해보기](https://huggingface.co/spaces/foolsai/hunmin)**
 
 ```python
 from hunmin import transcribe
