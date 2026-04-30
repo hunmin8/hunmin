@@ -28,7 +28,7 @@ _ROMAJI_TO_KR = {
     'gya':'갸','gyu':'규','gyo':'교',
     'bya':'뱌','byu':'뷰','byo':'뵤',
     'pya':'퍄','pyu':'퓨','pyo':'표',
-    'tsu':'츠',
+    'tsu':'쓰',
     'shi':'시','chi':'치','fu':'후',
     'ji':'지',
     # 기본 2-char (consonant + vowel)
@@ -221,7 +221,7 @@ def _romaji_to_hangul(s):
 
 def _drop_japanese_long_vowel(rom):
     """NIKL 일본어 표기법: 장음 표기 안 함.
-    'ou'→'o', 'oo'→'o', 'uu'→'u', 'aa'→'a', 'ii'→'i'.
+    'ou'→'o', 'oo'→'o', 'uu'→'u', 'aa'→'a', 'ii'→'i', 'ee'→'e'.
     'ei'는 그대로 (NIKL은 ei 유지).
     """
     rom = rom.replace('ou', 'o')
@@ -229,6 +229,7 @@ def _drop_japanese_long_vowel(rom):
     rom = rom.replace('uu', 'u')
     rom = rom.replace('aa', 'a')
     rom = rom.replace('ii', 'i')
+    rom = rom.replace('ee', 'e')
     return rom
 
 
@@ -263,6 +264,17 @@ _JA_PHRASE_OVERRIDES = {
     'すみません': '스미마센',
     'お疲れ様': '오쓰카레사마',
     'お疲れさま': '오쓰카레사마',
+    # 행정구역 — 都 ambiguous (東京都만 suffix)
+    '東京都': '도쿄도',
+    '京都': '교토',
+    '京都府': '교토부',
+    '北海道': '홋카이도',
+    '日本': '일본',  # NIKL: 일본 (Korean reading); pykakasi gives 닛폰
+    '日本語': '일본어',
+    '韓国': '한국',
+    '中国': '중국',  # 한자 그대로 한국 reading
+    '東京': '도쿄',
+    '大阪': '오사카',
 }
 
 
@@ -277,20 +289,77 @@ def transcribe_ja(text, mode='hangul', precise=True):
     if mode == 'hangul' and text.strip() in _JA_PHRASE_OVERRIDES:
         return _JA_PHRASE_OVERRIDES[text.strip()]
 
+    # NIKL 일본어 행정 접미사 한자 → 한국식 reading 직접 적용
+    # 県(현)/都(도)/府(부)/道(도) 등은 일본어 발음('ken','to','fu') 대신 한자 음독 사용
+    JA_ADMIN_SUFFIX = {
+        '県': '현', '都': '도', '府': '부', '道': '도',
+        '区': '구', '市': '시', '町': '초', '村': '무라', '郡': '군',
+        '島': '섬',  # 종종 도/시마/섬 — NIKL 'shima' default
+        '天皇': '천황',  # 多字 suffix
+    }
+
     kks = pykakasi.kakasi()
     result = kks.convert(text)
-    # hepburn으로 단어별 처리
+    # hepburn으로 단어별 처리. 각 segment 독립 처리 후 직접 concat
     out_parts = []
-    for r in result:
+    n_segs = len(result)
+    text_strip = text.strip()
+    has_kanji = any('一' <= ch <= '鿿' for ch in text_strip)
+    last_char = text_strip[-1] if text_strip else ''
+    last_is_admin = last_char in JA_ADMIN_SUFFIX
+    for i, r in enumerate(result):
+        orig = r.get('orig', '').strip()
         rom = r.get('hepburn', '').strip()
+
+        # 행정 접미사 (마지막 segment): 한국식 reading 직접 사용
+        if orig in JA_ADMIN_SUFFIX and i == n_segs - 1:
+            # 島은 default 'shima' 유지 (예: 鹿児島 → 가고시마)
+            if orig != '島':
+                out_parts.append(JA_ADMIN_SUFFIX[orig])
+                continue
+
         if not rom:
-            out_parts.append(r.get('orig', ''))
+            out_parts.append(orig)
             continue
-        # NIKL 룰 적용: 어두 연음화 + 장음 드롭
-        rom = _ja_soft_initial(rom)
+        # NIKL 룰: 어두 연음화 (첫 segment + 인명일 때 각 segment 마다)
+        # 인명 (한자 + 행정 suffix 없음 + 2+ segments)이면 각 segment가 word-initial
+        is_word_initial = (i == 0) or (
+            has_kanji and not last_is_admin and n_segs >= 2
+        )
+        if is_word_initial:
+            rom = _ja_soft_initial(rom)
         rom = _drop_japanese_long_vowel(rom)
         out_parts.append(_romaji_to_hangul(rom))
-    hangul = ' '.join(out_parts) if len(out_parts) > 1 else (out_parts[0] if out_parts else '')
+
+    # 인명 spacing: 한자 단어 + 행정 suffix 없음 + segment 2개 이상 → 공백 join
+    # (江崎玲於奈 → 에사키 레오나, 夏目漱石 → 나쓰메 소세키)
+    if has_kanji and not last_is_admin and n_segs >= 2:
+        # 마지막이 multi-char admin suffix (天皇 등)이면 segment 1까지만 spacing
+        # 단순히 각 segment 사이 공백
+        joined = []
+        for j, p in enumerate(out_parts):
+            if j > 0 and p and out_parts[j-1]:
+                joined.append(' ')
+            joined.append(p)
+        hangul = ''.join(joined)
+    else:
+        hangul = ''.join(out_parts)
+
+    # NIKL 일본어 행정 접미: input이 県/都/府/道로 끝나면 한국식 reading으로 보정
+    last = text.strip()[-1] if text.strip() else ''
+    SUFFIX_NORMALIZE = {
+        '県': ([('켄','현'), ('겐','현')], '현'),
+        # 都는 ambiguous (東京都=도/京都=토) → 직접 override로 처리
+        '府': ([('후','부'), ('부','부')], '부'),
+        '道': ([('도우','도'), ('도','도')], '도'),
+        '区': ([('쿠','구'), ('구','구')], '구'),
+    }
+    if last in SUFFIX_NORMALIZE:
+        replacements, _ = SUFFIX_NORMALIZE[last]
+        for bad, good in replacements:
+            if hangul.endswith(bad):
+                hangul = hangul[:-len(bad)] + good
+                break
 
     if mode == 'hangul':
         return hangul
