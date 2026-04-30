@@ -132,23 +132,22 @@ _Y_VOWEL = {'ㅏ':'ㅑ','ㅐ':'ㅒ','ㅓ':'ㅕ','ㅔ':'ㅖ','ㅗ':'ㅛ','ㅜ':'�
 _W_VOWEL = {'ㅏ':'ㅘ','ㅐ':'ㅙ','ㅓ':'ㅝ','ㅔ':'ㅞ','ㅗ':'ㅗ','ㅜ':'ㅜ','ㅣ':'ㅟ'}
 
 
-# IPA diacritics — precise=False면 모두 제거. precise=True면 일부 유지.
-_REMOVE_DIACRITICS_BASIC = {
-    'ː', 'ˑ',     # length marks
-    'ˈ', 'ˌ',     # stress marks
-    '͡',           # tie bar
-    '̩', '̯',     # syllabic, non-syllabic
-    'ʰ',          # aspirated
-    'ʷ', 'ʲ',     # labialized, palatalized
-    '̞', '̥', '̬',   # lowered, voiceless, voiced
-    'ˀ',          # glottalized
-    '˥', '˦', '˧', '˨', '˩',  # tone bars
-    '1','2','3','4','5',  # numerical tones (Mandarin)
+# IPA diacritics 정책 (UHPS 모드별)
+# UHPS-core (level=3): phoneme 중심, suprasegmental 제거
+# UHPS-full (level=5): 장단/성조/강세/aspiration/labialization 모두 보존
+_REMOVE_DIACRITICS_BASIC = {  # level=1 (대중) — 모두 제거
+    'ː', 'ˑ', 'ˈ', 'ˌ', '͡', '̩', '̯',
+    'ʰ', 'ʷ', 'ʲ', '̞', '̥', '̬', 'ˀ',
+    '˥', '˦', '˧', '˨', '˩',
+    '1','2','3','4','5',
 }
-# precise=True 모드에서는 일부 보존 (방점으로 표시)
-_REMOVE_DIACRITICS_PRECISE = {
-    '͡', '̩', '̯', 'ʰ', 'ʷ', 'ʲ',
+_REMOVE_DIACRITICS_CORE = {  # level=3 UHPS-core — phoneme tie/syllable mark만 제거
+    '͡', '̩', '̯',
+    'ʰ', 'ʷ', 'ʲ',
     '̞', '̥', '̬', 'ˀ',
+}
+_REMOVE_DIACRITICS_FULL = {  # level=5 UHPS-full — phoneme tie만 제거 (나머지는 모두 보존)
+    '͡',
 }
 
 # 옛 훈민정음 방점 (傍點) — Hangul tone marks
@@ -174,13 +173,22 @@ def _compose(cho, jung, jong=''):
     return cho + jung + jong
 
 
-def _normalize_ipa(ipa, precise=False):
-    """IPA preprocess: digraphs, diacritics."""
+def _normalize_ipa(ipa, uhps='basic'):
+    """IPA preprocess. uhps mode:
+    'basic' — phoneme만, suprasegmental 모두 제거 (level=1)
+    'core'  — UHPS-core: 자음/모음 옛한글 매핑, 일부 diacritic 제거 (level=3)
+    'full'  — UHPS-full: 장단/성조/강세까지 모두 보존 (level=5)
+    """
     s = ipa
     s = unicodedata.normalize('NFC', s)
     for src, dst in _IPA_DIGRAPHS:
         s = s.replace(src, dst)
-    diacritics = _REMOVE_DIACRITICS_PRECISE if precise else _REMOVE_DIACRITICS_BASIC
+    if uhps == 'basic':
+        diacritics = _REMOVE_DIACRITICS_BASIC
+    elif uhps == 'core':
+        diacritics = _REMOVE_DIACRITICS_CORE
+    else:  # full
+        diacritics = _REMOVE_DIACRITICS_FULL
     for d in diacritics:
         s = s.replace(d, '')
     return s
@@ -192,27 +200,128 @@ _NASAL_MAP = {
     'i': 'ㅣ', 'u': 'ㅜ', 'e': 'ㅔ', 'o': 'ㅗ',
 }
 
+# === Suprasegmental — IPA 운율 표기 ===
+# 옛 훈민정음 방점 (傍點) 시스템:
+#   평성 (low/평탄): 표시 없음
+#   거성 (high/강세): 〮 U+302E (HANGUL SINGLE DOT TONE MARK)
+#   상성 (rising):   〯 U+302F (HANGUL DOUBLE DOT TONE MARK)
+#   장음 (length):   ː U+02D0 (IPA TRIANGULAR COLON) — 그대로 유지
+PANJEOM_HIGH = '〮'    # 〮 거성 — 1점 (high tone, primary stress)
+PANJEOM_RISING = '〯'  # 〯 상성 — 2점 (rising tone)
+LENGTH_MARK = 'ː'           # 장음 (IPA 그대로)
+HALF_LENGTH = 'ˑ'           # 반장음
 
-def _tokenize_ipa(ipa):
+# Stress/tone marker 종류
+_STRESS_PRIMARY = {'ˈ'}                    # 강세 → 거성 〮
+_STRESS_SECONDARY = {'ˌ'}                  # 부강세 → 무시 또는 별도
+_TONE_HIGH = {'˥', '˦'}                    # 고성조 → 거성
+_TONE_MID = {'˧'}                          # 중성조 → 표시 없음
+_TONE_LOW = {'˨', '˩'}                     # 저성조 → 표시 없음
+_TONE_RISING_MARK = '↗'
+_TONE_FALLING_MARK = '↘'
+_LENGTH_MARKERS = {'ː', 'ˑ'}
+
+# Mandarin 톤 (1-5) 또는 vowel 위 dot
+_MANDARIN_TONE = {
+    '1': PANJEOM_HIGH,        # 1성 (고평) → 거성
+    '2': PANJEOM_RISING,      # 2성 (상승) → 상성
+    '3': PANJEOM_RISING,      # 3성 (저강하상승) → 상성 근사
+    '4': PANJEOM_HIGH,        # 4성 (하강) → 거성 (강한 마크)
+    '5': '',                  # 5성 (경성) → 표시 없음
+}
+
+# IPA vowel 위 톤 diacritic (combining marks)
+_TONE_DIACRITICS = {
+    '́': PANJEOM_HIGH,      # ́ acute = high
+    '̀': '',                # ̀ grave = low (표시 없음)
+    '̄': '',                # ̄ macron = mid
+    '̌': PANJEOM_RISING,    # ̌ caron = rising
+    '̂': PANJEOM_HIGH,      # ̂ circumflex = falling (high 근사)
+    '̋': PANJEOM_HIGH,      # ̋ double acute = extra high
+    '̏': '',                # ̏ double grave = extra low
+}
+
+
+def _tokenize_ipa(ipa, precise=False):
     """IPA 문자열 → token 리스트.
-    Combining tilde (̃) → V_NASAL.
+    precise=True면 stress/length/tone을 SUPRA 토큰으로 보존.
     """
     out = []
+    pending_stress = None  # 다음 모음 음절에 부착될 stress mark
     i = 0
     n = len(ipa)
     while i < n:
         ch = ipa[i]
         nxt = ipa[i+1] if i+1 < n else ''
+        nxt2 = ipa[i+2] if i+2 < n else ''
+
         # Combining tilde → 비음 모음
         if nxt == '̃':
             if ch in _NASAL_MAP:
-                out.append(('V_NASAL', _NASAL_MAP[ch]))
+                tok = ('V_NASAL', _NASAL_MAP[ch])
+                if precise and pending_stress:
+                    tok = ('V_NASAL_STRESS', _NASAL_MAP[ch], pending_stress)
+                    pending_stress = None
+                out.append(tok)
                 i += 2
                 continue
+
+        # Stress markers (precise만)
+        if ch in _STRESS_PRIMARY:
+            if precise:
+                pending_stress = PANJEOM_HIGH
+            i += 1; continue
+        if ch in _STRESS_SECONDARY:
+            i += 1; continue
+
+        # Tone bars
+        if ch in _TONE_HIGH:
+            # 직전 모음 음절에 적용
+            if precise:
+                out.append(('SUPRA', PANJEOM_HIGH))
+            i += 1; continue
+        if ch in _TONE_LOW or ch in _TONE_MID:
+            i += 1; continue
+
+        # Length markers
+        if ch in _LENGTH_MARKERS:
+            if precise:
+                out.append(('SUPRA', LENGTH_MARK))
+            i += 1; continue
+
+        # Mandarin tone digit (1-5) — 일부 IPA 표기 시
+        if ch.isdigit() and ch in _MANDARIN_TONE:
+            if precise:
+                mark = _MANDARIN_TONE[ch]
+                if mark:
+                    out.append(('SUPRA', mark))
+            i += 1; continue
+
+        # Tone combining diacritics on vowel
+        if nxt in _TONE_DIACRITICS:
+            # Process base char first, then mark
+            if ch in _IPA_PHONEMES:
+                tok = _IPA_PHONEMES[ch]
+                if precise and pending_stress:
+                    tok = (tok[0] + '_STRESS', tok[1], pending_stress)
+                    pending_stress = None
+                out.append(tok)
+            if precise:
+                mark = _TONE_DIACRITICS[nxt]
+                if mark:
+                    out.append(('SUPRA', mark))
+            i += 2; continue
+
+        # Standard mapping
         if ch in _IPA_PHONEMES:
-            out.append(_IPA_PHONEMES[ch])
+            tok = _IPA_PHONEMES[ch]
+            if precise and pending_stress and tok[0] in ('V', 'V_NASAL', 'V_R', 'OLD'):
+                tok = (tok[0] + '_STRESS', tok[1], pending_stress)
+                pending_stress = None
+            out.append(tok)
         elif ch == ' ':
             out.append(('SPACE', ' '))
+            pending_stress = None
         elif unicodedata.category(ch).startswith('P'):
             out.append(('PUNCT', ch))
         i += 1
@@ -223,23 +332,53 @@ _OLD_VOWELS = {'ㆎ', 'ㆍ', 'ㅙ'}  # OLD kind 중 모음들
 
 
 def _is_vowel_token(tok):
-    """V / V_NASAL / V_R / OLD-vowel."""
+    """V / V_NASAL / V_R / OLD-vowel (STRESS 변형 포함)."""
     if not tok: return False
     k, v = tok[0], tok[1] if len(tok) > 1 else ''
-    if k in ('V', 'V_NASAL', 'V_R'): return True
-    if k == 'OLD' and v in _OLD_VOWELS: return True
+    if k in ('V', 'V_NASAL', 'V_R',
+             'V_STRESS', 'V_NASAL_STRESS', 'V_R_STRESS'): return True
+    if k.startswith('OLD') and v in _OLD_VOWELS: return True
     return False
+
+
+def _strip_stress(tok):
+    """V_X_STRESS → (V_X, val, mark) 분리."""
+    if not tok: return tok, None
+    k = tok[0]
+    if k.endswith('_STRESS'):
+        base = k[:-7]
+        mark = tok[2] if len(tok) > 2 else PANJEOM_HIGH
+        return (base, tok[1]), mark
+    return tok, None
 
 
 def _is_old_consonant(tok):
     return tok and tok[0] == 'OLD' and tok[1] not in _OLD_VOWELS
 
 
+def _expand_stress_tokens(tokens):
+    """V_X_STRESS → V_X + ('SUPRA', PANJEOM_HIGH) 분리.
+    Stress 마크를 음절 뒤에 후속 토큰으로 변환.
+    """
+    out = []
+    for t in tokens:
+        if t[0].endswith('_STRESS'):
+            base_kind = t[0][:-7]
+            out.append((base_kind, t[1]))
+            mark = t[2] if len(t) > 2 else PANJEOM_HIGH
+            out.append(('SUPRA', mark))
+        else:
+            out.append(t)
+    return out
+
+
 def _assemble(tokens, precise=True):
     """Token list → Hangul syllable string.
     precise=True: 옛한글 (ㆄ/ㅸ/ㅿ/ㆅ/ᄾ/ᄶ/ᄛ/ㅼ/ㅽ/ㅥ/ㅱ/ㆎ/ㆍ) 완전 사용.
     precise=False: 모두 modern Korean 자모로 대체.
+    SUPRA 토큰 (방점/장음): 직전 음절 뒤에 부착.
     """
+    tokens = _expand_stress_tokens(tokens)
     # 옛한글 → 기본 한글 fallback (precise=False 모드)
     OLD_TO_BASIC = {
         'ㆄ':'ㅍ', 'ㅸ':'ㅂ', 'ㅿ':'ㅈ', 'ㆁ':'ㅇ', 'ㆆ':'ㅎ',
@@ -261,6 +400,9 @@ def _assemble(tokens, precise=True):
         if kind == 'SPACE':
             syllables.append(' '); i += 1; continue
         if kind == 'PUNCT':
+            syllables.append(val); i += 1; continue
+        # SUPRA: 방점/장음 — 직전 음절 뒤에 부착
+        if kind == 'SUPRA':
             syllables.append(val); i += 1; continue
 
         # SV_MARKER (j/w) — 앞 자음 또는 ㅇ과 결합
@@ -524,22 +666,26 @@ _ISO_TO_EPITRAN = {
 }
 
 
-def transcribe_universal(text, lang_iso, mode='hangul', precise=True):
+def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None):
     """Universal IPA-based transcribe.
 
     Args:
-      text: input text. lang='ipa'면 직접 IPA 문자열 입력.
-      lang_iso: ISO 639-1 코드 (en/sw/th/vi/ar/...) 또는 'ipa' (IPA 직접).
-      mode: 'hangul' or 'jamo' or 'spaced'.
-      precise: True → 옛한글 + 한글자모확장 (UHPS v2); False → 기본 한글.
-
-    Returns: Korean Hangul transcription.
+      text: input text. lang='ipa'면 IPA 문자열 직접 입력.
+      lang_iso: ISO 639-1/639-3 코드 또는 'ipa'.
+      mode: 'hangul' / 'jamo' / 'spaced'.
+      precise: True → UHPS-core (옛한글 자음/모음 1:1), False → 기본 한글.
+      uhps: 'basic' / 'core' / 'full'. None이면 precise로부터 추론
+            (precise=True → 'core', precise=False → 'basic').
+            'full' = 장단/성조/강세/방점 모두 보존.
     """
-    # IPA 직접 입력 모드 — epitran 우회
+    if uhps is None:
+        uhps = 'core' if precise else 'basic'
+    precise_inner = uhps in ('core', 'full')
+
     if lang_iso == 'ipa':
-        ipa_norm = _normalize_ipa(text)
-        tokens = _tokenize_ipa(ipa_norm)
-        return _assemble(tokens, precise=precise)
+        ipa_norm = _normalize_ipa(text, uhps=uhps)
+        tokens = _tokenize_ipa(ipa_norm, precise=(uhps == 'full'))
+        return _assemble(tokens, precise=precise_inner)
 
     try:
         import epitran
@@ -560,9 +706,9 @@ def transcribe_universal(text, lang_iso, mode='hangul', precise=True):
     if not ipa:
         return text
 
-    ipa_norm = _normalize_ipa(ipa)
-    tokens = _tokenize_ipa(ipa_norm)
-    return _assemble(tokens, precise=precise)
+    ipa_norm = _normalize_ipa(ipa, uhps=uhps)
+    tokens = _tokenize_ipa(ipa_norm, precise=(uhps == 'full'))
+    return _assemble(tokens, precise=precise_inner)
 
 
 def supported_universal_languages():

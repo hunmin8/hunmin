@@ -251,6 +251,13 @@ hunmin.transcribe("hello", "en", level=4)  # ㅎㅔㄹㅗㅜ
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v2.4** (2026.04) — UHPS-core / UHPS-full 분리
+  * `level=3` (UHPS-core): 자음/모음 1:1 (옛한글 13개 추가 jamo)
+  * `level=5` (UHPS-full): + 장단/성조/강세/방점 모두 보존
+    * 거성 (high stress) → 〮 (U+302E)
+    * 상성 (rising tone) → 〯 (U+302F)
+    * 장음 → ː
+  * 예: `niːd` → core `닏`, full `니ː드`
 * **v2.3** (2026.04) — API 정리 + 톤 다운
   * `supported_languages('hardcoded'|'universal'|'all')` 계층화
   * Universal 121 epitran code 모두 smoke test 통과 검증

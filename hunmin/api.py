@@ -199,28 +199,33 @@ class Hunmin:
 
         Args:
             text (str): Input text in the source language.
-            lang (str): Language code (en, es, ja, zh, ko, ...).
-            level (int): Output level (1-4).
+            lang (str): Language code (en, es, ja, zh, ko, ...) or 'ipa'.
+            level (int): Output level (1-5).
                 1: Children-friendly Hangul (default)
                 2: Natural pronunciation
-                3: Precise with old Hangul (ㆄ/ㅸ/ㅿ)
-                4: UHPS jamo sequence
+                3: UHPS-core — 옛한글 자음/모음 1:1 (ㆄ/ㅸ/ㅿ/ㆅ/ᄾ/ᄶ/ᄛ/ㅼ/ㅽ/ㅥ/ㆎ/ㆍ)
+                4: UHPS jamo sequence (for ML)
+                5: UHPS-full — 장단/성조/강세/방점까지 완전 보존
+                   (옛 훈민정음 방점: 〮 거성, 〯 상성, ː 장음)
 
         Returns:
             str: Hangul or jamo transcription.
         """
         if level == 4:
             return self._jamo(text, lang)
+        elif level == 5:
+            return self._hangul(text, lang, precise=True, uhps='full')
         elif level == 3:
-            return self._hangul(text, lang, precise=True)
+            return self._hangul(text, lang, precise=True, uhps='core')
         else:  # 1 or 2
-            return self._hangul(text, lang, precise=False)
+            return self._hangul(text, lang, precise=False, uhps='basic')
 
-    def _hangul(self, text, lang, precise=False):
+    def _hangul(self, text, lang, precise=False, uhps=None):
         # IPA 직접 입력 모드 (epitran 의존성 X)
         if lang == 'ipa':
             from .core.universal import transcribe_universal
-            return transcribe_universal(text, 'ipa', mode='hangul', precise=precise)
+            return transcribe_universal(text, 'ipa', mode='hangul',
+                                         precise=precise, uhps=uhps)
         if lang in _DICT_LANGS:
             return transcribe_cjk(text, lang, mode='hangul')
         elif lang in _PRECISE:
@@ -234,7 +239,8 @@ class Hunmin:
             # Universal IPA-based fallback (162 languages via epitran)
             try:
                 from .core.universal import transcribe_universal
-                return transcribe_universal(text, lang, mode='hangul', precise=precise)
+                return transcribe_universal(text, lang, mode='hangul',
+                                             precise=precise, uhps=uhps)
             except ImportError:
                 raise ValueError(
                     f"Unsupported lang: {lang!r}. Hardcoded: {sorted(self.supported())}. "
