@@ -249,8 +249,22 @@ hunmin.transcribe("hello", "en", level=4)  # ㅎㅔㄹㅗㅜ
 
 ---
 
+## 🔖 강세 표기 컨벤션
+
+UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
+
+```
+허로·우  → '로' 강세 (옛 훈민정음 방점 방식)
+```
+
+이는 IPA의 `ˈ`(다음 음절 강세)와 반대 — 한국 전통 방점(傍點) 컨벤션을 따름.
+
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v2.4.3** (2026.04) — 강세 attach bug fix
+  * 강세는 자음(ㆄㅸㅿ 등)이 아닌 **모음**에만 attach
+  * default tone_style을 `middledot` (·)로 — 한글 시각 호환
+  * 폰트 호환 fallback (safe_fonts 기본 True): ᄛ→ㄹ, ᄾ→ㅅ, ᄶ→ㅈ
 * **v2.4** (2026.04) — UHPS-core / UHPS-full 분리
   * `level=3` (UHPS-core): 자음/모음 1:1 (옛한글 13개 추가 jamo)
   * `level=5` (UHPS-full): + 장단/성조/강세/방점 모두 보존

@@ -215,12 +215,13 @@ _NASAL_MAP = {
 #   'ipa'     — ˈ ˇ ː — IPA 기호, 폰트 보편적 지원
 #   'ascii'   — ' ^ : — 가장 안전 (모든 폰트)
 TONE_STYLES = {
-    'panjeom': {'high': '〮', 'rising': '〯', 'length': 'ː'},
-    'ipa':     {'high': 'ˈ',  'rising': 'ˇ',  'length': 'ː'},
-    'ascii':   {'high': "'",  'rising': '^',  'length': ':'},
+    'panjeom':   {'high': '〮', 'rising': '〯', 'length': 'ː'},
+    'ipa':       {'high': 'ˈ',  'rising': 'ˇ',  'length': 'ː'},
+    'middledot': {'high': '·',  'rising': '··', 'length': 'ː'},   # 가운뎃점 — 모든 폰트 OK
+    'ascii':     {'high': "'",  'rising': '^',  'length': ':'},
 }
 # 모듈 변수 (런타임 변경 가능)
-_DEFAULT_TONE_STYLE = 'ipa'  # 기본을 IPA로 (폰트 호환성 위해)
+_DEFAULT_TONE_STYLE = 'middledot'  # 가운뎃점 — 한글에 시각적으로 어울리고 모든 폰트 호환
 PANJEOM_HIGH = TONE_STYLES[_DEFAULT_TONE_STYLE]['high']
 PANJEOM_RISING = TONE_STYLES[_DEFAULT_TONE_STYLE]['rising']
 LENGTH_MARK = TONE_STYLES[_DEFAULT_TONE_STYLE]['length']
@@ -235,6 +236,9 @@ _TONE_LOW = {'˨', '˩'}                     # 저성조 → 표시 없음
 _TONE_RISING_MARK = '↗'
 _TONE_FALLING_MARK = '↘'
 _LENGTH_MARKERS = {'ː', 'ˑ'}
+
+# 옛한글 모음 (강세는 모음에만 attach)
+_TOKENIZE_OLD_VOWELS = {'ㆎ', 'ㆍ', 'ㅙ'}
 
 # Mandarin 톤 (1-5) 또는 vowel 위 dot
 _MANDARIN_TONE = {
@@ -330,9 +334,13 @@ def _tokenize_ipa(ipa, precise=False):
         # Standard mapping
         if ch in _IPA_PHONEMES:
             tok = _IPA_PHONEMES[ch]
-            if precise and pending_stress and tok[0] in ('V', 'V_NASAL', 'V_R', 'OLD'):
-                tok = (tok[0] + '_STRESS', tok[1], pending_stress)
-                pending_stress = None
+            # 강세는 모음에만 attach (자음 OLD 제외)
+            if precise and pending_stress:
+                is_vowel = (tok[0] in ('V', 'V_NASAL', 'V_R')
+                            or (tok[0] == 'OLD' and tok[1] in _TOKENIZE_OLD_VOWELS))
+                if is_vowel:
+                    tok = (tok[0] + '_STRESS', tok[1], pending_stress)
+                    pending_stress = None
             out.append(tok)
         elif ch == ' ':
             out.append(('SPACE', ' '))
@@ -682,7 +690,7 @@ _ISO_TO_EPITRAN = {
 
 
 def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None,
-                         tone_style='ipa', safe_fonts=True):
+                         tone_style='middledot', safe_fonts=True):
     """Universal IPA-based transcribe.
 
     Args:
