@@ -219,12 +219,63 @@ def _romaji_to_hangul(s):
     return ''.join(out)
 
 
+def _drop_japanese_long_vowel(rom):
+    """NIKL 일본어 표기법: 장음 표기 안 함.
+    'ou'→'o', 'oo'→'o', 'uu'→'u', 'aa'→'a', 'ii'→'i'.
+    'ei'는 그대로 (NIKL은 ei 유지).
+    """
+    rom = rom.replace('ou', 'o')
+    rom = rom.replace('oo', 'o')
+    rom = rom.replace('uu', 'u')
+    rom = rom.replace('aa', 'a')
+    rom = rom.replace('ii', 'i')
+    return rom
+
+
+# NIKL 일본어 표기법: 어두 k/t/p/ch → 연음 g/d/b/j (어중은 그대로 ㅋ/ㅌ/ㅍ/ㅊ)
+_JA_SOFT_PREFIX = [
+    # 3-char (요음)
+    ('kya', 'gya'), ('kyu', 'gyu'), ('kyo', 'gyo'),
+    ('pya', 'bya'), ('pyu', 'byu'), ('pyo', 'byo'),
+    ('cha', 'ja'),  ('chu', 'ju'),  ('cho', 'jo'),  ('che', 'je'), ('chi', 'ji'),
+    # 2-char (k/t/p + 모음)
+    ('ka', 'ga'),   ('ki', 'gi'),   ('ku', 'gu'),   ('ke', 'ge'), ('ko', 'go'),
+    ('ta', 'da'),   ('te', 'de'),   ('to', 'do'),
+    ('pa', 'ba'),   ('pi', 'bi'),   ('pu', 'bu'),   ('pe', 'be'), ('po', 'bo'),
+]
+
+
+def _ja_soft_initial(rom):
+    """어두 k/t/p/ch 연음화."""
+    for src, dst in _JA_SOFT_PREFIX:
+        if rom.startswith(src):
+            return dst + rom[len(src):]
+    return rom
+
+
+# 자주 쓰이는 일본어 표현 (조사 처리 등)
+_JA_PHRASE_OVERRIDES = {
+    'こんにちは': '곤니치와',
+    'こんばんは': '곤방와',
+    'おはよう': '오하요',
+    'さようなら': '사요나라',
+    'ありがとう': '아리가토',
+    'すみません': '스미마센',
+    'お疲れ様': '오쓰카레사마',
+    'お疲れさま': '오쓰카레사마',
+}
+
+
 def transcribe_ja(text, mode='hangul', precise=True):
-    """Japanese → 한글 (via pykakasi → Hepburn romaji → 한글)."""
+    """Japanese → 한글 (NIKL 외래어 표기법, via pykakasi → Hepburn romaji → 한글)."""
     try:
         import pykakasi
     except ImportError:
         raise ImportError("Japanese support requires pykakasi: pip install hunmin[cjk]")
+
+    # 1. 자주 쓰이는 표현 직접 매핑
+    if mode == 'hangul' and text.strip() in _JA_PHRASE_OVERRIDES:
+        return _JA_PHRASE_OVERRIDES[text.strip()]
 
     kks = pykakasi.kakasi()
     result = kks.convert(text)
@@ -235,6 +286,9 @@ def transcribe_ja(text, mode='hangul', precise=True):
         if not rom:
             out_parts.append(r.get('orig', ''))
             continue
+        # NIKL 룰 적용: 어두 연음화 + 장음 드롭
+        rom = _ja_soft_initial(rom)
+        rom = _drop_japanese_long_vowel(rom)
         out_parts.append(_romaji_to_hangul(rom))
     hangul = ' '.join(out_parts) if len(out_parts) > 1 else (out_parts[0] if out_parts else '')
 

@@ -36,20 +36,32 @@ LEVEL_DESCRIPTIONS = {
 }
 
 EXAMPLES = [
+    # English — full pipeline showcase
     ['student', 'en', 1],
+    ['hello', 'en', 1],
+    ['firebase', 'en', 1],
+    ['LSTM', 'en', 1],
+    ['anthropic', 'en', 1],
     ['father', 'en', 3],
     ['vine', 'en', 3],
     ['student', 'en', 4],
-    ['familia', 'es', 3],
+    # Other languages
+    ['familia', 'es', 1],
+    ['paella', 'es', 1],
     ['Schule', 'de', 1],
+    ['Mozart', 'de', 1],
     ['bonjour', 'fr', 1],
-    ['Москва', 'ru', 3],
-    ['ciao bella', 'it', 1],
+    ['Versailles', 'fr', 1],
+    ['Москва', 'ru', 1],
+    ['Толстой', 'ru', 1],
+    ['ciao', 'it', 1],
+    ['pizza', 'it', 1],
     ['merhaba', 'tr', 1],
     ['Amsterdam', 'nl', 1],
     ['Warszawa', 'pl', 1],
     ['obrigado', 'pt', 1],
-    ['selamat pagi', 'id', 1],
+    ['selamat', 'id', 1],
+    # CJK
     ['東京', 'ja', 1],
     ['こんにちは', 'ja', 1],
     ['中国', 'zh', 1],
@@ -129,7 +141,7 @@ with gr.Blocks(title='Hunmin — Phonetic Hangul Transcription', theme=gr.themes
 **Logographic (dictionary):** ja, zh, ko
 
 ---
-[GitHub](https://github.com/yourusername/hunmin) · [Docs](https://github.com/yourusername/hunmin#readme) · MIT License
+[GitHub](https://github.com/meshpop/hunmin) · [PyPI](https://pypi.org/project/hunmin/) · MIT License
 """)
 
 

@@ -85,8 +85,8 @@ def test_other_latin(word, lang, expected):
 
 # === CJK regression ===
 @pytest.mark.parametrize('word,lang,expected', [
-    ('中国', 'zh', '중구어'),
-    ('東京', 'ja', '토우쿄우'),
+    ('中国', 'zh', '중궈'),
+    ('東京', 'ja', '도쿄'),
     ('大韓民國', 'ko', '대한민국'),
     ('학교', 'ko', '학교'),
 ])
