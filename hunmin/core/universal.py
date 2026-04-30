@@ -44,7 +44,7 @@ _IPA_PHONEMES = {
     'ɓ': ('C', 'ㅂ'), 'ɗ': ('C', 'ㄷ'), 'ɠ': ('C', 'ㄱ'),
     # === Nasals ===
     'm': ('C', 'ㅁ'), 'n': ('C', 'ㄴ'),
-    'ɲ': ('C', 'ㅥ'),  # palatal n — 쌍니은 U+3165
+    'ɲ': ('C_PALATAL_N', 'ㅥ'),  # palatal n — 쌍니은 U+3165 (palatalize next vowel)
     'ŋ': ('C', 'ㆁ'),  # velar n — 옛한글 옛이응
     'ɴ': ('C', 'ㆁ'),  # uvular n
     'ɱ': ('C', 'ㅱ'),  # labiodental m — 옛한글 미음+이응 U+3171
@@ -88,6 +88,9 @@ _IPA_PHONEMES = {
     'w': ('SV_MARKER', 'w'),
     'ɥ': ('SV_MARKER', 'y'),
     'ʋ': ('OLD', 'ㅸ'),
+    # === R-colored vowels (English ɚ, ɝ) ===
+    'ɚ': ('V_R', 'ㅓ'),  # r-colored schwa (English butter)
+    'ɝ': ('V_R', 'ㅓ'),  # r-colored ɜ
     # === Vowels ===
     # Front
     'i': ('V', 'ㅣ'), 'ɪ': ('V', 'ㅣ'),
@@ -129,17 +132,28 @@ _Y_VOWEL = {'ㅏ':'ㅑ','ㅐ':'ㅒ','ㅓ':'ㅕ','ㅔ':'ㅖ','ㅗ':'ㅛ','ㅜ':'�
 _W_VOWEL = {'ㅏ':'ㅘ','ㅐ':'ㅙ','ㅓ':'ㅝ','ㅔ':'ㅞ','ㅗ':'ㅗ','ㅜ':'ㅜ','ㅣ':'ㅟ'}
 
 
-# IPA diacritics 제거/처리
-_REMOVE_DIACRITICS = {
+# IPA diacritics — precise=False면 모두 제거. precise=True면 일부 유지.
+_REMOVE_DIACRITICS_BASIC = {
     'ː', 'ˑ',     # length marks
     'ˈ', 'ˌ',     # stress marks
-    '͡',           # tie bar (already handled)
-    '̩', '̯', '̃',   # syllabic, non-syllabic, nasalization (정밀하게는 별도 처리)
+    '͡',           # tie bar
+    '̩', '̯',     # syllabic, non-syllabic
     'ʰ',          # aspirated
     'ʷ', 'ʲ',     # labialized, palatalized
     '̞', '̥', '̬',   # lowered, voiceless, voiced
     'ˀ',          # glottalized
+    '˥', '˦', '˧', '˨', '˩',  # tone bars
+    '1','2','3','4','5',  # numerical tones (Mandarin)
 }
+# precise=True 모드에서는 일부 보존 (방점으로 표시)
+_REMOVE_DIACRITICS_PRECISE = {
+    '͡', '̩', '̯', 'ʰ', 'ʷ', 'ʲ',
+    '̞', '̥', '̬', 'ˀ',
+}
+
+# 옛 훈민정음 방점 (傍點) — Hangul tone marks
+_PANJEOM_HIGH = '〮'   # 〮 거성 (high tone, 1 dot)
+_PANJEOM_RISING = '〯'  # 〯 상성 (rising tone, 2 dots)
 
 
 HANGUL_BASE = 0xAC00
@@ -160,31 +174,48 @@ def _compose(cho, jung, jong=''):
     return cho + jung + jong
 
 
-def _normalize_ipa(ipa):
+def _normalize_ipa(ipa, precise=False):
     """IPA preprocess: digraphs, diacritics."""
     s = ipa
-    # NFC 정규화
     s = unicodedata.normalize('NFC', s)
-    # digraph
     for src, dst in _IPA_DIGRAPHS:
         s = s.replace(src, dst)
-    # diacritics 제거
-    for d in _REMOVE_DIACRITICS:
+    diacritics = _REMOVE_DIACRITICS_PRECISE if precise else _REMOVE_DIACRITICS_BASIC
+    for d in diacritics:
         s = s.replace(d, '')
     return s
 
 
+_NASAL_MAP = {
+    'ɔ': 'ㆎ', 'a': 'ㅏ', 'ɛ': 'ㅔ', 'œ': 'ㅙ',
+    'ã': 'ㅏ', 'õ': 'ㅗ', 'ɑ': 'ㆍ',
+    'i': 'ㅣ', 'u': 'ㅜ', 'e': 'ㅔ', 'o': 'ㅗ',
+}
+
+
 def _tokenize_ipa(ipa):
-    """IPA 문자열 → phoneme 리스트."""
+    """IPA 문자열 → token 리스트.
+    Combining tilde (̃) → V_NASAL.
+    """
     out = []
-    for ch in ipa:
+    i = 0
+    n = len(ipa)
+    while i < n:
+        ch = ipa[i]
+        nxt = ipa[i+1] if i+1 < n else ''
+        # Combining tilde → 비음 모음
+        if nxt == '̃':
+            if ch in _NASAL_MAP:
+                out.append(('V_NASAL', _NASAL_MAP[ch]))
+                i += 2
+                continue
         if ch in _IPA_PHONEMES:
             out.append(_IPA_PHONEMES[ch])
         elif ch == ' ':
             out.append(('SPACE', ' '))
         elif unicodedata.category(ch).startswith('P'):
             out.append(('PUNCT', ch))
-        # else: silently drop unknown
+        i += 1
     return out
 
 
@@ -192,10 +223,10 @@ _OLD_VOWELS = {'ㆎ', 'ㆍ', 'ㅙ'}  # OLD kind 중 모음들
 
 
 def _is_vowel_token(tok):
-    """V / V_NASAL / OLD-vowel."""
+    """V / V_NASAL / V_R / OLD-vowel."""
     if not tok: return False
     k, v = tok[0], tok[1] if len(tok) > 1 else ''
-    if k in ('V', 'V_NASAL'): return True
+    if k in ('V', 'V_NASAL', 'V_R'): return True
     if k == 'OLD' and v in _OLD_VOWELS: return True
     return False
 
@@ -299,6 +330,36 @@ def _assemble(tokens, precise=True):
             syll = _compose('ㅇ', jung)
             attached = _compose_with_jong(syll, nasal_jong)
             syllables.append(attached if attached else syll)
+            i += 1; continue
+
+        # V_R (r-colored vowel: butter, fur)
+        if kind == 'V_R':
+            jung = _maybe_basic(val)
+            syll = _compose('ㅇ', jung)
+            attached = _compose_with_jong(syll, 'ㄹ')
+            syllables.append(attached if attached else syll)
+            i += 1; continue
+
+        # C_PALATAL_N (ɲ palatal n — palatalize next vowel)
+        if kind == 'C_PALATAL_N':
+            jamo = val if precise else 'ㄴ'
+            if nxt and _is_vowel_token(nxt):
+                v = _maybe_basic(nxt[1])
+                pv = _Y_VOWEL.get(v, v)
+                if precise:
+                    syllables.append(jamo)
+                    syll = _compose('ㅇ', pv)
+                else:
+                    syll = _compose('ㄴ', pv)
+                if nxt[0] == 'V_NASAL':
+                    syll = _compose_with_jong(syll, 'ㆁ' if precise else 'ㅇ') or syll
+                syllables.append(syll)
+                i += 2; continue
+            # 어말 — 단독 표시
+            if precise:
+                syllables.append(jamo)
+            else:
+                syllables.append(_compose('ㄴ', 'ㅣ'))
             i += 1; continue
 
         # C (자음)

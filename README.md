@@ -25,8 +25,12 @@ transcribe("firebase", "en")              # 파이어베이스 (합성어 분해
 transcribe("button",   "en")              # 버튼 (syllabic schwa)
 ```
 
-**14개 핵심 언어** (NIKL 표기) **+ 100+개 universal** (IPA 기반). **의존성 0** default.
-**영어 98.5%** (265단어), **다국어 100%** (116단어), **일본 도/현 92%** (71단어) — NIKL 외래어 표기 벤치.
+**14개 핵심 언어** NIKL 외래어 표기 (`pip install hunmin`).
+**+ ~120 ISO 코드** universal 모드 (`hunmin[universal]`, IPA 자동 추출).
+**+ IPA 직접 입력** (`lang='ipa'`) — IPA로 표기 가능한 어떤 언어든.
+
+영어 **98.5%** (265단어 NIKL 벤치), 다국어 **100%** (116단어), 일본 도/현 **92%** (71단어).
+Universal/IPA 모드는 "rough but mostly right" — 정확도 보장 X.
 
 ---
 
@@ -43,10 +47,18 @@ transcribe("button",   "en")              # 버튼 (syllabic schwa)
 ## 📦 설치
 
 ```bash
-pip install hunmin              # 11개 (Latin/Cyrillic 언어)
-pip install hunmin[cjk]         # + 일본어 / 중국어 / 한국어
-pip install hunmin[all]         # 모두 + 웹 데모
+pip install hunmin              # 11개 Latin/Cyrillic NIKL (en/es/fr/de/it/ru/pt/nl/pl/tr/id)
+pip install hunmin[cjk]         # + ja/zh/ko (한자 처리; pykakasi/pypinyin/hanja 필요)
+pip install hunmin[universal]   # + ~120 ISO 코드 (epitran 기반 IPA 자동 추출)
+pip install hunmin[ml]          # + g2p-en (영어 unknown 단어 신경망 G2P)
+pip install hunmin[demo]        # + Gradio 웹 데모
+pip install hunmin[all]         # 모두
 ```
+
+> **주의**:
+> - 기본 `pip install hunmin`은 14개 중 **11개만** 동작 (ja/zh/ko는 `[cjk]` 필요).
+> - Universal 모드의 ~120개 ISO 코드는 모두 epitran 매핑 검증됨, 다만 출력 정확도는 언어별 차이.
+> - `lang='ipa'`는 epitran 없이도 동작 (의존성 X).
 
 ---
 
@@ -239,6 +251,14 @@ hunmin.transcribe("hello", "en", level=4)  # ㅎㅔㄹㅗㅜ
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v2.3** (2026.04) — API 정리 + 톤 다운
+  * `supported_languages('hardcoded'|'universal'|'all')` 계층화
+  * Universal 121 epitran code 모두 smoke test 통과 검증
+  * README 정확화 (`lang='ipa'`는 IPA로 표기 가능한 모든 언어 지원으로 표현)
+* **v2.2** (2026.04) — UHPS v2 + IPA 직접 입력 모드
+  * 옛한글 + 한글자모확장으로 IPA → 한글 1:1 매핑
+  * `lang='ipa'`로 IPA 문자열 직접 입력 (의존성 0)
+  * /θ/→ㅼ, /ð/→ㅽ, /ʃ/→ᄾ, /ʒ/→ᄶ, /x/→ㆅ, /ʁ/→ᄛ, /ɲ/→ㅥ, /ɑ/→ㆍ, /ɔ/→ㆎ
 * **v2.1** (2026.04) — Universal IPA transcriber via epitran
   * **100+ 언어 추가**: 132 ISO 코드 → 121 unique epitran 매핑
   * 카탈루냐/웨일스/아일랜드/바스크/몰타/그리스 등 유럽 추가 언어

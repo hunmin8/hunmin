@@ -252,8 +252,19 @@ class Hunmin:
             raise ValueError(f"Unsupported lang: {lang!r}")
 
     def supported(self):
-        """Return set of supported language codes."""
+        """Return set of hardcoded language codes (NIKL 외래어 표기 지원)."""
         return _DICT_LANGS | set(_PRECISE.keys())
+
+    def supported_universal(self):
+        """Return ISO codes supported via epitran (lang='universal').
+        epitran 미설치 시 빈 set 반환.
+        """
+        try:
+            import epitran  # noqa: F401
+            from .core.universal import _ISO_TO_EPITRAN
+            return set(_ISO_TO_EPITRAN.keys())
+        except ImportError:
+            return set()
 
 
 # Module-level singleton
@@ -268,6 +279,28 @@ def transcribe(text, lang, level=1):
     return _default.transcribe(text, lang, level)
 
 
-def supported_languages():
-    """Return sorted list of supported language codes."""
-    return sorted(_default.supported())
+def supported_languages(tier='all'):
+    """Return supported language info.
+
+    Args:
+      tier:
+        'hardcoded' — 14개 NIKL 외래어 표기법 지원 (default install)
+        'universal' — epitran 통한 추가 ~120개 ISO 코드 (hunmin[universal] 필요)
+        'all' (default) — dict {hardcoded, universal, ipa}
+
+    Returns:
+      'hardcoded'/'universal' → sorted list of ISO codes
+      'all' → dict with keys: hardcoded (list), universal (list), ipa (bool)
+    """
+    h = sorted(_default.supported())
+    if tier == 'hardcoded':
+        return h
+    u = sorted(_default.supported_universal())
+    if tier == 'universal':
+        return u
+    return {
+        'hardcoded': h,
+        'universal': u,                 # epitran 통한 추가 ISO 코드
+        'ipa': True,                    # lang='ipa' 직접 입력은 항상 가능
+        'note': "lang='ipa'로 IPA 직접 입력 시 IPA로 표기 가능한 모든 언어 지원",
+    }
