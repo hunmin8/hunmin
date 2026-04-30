@@ -693,6 +693,14 @@ _ISO_TO_EPITRAN = {
     'hr': 'hrv-Latn', 'sl': 'slv-Latn',
     'sr': 'srp-Cyrl', 'srl': 'srp-Latn',
     'ru': 'rus-Cyrl', 'uk': 'ukr-Cyrl',
+    # Linguistic-neighbor fallbacks (epitran 미지원 → 가까운 언어 라우팅)
+    # v3.2: 정확도 손실 가능성 있지만 음역 가능하게 만듦
+    'sk': 'ces-Latn',   # Slovak → Czech (gradient mutually intelligible)
+    'bs': 'hrv-Latn',   # Bosnian → Croatian (사실상 동일 음운)
+    'me': 'srp-Cyrl',   # Montenegrin → Serbian
+    'mk': 'srp-Cyrl',   # Macedonian → Serbian (related Cyrillic)
+    'be': 'rus-Cyrl',   # Belarusian → Russian (가까움)
+    'bg': 'rus-Cyrl',   # Bulgarian → Russian (Cyrillic, 음운 다름 — 불완전 fallback)
     # === Baltic ===
     'lt': 'lit-Latn', 'lv': 'lav-Latn',
     # === Finno-Ugric ===

@@ -1,10 +1,53 @@
 """Hunmin public API — Hunmin class + transcribe() shortcut."""
+import re
 from .core import (
     transcribe_es, transcribe_it, transcribe_de, transcribe_ru,
     transcribe_fr, transcribe_pt, transcribe_nl, transcribe_pl,
     transcribe_tr, transcribe_id, transcribe_en,
     transcribe_cjk,
 )
+
+
+# === 동구권/일반 약어 → 의미 번역 (NIKL 컨벤션) ===
+# v3.2: 지명에서 자주 나오는 약어를 한국어 의미로 변환.
+# 단어 끝(공백+약어 또는 끝)에서만 매칭.
+_GEO_ABBREV = {
+    'R.': '강',           # River
+    'r.': '강',
+    'Riv.': '강',
+    'Mts.': '산맥',       # Mountains
+    'mts.': '산맥',
+    'Mt.': '산',          # Mount
+    'mt.': '산',
+    'Is.': '섬',          # Island/Islands
+    'is.': '섬',
+    'Isl.': '섬',
+    'I.': '섬',
+    'J.': '섬',           # Croatian/Slovene "otok" 약어 → 섬
+    'L.': '호',           # Lake
+    'Lk.': '호',
+    'Lake': '호',
+    'Pen.': '반도',       # Peninsula
+    'Bay': '만',
+    'Cape': '곶',
+    'C.': '곶',
+}
+
+def _apply_geo_abbrev(hangul, orig_text):
+    """Translate trailing geo abbreviations: 'Berounka R.' → '...강'."""
+    # Find abbreviation at end of orig_text
+    m = re.search(r'\s+([A-Za-z][A-Za-z\.]{0,5}\.)\s*$', orig_text)
+    if not m: return hangul
+    abbr = m.group(1)
+    trans = _GEO_ABBREV.get(abbr)
+    if not trans: return hangul
+    # Strip trailing transcribed abbreviation from hangul output (rough)
+    # Replace last "한글 단어" that ends with comma/period or matches
+    # Heuristic: drop trailing punctuation+chars and add the translation.
+    cleaned = re.sub(r'[가-힣]+\.?\s*$', '', hangul.rstrip())
+    if not cleaned.endswith(' '):
+        cleaned = cleaned.rstrip() + ' '
+    return cleaned + trans
 
 # 11 Latin/Cyrillic langs use precise rule modules
 _PRECISE = {
@@ -337,6 +380,13 @@ class Hunmin:
         return out
 
     def _hangul(self, text, lang, precise=False, uhps=None):
+        result = self._hangul_inner(text, lang, precise=precise, uhps=uhps)
+        # v3.2: 후처리 — 지명 약어 의미 번역 (basic 모드만)
+        if not precise and result and isinstance(result, str):
+            result = _apply_geo_abbrev(result, text)
+        return result
+
+    def _hangul_inner(self, text, lang, precise=False, uhps=None):
         # IPA 직접 입력 모드 (epitran 의존성 X)
         if lang == 'ipa':
             from .core.universal import transcribe_universal
