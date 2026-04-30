@@ -194,7 +194,7 @@ class Hunmin:
     def __init__(self):
         pass
 
-    def transcribe(self, text, lang, level=1):
+    def transcribe(self, text, lang, level=1, return_tokens=False):
         """Convert text to Hangul transcription.
 
         Args:
@@ -207,10 +207,17 @@ class Hunmin:
                 4: UHPS jamo sequence (for ML)
                 5: UHPS-full — 장단/성조/강세/방점까지 완전 보존
                    (옛 훈민정음 방점: 〮 거성, 〯 상성, ː 장음)
+            return_tokens (bool): True면 추상 토큰 시퀀스 [(KIND, value, ...), ...]
+                를 반환 (ML 학습용). UHPS_SPEC §6 참조.
+                level=3 → core 토큰, level=5 → full 토큰 (SUPRA 포함).
+                lang은 'ipa' 또는 universal-mode iso (epitran 필요).
 
         Returns:
             str: Hangul or jamo transcription.
+            list: return_tokens=True 일 경우 토큰 리스트.
         """
+        if return_tokens:
+            return self._tokens(text, lang, level)
         if level == 4:
             return self._jamo(text, lang)
         elif level == 5:
@@ -219,6 +226,115 @@ class Hunmin:
             return self._hangul(text, lang, precise=True, uhps='core')
         else:  # 1 or 2
             return self._hangul(text, lang, precise=False, uhps='basic')
+
+    def _tokens(self, text, lang, level):
+        """추상 토큰 시퀀스 반환 (UHPS_SPEC §6).
+        level → uhps mode:
+          1/2 → 'basic'  (현대 한글 매핑, no SUPRA)
+          3   → 'core'   (옛한글 매핑, no SUPRA)
+          4   → 'core'   (4는 jamo sequence 모드인데 토큰은 core와 동일)
+          5   → 'full'   (옛한글 + SUPRA 포함)
+        """
+        from .core.universal import transcribe_universal
+        if level == 5:
+            uhps = 'full'
+        elif level >= 3:
+            uhps = 'core'
+        else:
+            uhps = 'basic'
+
+        # CJK는 IPA 변환 별도 미지원 — 명시적 안내
+        if lang in _DICT_LANGS:
+            raise ValueError(
+                f"return_tokens=True는 lang={lang!r}에 대해 미지원 (v3.0). "
+                f"lang='ipa'로 IPA 직접 입력하거나 universal-mode iso 코드를 사용하세요.")
+
+        return transcribe_universal(text, lang, uhps=uhps,
+                                     return_tokens=True)
+
+    def views(self, text, lang, meaning=None):
+        """Multi-view 표기 dict 반환 — UHPS_SPEC §1.0.
+
+        UHPS-code (음소 코드, 음절 합성 보장 안 함) 와 HUNMIN-readable
+        (사람 읽는 한글) 을 분리해서 같이 보여주기 위한 통합 API.
+
+        Args:
+            text: 원문
+            lang: 언어 코드 또는 'ipa'
+            meaning: 선택적 의미 anchor (caller-provided)
+
+        Returns:
+            dict with keys: text, lang, ipa, uhps_core, uhps_full, hunmin, meaning
+            (ipa는 lang='ipa'면 입력 그대로, universal-mode 외엔 None)
+
+        Example:
+            >>> Hunmin().views("Bonjour", "fr", meaning="안녕하세요")
+            {
+              'text': 'Bonjour', 'lang': 'fr',
+              'ipa': 'bɔ̃ʒuʁ',         # epitran 통해
+              'uhps_core': 'ㅂㆎᄶ우ᄛ',  # 코드, 음절 합성 안 됨
+              'uhps_full': 'ㅂㆎᄶ우ᄛ',
+              'hunmin': '봉주르',         # 사람 읽기
+              'meaning': '안녕하세요',
+            }
+        """
+        out = {
+            'text': text,
+            'lang': lang,
+            'ipa': None,
+            'uhps_core': None,
+            'uhps_full': None,
+            'hunmin': None,
+            'meaning': meaning,
+        }
+
+        # IPA 추출
+        if lang == 'ipa':
+            out['ipa'] = text
+        else:
+            try:
+                import epitran
+                from .core.universal import _ISO_TO_EPITRAN
+                code = _ISO_TO_EPITRAN.get(lang, lang)
+                try:
+                    out['ipa'] = epitran.Epitran(code).transliterate(text)
+                except Exception:
+                    pass
+            except ImportError:
+                pass
+
+        # UHPS-core, UHPS-full — 항상 IPA 경로로 라우팅 (옛한글/방점 보존)
+        # hardcoded 룰베이스(transcribe_fr 등)는 UHPS-code를 생산하지 않으므로
+        # views()는 강제로 universal/IPA 파이프라인 사용.
+        from .core.universal import transcribe_universal
+        ipa_for_uhps = out['ipa'] if out['ipa'] else None
+        if ipa_for_uhps:
+            try:
+                out['uhps_core'] = transcribe_universal(
+                    ipa_for_uhps, 'ipa', uhps='core', safe_fonts=False)
+            except Exception:
+                pass
+            try:
+                out['uhps_full'] = transcribe_universal(
+                    ipa_for_uhps, 'ipa', uhps='full', safe_fonts=False)
+            except Exception:
+                pass
+        else:
+            # IPA 없으면 fallback (rule-based 결과로 채움 — ML 학습엔 부적합)
+            try:
+                out['uhps_core'] = self._hangul(text, lang, precise=True, uhps='core')
+            except Exception:
+                pass
+            try:
+                out['uhps_full'] = self._hangul(text, lang, precise=True, uhps='full')
+            except Exception:
+                pass
+        # HUNMIN-readable
+        try:
+            out['hunmin'] = self._hangul(text, lang, precise=False, uhps='basic')
+        except Exception:
+            pass
+        return out
 
     def _hangul(self, text, lang, precise=False, uhps=None):
         # IPA 직접 입력 모드 (epitran 의존성 X)
@@ -277,12 +393,20 @@ class Hunmin:
 _default = Hunmin()
 
 
-def transcribe(text, lang, level=1):
+def transcribe(text, lang, level=1, return_tokens=False):
     """Convert text to Hangul transcription (uses default Hunmin instance).
 
     See Hunmin.transcribe for full docs.
     """
-    return _default.transcribe(text, lang, level)
+    return _default.transcribe(text, lang, level, return_tokens=return_tokens)
+
+
+def views(text, lang, meaning=None):
+    """Multi-view 표기 dict (UHPS_SPEC §1.0).
+
+    See Hunmin.views for full docs.
+    """
+    return _default.views(text, lang, meaning=meaning)
 
 
 def supported_languages(tier='all'):

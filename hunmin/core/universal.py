@@ -118,9 +118,20 @@ _IPA_PHONEMES = {
 }
 
 # 다중자 IPA → 단일 토큰 변환 (preprocessing)
+# Order matters: longer/more-specific patterns first (with tie bar before without)
 _IPA_DIGRAPHS = [
-    ('t͡ʃ', 'ʧ'), ('d͡ʒ', 'ʤ'), ('ts', 'ʦ'), ('dz', 'ʣ'),
+    # with tie bar (U+0361)
+    ('t͡ʃ', 'ʧ'), ('d͡ʒ', 'ʤ'),
+    ('t͡ɕ', 'ʧ'), ('d͡ʑ', 'ʤ'),   # alveolo-palatal (Mandarin j/q, Vietnamese ch)
+    ('t͡ʂ', 'ʧ'), ('d͡ʐ', 'ʤ'),   # retroflex (using plain t/d)
+    ('ʈ͡ʂ', 'ʧ'), ('ɖ͡ʐ', 'ʤ'),   # retroflex (true retroflex stop letters: Mandarin zh/ch, Polish cz)
+    ('t͡s', 'ʦ'), ('d͡z', 'ʣ'),
+    # without tie bar
     ('tʃ', 'ʧ'),  ('dʒ', 'ʤ'),
+    ('tɕ', 'ʧ'),  ('dʑ', 'ʤ'),
+    ('tʂ', 'ʧ'),  ('dʐ', 'ʤ'),
+    ('ʈʂ', 'ʧ'),  ('ɖʐ', 'ʤ'),
+    ('ts', 'ʦ'),  ('dz', 'ʣ'),
 ]
 _IPA_PHONEMES['ʧ'] = ('C', 'ㅊ')
 _IPA_PHONEMES['ʤ'] = ('C', 'ㅈ')
@@ -189,7 +200,12 @@ def _normalize_ipa(ipa, uhps='basic'):
     'full'  — UHPS-full: 장단/성조/강세까지 모두 보존 (level=5)
     """
     s = ipa
-    s = unicodedata.normalize('NFC', s)
+    # full 모드에선 NFD 분해 — 결합 톤 마크(́ ̀ ̌ ̂ etc) 인식하기 위함.
+    # basic/core 모드는 NFC 유지 (precomposed 한 음소 매핑 가능).
+    if uhps == 'full':
+        s = unicodedata.normalize('NFD', s)
+    else:
+        s = unicodedata.normalize('NFC', s)
     for src, dst in _IPA_DIGRAPHS:
         s = s.replace(src, dst)
     if uhps == 'basic':
@@ -210,18 +226,52 @@ _NASAL_MAP = {
 }
 
 # === Suprasegmental — IPA 운율 표기 ===
-# 옛 훈민정음 방점 시스템 + 호환성 (font 미지원 케이스 대비) 스타일 옵션:
-#   'panjeom' — 〮 (U+302E), 〯 (U+302F) — 옛 훈민정음 정통, 폰트 의존
-#   'ipa'     — ˈ ˇ ː — IPA 기호, 폰트 보편적 지원
-#   'ascii'   — ' ^ : — 가장 안전 (모든 폰트)
+# v3.1: 5-tone category (H/R/D/F/L) + tone_style 별 시각화.
+# Tone categories — abstract ID, 시각 표기에 의존하지 않음:
+#   H = high level (高平 / level-5)        — Mandarin 1성, IPA ˥ ˦, ́ acute
+#   R = rising (上聲 / mid→high)            — Mandarin 2성, IPA ˧˥, ̌ caron
+#   D = dipping (低降昇 / low-fall-rise)    — Mandarin 3성, IPA ˨˩˦
+#   F = falling (去聲 / high→low)            — Mandarin 4성, IPA ˥˩, ̂ circumflex
+#   L = low (低 / level-1)                   — IPA ˨ ˩, ̀ grave
+#   M = mid (level-3) / N = neutral          — 표시 없음 (생략)
+#   STRESS = lexical stress                  — 별도 (강세는 tone과 다름)
 TONE_STYLES = {
-    'panjeom':   {'high': '〮', 'rising': '〯', 'length': 'ː'},
-    'ipa':       {'high': 'ˈ',  'rising': 'ˇ',  'length': 'ː'},
-    'middledot': {'high': '·',  'rising': '··', 'length': 'ː'},   # 가운뎃점 — 모든 폰트 OK
-    'ascii':     {'high': "'",  'rising': '^',  'length': ':'},
+    # 분절체계용 stress/length만 박은 것 (default 호환)
+    'panjeom':   {
+        'high': '〮', 'rising': '〯', 'length': 'ː',
+        'tone_H': '〮', 'tone_R': '〯', 'tone_D': '〯〮',
+        'tone_F': '〮〯', 'tone_L': '', 'tone_stress': '〮',
+    },
+    'ipa':       {
+        'high': 'ˈ',  'rising': 'ˇ',  'length': 'ː',
+        'tone_H': '˥', 'tone_R': '˧˥', 'tone_D': '˨˩˦',
+        'tone_F': '˥˩', 'tone_L': '˩', 'tone_stress': 'ˈ',
+    },
+    'middledot': {
+        'high': '·',  'rising': '··', 'length': 'ː',
+        'tone_H': '·', 'tone_R': '··', 'tone_D': '··',
+        'tone_F': '·', 'tone_L': '', 'tone_stress': '·',
+    },
+    'ascii':     {
+        'high': "'",  'rising': '^',  'length': ':',
+        'tone_H': "'", 'tone_R': '^', 'tone_D': '^^',
+        'tone_F': "'", 'tone_L': '_', 'tone_stress': "'",
+    },
+    # v3.1: arrow style — 톤 윤곽을 화살표로 시각화
+    'arrow':     {
+        'high': '¯',  'rising': '↗',  'length': 'ː',
+        'tone_H': '¯', 'tone_R': '↗', 'tone_D': '↘↗',
+        'tone_F': '↘', 'tone_L': '↓', 'tone_stress': '·',
+    },
+    # v3.1: numeric — Mandarin 1-5 디지트 슈퍼스크립트
+    'numeric':   {
+        'high': '¹',  'rising': '²',  'length': 'ː',
+        'tone_H': '¹', 'tone_R': '²', 'tone_D': '³',
+        'tone_F': '⁴', 'tone_L': '₁', 'tone_stress': '·',
+    },
 }
 # 모듈 변수 (런타임 변경 가능)
-_DEFAULT_TONE_STYLE = 'middledot'  # 가운뎃점 — 한글에 시각적으로 어울리고 모든 폰트 호환
+_DEFAULT_TONE_STYLE = 'middledot'
 PANJEOM_HIGH = TONE_STYLES[_DEFAULT_TONE_STYLE]['high']
 PANJEOM_RISING = TONE_STYLES[_DEFAULT_TONE_STYLE]['rising']
 LENGTH_MARK = TONE_STYLES[_DEFAULT_TONE_STYLE]['length']
@@ -230,35 +280,60 @@ HALF_LENGTH = 'ˑ'
 # Stress/tone marker 종류
 _STRESS_PRIMARY = {'ˈ'}                    # 강세 → 거성 〮
 _STRESS_SECONDARY = {'ˌ'}                  # 부강세 → 무시 또는 별도
-_TONE_HIGH = {'˥', '˦'}                    # 고성조 → 거성
-_TONE_MID = {'˧'}                          # 중성조 → 표시 없음
-_TONE_LOW = {'˨', '˩'}                     # 저성조 → 표시 없음
-_TONE_RISING_MARK = '↗'
-_TONE_FALLING_MARK = '↘'
+_TONE_HIGH = {'˥', '˦'}                    # 고성조 → H category
+_TONE_MID = {'˧'}                          # 중성조 → M (생략)
+_TONE_LOW = {'˨', '˩'}                     # 저성조 → L category
 _LENGTH_MARKERS = {'ː', 'ˑ'}
 
 # 옛한글 모음 (강세는 모음에만 attach)
 _TOKENIZE_OLD_VOWELS = {'ㆎ', 'ㆍ', 'ㅙ'}
 
-# Mandarin 톤 (1-5) 또는 vowel 위 dot
-_MANDARIN_TONE = {
-    '1': PANJEOM_HIGH,        # 1성 (고평) → 거성
-    '2': PANJEOM_RISING,      # 2성 (상승) → 상성
-    '3': PANJEOM_RISING,      # 3성 (저강하상승) → 상성 근사
-    '4': PANJEOM_HIGH,        # 4성 (하강) → 거성 (강한 마크)
-    '5': '',                  # 5성 (경성) → 표시 없음
+# Mandarin 톤 (1-5 디지트) → tone category
+# v3.1: 4성을 별개 카테고리로 분리 (이전: 1=4=H, 2=3=R로 머지)
+_MANDARIN_TONE_CAT = {
+    '1': 'H',  # 1성 高平
+    '2': 'R',  # 2성 上昇
+    '3': 'D',  # 3성 低降昇 (dipping)
+    '4': 'F',  # 4성 去聲 (falling)
+    '5': '',   # 5성 輕聲 (neutral, no mark)
 }
 
-# IPA vowel 위 톤 diacritic (combining marks)
-_TONE_DIACRITICS = {
-    '́': PANJEOM_HIGH,      # ́ acute = high
-    '̀': '',                # ̀ grave = low (표시 없음)
-    '̄': '',                # ̄ macron = mid
-    '̌': PANJEOM_RISING,    # ̌ caron = rising
-    '̂': PANJEOM_HIGH,      # ̂ circumflex = falling (high 근사)
-    '̋': PANJEOM_HIGH,      # ̋ double acute = extra high
-    '̏': '',                # ̏ double grave = extra low
+# IPA vowel 위 톤 diacritic (combining marks) → tone category
+_TONE_DIACRITIC_CAT = {
+    '́': 'H',       # ́ acute = high (Vietnamese sắc)
+    '̀': 'L',       # ̀ grave = low (Vietnamese huyền)
+    '̄': '',        # ̄ macron = mid (no mark)
+    '̌': 'R',       # ̌ caron = rising
+    '̂': 'F',       # ̂ circumflex = falling
+    '̋': 'H',       # ̋ double acute = extra high
+    '̏': 'L',       # ̏ double grave = extra low
+    '̉': 'D',       # ̉ hook above (Vietnamese hỏi = dipping)
+    # Note: ̃ tilde stays as nasal vowel marker (IPA convention), not tone.
+    '̣': 'F',       # ̣ dot below (Vietnamese nặng = heavy/falling)
 }
+
+# IPA tone bar combinations → category
+# (긴 패턴부터 검사 — 더 구체적인 매칭 우선)
+_TONE_BAR_PATTERNS = [
+    ('˨˩˦', 'D'),      # Mandarin tone 3 (low-dipping)
+    ('˧˥', 'R'),       # rising
+    ('˥˩', 'F'),       # falling
+    ('˨˦', 'R'),       # rising variant
+    ('˧˨', 'F'),       # falling variant
+    ('˥', 'H'),        # high level
+    ('˦', 'H'),        # high
+    ('˧', ''),         # mid (no mark)
+    ('˨', 'L'),        # low
+    ('˩', 'L'),        # extra low
+]
+
+
+def _resolve_tone_mark(category):
+    """Resolve abstract tone category to current tone_style 's mark."""
+    if not category:
+        return ''
+    style = TONE_STYLES.get(_DEFAULT_TONE_STYLE, TONE_STYLES['middledot'])
+    return style.get(f'tone_{category}', '')
 
 
 def _tokenize_ipa(ipa, precise=False):
@@ -293,14 +368,20 @@ def _tokenize_ipa(ipa, precise=False):
         if ch in _STRESS_SECONDARY:
             i += 1; continue
 
-        # Tone bars
-        if ch in _TONE_HIGH:
-            # 직전 모음 음절에 적용
+        # Tone bars (multi-char patterns first — D/F before H/L)
+        # v3.1: 5-category tone resolution
+        matched_bar = None
+        for pat, cat in _TONE_BAR_PATTERNS:
+            if ipa[i:i+len(pat)] == pat:
+                matched_bar = (pat, cat)
+                break
+        if matched_bar:
+            pat, cat = matched_bar
             if precise:
-                out.append(('SUPRA', PANJEOM_HIGH))
-            i += 1; continue
-        if ch in _TONE_LOW or ch in _TONE_MID:
-            i += 1; continue
+                mark = _resolve_tone_mark(cat)
+                if mark:
+                    out.append(('SUPRA', mark))
+            i += len(pat); continue
 
         # Length markers
         if ch in _LENGTH_MARKERS:
@@ -308,16 +389,17 @@ def _tokenize_ipa(ipa, precise=False):
                 out.append(('SUPRA', LENGTH_MARK))
             i += 1; continue
 
-        # Mandarin tone digit (1-5) — 일부 IPA 표기 시
-        if ch.isdigit() and ch in _MANDARIN_TONE:
+        # Mandarin tone digit (1-5)
+        if ch.isdigit() and ch in _MANDARIN_TONE_CAT:
             if precise:
-                mark = _MANDARIN_TONE[ch]
+                cat = _MANDARIN_TONE_CAT[ch]
+                mark = _resolve_tone_mark(cat)
                 if mark:
                     out.append(('SUPRA', mark))
             i += 1; continue
 
         # Tone combining diacritics on vowel
-        if nxt in _TONE_DIACRITICS:
+        if nxt in _TONE_DIACRITIC_CAT:
             # Process base char first, then mark
             if ch in _IPA_PHONEMES:
                 tok = _IPA_PHONEMES[ch]
@@ -326,7 +408,8 @@ def _tokenize_ipa(ipa, precise=False):
                     pending_stress = None
                 out.append(tok)
             if precise:
-                mark = _TONE_DIACRITICS[nxt]
+                cat = _TONE_DIACRITIC_CAT[nxt]
+                mark = _resolve_tone_mark(cat)
                 if mark:
                     out.append(('SUPRA', mark))
             i += 2; continue
@@ -596,6 +679,8 @@ def _compose_with_jong(syll, jong):
 # ISO 639-1 / 639-3 → epitran code
 # 모든 매핑은 검증됨 (99 base codes, 모두 epitran.Epitran() 로드 가능)
 _ISO_TO_EPITRAN = {
+    # === English (ML routing only — hardcoded path uses CMU dict) ===
+    'en': 'eng-Latn',
     # === Romance ===
     'es': 'spa-Latn', 'fr': 'fra-Latn', 'it': 'ita-Latn', 'pt': 'por-Latn',
     'ca': 'cat-Latn', 'gl': 'glg-Latn', 'oc': 'oci-Latn', 'ro': 'ron-Latn',
@@ -689,8 +774,20 @@ _ISO_TO_EPITRAN = {
 }
 
 
+def _set_tone_style(tone_style):
+    """Update module-level tone style variables.
+    _DEFAULT_TONE_STYLE 를 갱신해야 _resolve_tone_mark 가 올바른 카테고리 매핑 사용."""
+    global PANJEOM_HIGH, PANJEOM_RISING, LENGTH_MARK, _DEFAULT_TONE_STYLE
+    style = TONE_STYLES.get(tone_style, TONE_STYLES['middledot'])
+    _DEFAULT_TONE_STYLE = tone_style if tone_style in TONE_STYLES else 'middledot'
+    PANJEOM_HIGH = style['high']
+    PANJEOM_RISING = style['rising']
+    LENGTH_MARK = style['length']
+
+
 def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None,
-                         tone_style='middledot', safe_fonts=True):
+                         tone_style='middledot', safe_fonts=True,
+                         return_tokens=False):
     """Universal IPA-based transcribe.
 
     Args:
@@ -700,21 +797,20 @@ def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None,
       precise: True → UHPS-core (옛한글 자음/모음 1:1), False → 기본 한글.
       uhps: 'basic' / 'core' / 'full' (None: precise로부터 추론).
       tone_style: UHPS-full 모드에서 운율 표기 스타일.
-        'ipa'     (default) — ˈ ˇ ː (모든 폰트 호환)
+        'middledot' (default) — · ·· ː (한글 친화, 모든 폰트 호환)
         'panjeom' — 〮 〯 ː (옛 훈민정음 정통, 옛한글 폰트 필요)
+        'ipa'     — ˈ ˇ ː (IPA식)
         'ascii'   — ' ^ : (가장 안전)
       safe_fonts: True (default) → 결합블록 jamo (ᄾᄶᄛ) 를 modern 자모로 fallback.
                   False → 결합블록 그대로 (UHPS 정밀, 일부 폰트 미지원).
+      return_tokens: True면 추상 토큰 시퀀스 [(KIND, value, ...), ...] 반환 (ML 학습용).
+                     이때 mode/safe_fonts는 무시된다 (토큰은 표면 표기 이전 layer).
     """
     if uhps is None:
         uhps = 'core' if precise else 'basic'
     precise_inner = uhps in ('core', 'full')
-    # 모듈 글로벌 mark 갱신 (assembler가 사용)
-    global PANJEOM_HIGH, PANJEOM_RISING, LENGTH_MARK
-    style = TONE_STYLES.get(tone_style, TONE_STYLES['ipa'])
-    PANJEOM_HIGH = style['high']
-    PANJEOM_RISING = style['rising']
-    LENGTH_MARK = style['length']
+    # 모듈 글로벌 mark + style id 갱신 (tokenizer/assembler 모두 사용)
+    _set_tone_style(tone_style)
 
     def _safe_fallback(s):
         if not safe_fonts: return s
@@ -725,6 +821,8 @@ def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None,
     if lang_iso == 'ipa':
         ipa_norm = _normalize_ipa(text, uhps=uhps)
         tokens = _tokenize_ipa(ipa_norm, precise=(uhps == 'full'))
+        if return_tokens:
+            return _expand_stress_tokens(tokens) if uhps == 'full' else tokens
         return _safe_fallback(_assemble(tokens, precise=precise_inner))
 
     try:
@@ -735,19 +833,30 @@ def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None,
             "Or use lang='ipa' to provide IPA directly (no dependency).")
 
     epi_code = _ISO_TO_EPITRAN.get(lang_iso, lang_iso)
-    try:
-        epi = epitran.Epitran(epi_code)
-    except Exception as e:
-        raise ValueError(
-            f"Unsupported language {lang_iso!r} (epitran code {epi_code!r}). "
-            f"Try lang='ipa' to provide IPA directly: {e}")
+    # Cache Epitran instances — initialization is ~0.8s per language
+    if not hasattr(transcribe_universal, '_epi_cache'):
+        transcribe_universal._epi_cache = {}
+    cache = transcribe_universal._epi_cache
+    if epi_code not in cache:
+        try:
+            cache[epi_code] = epitran.Epitran(epi_code)
+        except Exception as e:
+            cache[epi_code] = None
+            raise ValueError(
+                f"Unsupported language {lang_iso!r} (epitran code {epi_code!r}). "
+                f"Try lang='ipa' to provide IPA directly: {e}")
+    epi = cache[epi_code]
+    if epi is None:
+        raise ValueError(f"Unsupported language {lang_iso!r}")
 
     ipa = epi.transliterate(text)
     if not ipa:
-        return text
+        return [] if return_tokens else text
 
     ipa_norm = _normalize_ipa(ipa, uhps=uhps)
     tokens = _tokenize_ipa(ipa_norm, precise=(uhps == 'full'))
+    if return_tokens:
+        return _expand_stress_tokens(tokens) if uhps == 'full' else tokens
     return _safe_fallback(_assemble(tokens, precise=precise_inner))
 
 

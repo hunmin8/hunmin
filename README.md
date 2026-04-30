@@ -261,6 +261,35 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.1.0** (2026.04) — Tone renderer 정식화 (UHPS_SPEC §5)
+  * 5-way tone category: H (high), R (rising), D (dipping), F (falling), L (low)
+  * **Mandarin 4성 distinct 보장** — 이전엔 1=4=H, 2=3=R로 머지되던 것 → 4개 모두 분리
+  * 새 tone_style: **`arrow`** (¯ ↗ ↘↗ ↘ ↓), **`numeric`** (¹ ² ³ ⁴ ₁)
+  * Vietnamese 6 tones — NFD 분해로 결합 마크(́ ̀ ̉ ̣) 인식
+    * á(sắc)→H, à(huyền)→L, ả(hỏi)→D, ạ(nặng)→F
+  * IPA tone bar pattern 매칭: `˨˩˦` → D (long-first 우선)
+  * 검증: `ma˨˩˦` → arrow `마↘↗` / numeric `마³` / panjeom `마〯〮`
+* **v3.0.1** (2026.04) — UHPS-code vs HUNMIN-readable 명시 + 6-view API
+  * UHPS_SPEC §1.0: "UHPS는 코드, HUNMIN은 사람 읽기" 핵심 구분 박음
+  * 한글 완성형 본질적 제약 명시 (ㅂ+ㆎ는 영구히 분리 표시)
+  * `views(text, lang, meaning=...)` API 추가 — 6-view dict 반환
+    * keys: text, lang, ipa, uhps_core, uhps_full, hunmin, meaning
+    * UHPS-code는 강제로 epitran/IPA 경로로 라우팅 (옛한글/방점 보존)
+  * CLI: `--views` 플래그 + `--meaning` 옵션
+* **v3.0.0** (2026.04) — Spec freeze + ML token layer
+  * `docs/UHPS_SPEC.md` — 정식 spec 문서. IPA → UHPS 매핑이 코드 밖에서 동결됨
+  * **Token-layer API 노출** — `transcribe(..., return_tokens=True)` (UHPS_SPEC §6)
+    * 추상 토큰 시퀀스 `[(KIND, value, ...), ...]` 반환
+    * KIND: C / OLD / V / V_NASAL / V_R / SV_MARKER / SUPRA / SPACE / PUNCT
+    * 임의 언어 → 동일 음소 공간 투영 (ML 학습용)
+  * **CLI**: `--tokens` + `--format text/json/jsonl` 추가
+  * `'en'` ISO 코드를 universal map에 추가 (`return_tokens=True` 시 epitran 경로)
+  * Tone system v3.0 정책: prosodic layer로 보존만, 본 자모와 머지 안 함. 정식 renderer는 v3.1
+* **v2.4.4** (2026.04) — affricate digraph 보강
+  * `tɕ`/`dʑ` (alveolo-palatal, 베트남어 ch / 만다린 j·q) → ㅊ/ㅈ로 정규화
+  * `tʂ`/`dʐ` 및 `ʈʂ`/`ɖʐ` (retroflex, 만다린 zh·ch / 폴란드어 cz) → ㅊ/ㅈ
+  * tie bar (U+0361) 유무 모두 인식: `t͡ɕ`, `d͡ʑ`, `ʈ͡ʂ`, `ɖ͡ʐ`, `t͡s`, `d͡z`
+  * 예: 베트남어 `xin chào` `/sin tɕaːw/` → `신 차ː으` (이전: `신 트사으`)
 * **v2.4.3** (2026.04) — 강세 attach bug fix
   * 강세는 자음(ㆄㅸㅿ 등)이 아닌 **모음**에만 attach
   * default tone_style을 `middledot` (·)로 — 한글 시각 호환

@@ -21,8 +21,17 @@ Supported languages:
     )
     ap.add_argument('--text', help='Input text')
     ap.add_argument('--lang', help='Language code')
-    ap.add_argument('--level', type=int, default=1, choices=[1, 2, 3, 4],
-                    help='1: kid-friendly, 2: natural, 3: precise (old Hangul), 4: UHPS jamo')
+    ap.add_argument('--level', type=int, default=1, choices=[1, 2, 3, 4, 5],
+                    help='1: kid-friendly, 2: natural, 3: UHPS-core, 4: jamo seq, 5: UHPS-full')
+    ap.add_argument('--tokens', action='store_true',
+                    help='Output abstract token sequence instead of Hangul (ML use). '
+                         'Implies routing through IPA pipeline. See UHPS_SPEC §6.')
+    ap.add_argument('--views', action='store_true',
+                    help='Output multi-view dict (text/ipa/uhps_core/uhps_full/hunmin/meaning). '
+                         'See UHPS_SPEC §1.0.')
+    ap.add_argument('--meaning', help='Optional meaning anchor (used with --views)')
+    ap.add_argument('--format', choices=['text', 'json', 'jsonl'], default='text',
+                    help='Output format (default text). json/jsonl works with --tokens or --views.')
     ap.add_argument('--demo', action='store_true', help='Run text demo with 14 languages')
     ap.add_argument('--web', action='store_true', help='Launch Gradio web demo (requires hunmin[demo])')
     ap.add_argument('--list-langs', action='store_true', help='List supported languages')
@@ -44,6 +53,34 @@ Supported languages:
 
     if not args.text or not args.lang:
         ap.print_help()
+        return
+
+    if args.tokens:
+        toks = transcribe(args.text, args.lang, level=args.level, return_tokens=True)
+        if args.format == 'json':
+            import json
+            print(json.dumps([list(t) for t in toks], ensure_ascii=False))
+        elif args.format == 'jsonl':
+            import json
+            print(json.dumps({
+                'text': args.text, 'lang': args.lang, 'level': args.level,
+                'tokens': [list(t) for t in toks],
+            }, ensure_ascii=False))
+        else:
+            for t in toks:
+                print('\t'.join(str(x) for x in t))
+        return
+
+    if args.views:
+        from . import views as get_views
+        v = get_views(args.text, args.lang, meaning=args.meaning)
+        if args.format in ('json', 'jsonl'):
+            import json
+            print(json.dumps(v, ensure_ascii=False))
+        else:
+            for k, val in v.items():
+                if val is not None:
+                    print(f'{k:12s} {val}')
         return
 
     out = transcribe(args.text, args.lang, level=args.level)
