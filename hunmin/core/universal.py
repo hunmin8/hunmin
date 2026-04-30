@@ -297,7 +297,8 @@ def _assemble(tokens, precise=True):
             jung = _maybe_basic(val)
             nasal_jong = 'ㆁ' if precise else 'ㅇ'
             syll = _compose('ㅇ', jung)
-            syllables.append(_compose_with_jong(syll, nasal_jong))
+            attached = _compose_with_jong(syll, nasal_jong)
+            syllables.append(attached if attached else syll)
             i += 1; continue
 
         # C (자음)
@@ -317,7 +318,7 @@ def _assemble(tokens, precise=True):
                     syll = cho + _compose('ㅇ', new_v)
                 if tokens[i+2][0] == 'V_NASAL':
                     nasal_jong = 'ㆁ' if precise else 'ㅇ'
-                    syll = _compose_with_jong(syll, nasal_jong)
+                    syll = _compose_with_jong(syll, nasal_jong) or syll
                 syllables.append(syll)
                 i += 3; continue
             # C + V/OLD/V_NASAL
@@ -329,7 +330,7 @@ def _assemble(tokens, precise=True):
                     syll = cho + _compose('ㅇ', target_v)
                 if nxt[0] == 'V_NASAL':
                     nasal_jong = 'ㆁ' if precise else 'ㅇ'
-                    syll = _compose_with_jong(syll, nasal_jong)
+                    syll = _compose_with_jong(syll, nasal_jong) or syll
                 syllables.append(syll)
                 i += 2; continue
             # 자음 단독: 받침 시도 또는 으-syll
@@ -466,29 +467,37 @@ def transcribe_universal(text, lang_iso, mode='hangul', precise=True):
     """Universal IPA-based transcribe.
 
     Args:
-      text: input text in source language.
-      lang_iso: 2-letter ISO 639-1 code (e.g., 'sw', 'th', 'vi', 'ar').
+      text: input text. lang='ipa'면 직접 IPA 문자열 입력.
+      lang_iso: ISO 639-1 코드 (en/sw/th/vi/ar/...) 또는 'ipa' (IPA 직접).
       mode: 'hangul' or 'jamo' or 'spaced'.
-      precise: True → 옛한글 (ㆄ/ㅸ/ㅿ); False → 기본 한글.
+      precise: True → 옛한글 + 한글자모확장 (UHPS v2); False → 기본 한글.
 
     Returns: Korean Hangul transcription.
-    Raises: ImportError if epitran not installed; ValueError if lang unsupported.
     """
+    # IPA 직접 입력 모드 — epitran 우회
+    if lang_iso == 'ipa':
+        ipa_norm = _normalize_ipa(text)
+        tokens = _tokenize_ipa(ipa_norm)
+        return _assemble(tokens, precise=precise)
+
     try:
         import epitran
     except ImportError:
         raise ImportError(
-            "Universal mode requires epitran: pip install hunmin[universal]")
+            "Universal mode requires epitran: pip install hunmin[universal]\n"
+            "Or use lang='ipa' to provide IPA directly (no dependency).")
 
     epi_code = _ISO_TO_EPITRAN.get(lang_iso, lang_iso)
     try:
         epi = epitran.Epitran(epi_code)
     except Exception as e:
-        raise ValueError(f"Unsupported language {lang_iso!r} (epitran code {epi_code!r}): {e}")
+        raise ValueError(
+            f"Unsupported language {lang_iso!r} (epitran code {epi_code!r}). "
+            f"Try lang='ipa' to provide IPA directly: {e}")
 
     ipa = epi.transliterate(text)
     if not ipa:
-        return text  # empty IPA → passthrough
+        return text
 
     ipa_norm = _normalize_ipa(ipa)
     tokens = _tokenize_ipa(ipa_norm)

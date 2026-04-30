@@ -217,6 +217,10 @@ class Hunmin:
             return self._hangul(text, lang, precise=False)
 
     def _hangul(self, text, lang, precise=False):
+        # IPA 직접 입력 모드 (epitran 의존성 X)
+        if lang == 'ipa':
+            from .core.universal import transcribe_universal
+            return transcribe_universal(text, 'ipa', mode='hangul', precise=precise)
         if lang in _DICT_LANGS:
             return transcribe_cjk(text, lang, mode='hangul')
         elif lang in _PRECISE:
@@ -234,7 +238,8 @@ class Hunmin:
             except ImportError:
                 raise ValueError(
                     f"Unsupported lang: {lang!r}. Hardcoded: {sorted(self.supported())}. "
-                    f"For 100+ languages: pip install hunmin[universal]")
+                    f"For 100+ languages: pip install hunmin[universal]\n"
+                    f"Or use lang='ipa' to provide IPA directly.")
             except ValueError:
                 raise
 
