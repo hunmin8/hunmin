@@ -24,7 +24,7 @@ Supported languages (14):
     ja, zh, ko
 """
 
-__version__ = '2.4.0'
+__version__ = '2.4.1'
 __author__ = 'Hunmin Project'
 
 from .api import Hunmin, transcribe, supported_languages

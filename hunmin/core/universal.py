@@ -124,8 +124,17 @@ _IPA_DIGRAPHS = [
 ]
 _IPA_PHONEMES['ʧ'] = ('C', 'ㅊ')
 _IPA_PHONEMES['ʤ'] = ('C', 'ㅈ')
-_IPA_PHONEMES['ʦ'] = ('C', 'ㅊ')  # ts → ㅊ (basic)
+_IPA_PHONEMES['ʦ'] = ('C', 'ㅊ')
 _IPA_PHONEMES['ʣ'] = ('C', 'ㅈ')
+
+# === 폰트 호환성 fallback ===
+# 결합 Hangul Jamo 블록 (U+1100~11FF)는 단독 표시 미지원 폰트 많음
+# safe_fonts=True 모드에서 Compat 블록(U+3131~318F) 또는 modern jamo로 대체
+_FONT_SAFE_FALLBACK = {
+    'ᄾ': 'ㅅ',   # /ʃ/ — 치두음 시옷 → 시옷 (구별 손실)
+    'ᄶ': 'ㅈ',   # /ʒ/ — 치두음 지읒 → 지읒
+    'ᄛ': 'ㄹ',   # /ʁ/ — 가벼운 ㄹ → ㄹ
+}
 
 # Y/W + 모음 → palatal/W vowel (existing UHPS pattern)
 _Y_VOWEL = {'ㅏ':'ㅑ','ㅐ':'ㅒ','ㅓ':'ㅕ','ㅔ':'ㅖ','ㅗ':'ㅛ','ㅜ':'ㅠ','ㅣ':'ㅣ','ㅡ':'ㅡ'}
@@ -201,15 +210,21 @@ _NASAL_MAP = {
 }
 
 # === Suprasegmental — IPA 운율 표기 ===
-# 옛 훈민정음 방점 (傍點) 시스템:
-#   평성 (low/평탄): 표시 없음
-#   거성 (high/강세): 〮 U+302E (HANGUL SINGLE DOT TONE MARK)
-#   상성 (rising):   〯 U+302F (HANGUL DOUBLE DOT TONE MARK)
-#   장음 (length):   ː U+02D0 (IPA TRIANGULAR COLON) — 그대로 유지
-PANJEOM_HIGH = '〮'    # 〮 거성 — 1점 (high tone, primary stress)
-PANJEOM_RISING = '〯'  # 〯 상성 — 2점 (rising tone)
-LENGTH_MARK = 'ː'           # 장음 (IPA 그대로)
-HALF_LENGTH = 'ˑ'           # 반장음
+# 옛 훈민정음 방점 시스템 + 호환성 (font 미지원 케이스 대비) 스타일 옵션:
+#   'panjeom' — 〮 (U+302E), 〯 (U+302F) — 옛 훈민정음 정통, 폰트 의존
+#   'ipa'     — ˈ ˇ ː — IPA 기호, 폰트 보편적 지원
+#   'ascii'   — ' ^ : — 가장 안전 (모든 폰트)
+TONE_STYLES = {
+    'panjeom': {'high': '〮', 'rising': '〯', 'length': 'ː'},
+    'ipa':     {'high': 'ˈ',  'rising': 'ˇ',  'length': 'ː'},
+    'ascii':   {'high': "'",  'rising': '^',  'length': ':'},
+}
+# 모듈 변수 (런타임 변경 가능)
+_DEFAULT_TONE_STYLE = 'ipa'  # 기본을 IPA로 (폰트 호환성 위해)
+PANJEOM_HIGH = TONE_STYLES[_DEFAULT_TONE_STYLE]['high']
+PANJEOM_RISING = TONE_STYLES[_DEFAULT_TONE_STYLE]['rising']
+LENGTH_MARK = TONE_STYLES[_DEFAULT_TONE_STYLE]['length']
+HALF_LENGTH = 'ˑ'
 
 # Stress/tone marker 종류
 _STRESS_PRIMARY = {'ˈ'}                    # 강세 → 거성 〮
@@ -666,7 +681,8 @@ _ISO_TO_EPITRAN = {
 }
 
 
-def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None):
+def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None,
+                         tone_style='ipa', safe_fonts=True):
     """Universal IPA-based transcribe.
 
     Args:
@@ -674,18 +690,34 @@ def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None)
       lang_iso: ISO 639-1/639-3 코드 또는 'ipa'.
       mode: 'hangul' / 'jamo' / 'spaced'.
       precise: True → UHPS-core (옛한글 자음/모음 1:1), False → 기본 한글.
-      uhps: 'basic' / 'core' / 'full'. None이면 precise로부터 추론
-            (precise=True → 'core', precise=False → 'basic').
-            'full' = 장단/성조/강세/방점 모두 보존.
+      uhps: 'basic' / 'core' / 'full' (None: precise로부터 추론).
+      tone_style: UHPS-full 모드에서 운율 표기 스타일.
+        'ipa'     (default) — ˈ ˇ ː (모든 폰트 호환)
+        'panjeom' — 〮 〯 ː (옛 훈민정음 정통, 옛한글 폰트 필요)
+        'ascii'   — ' ^ : (가장 안전)
+      safe_fonts: True (default) → 결합블록 jamo (ᄾᄶᄛ) 를 modern 자모로 fallback.
+                  False → 결합블록 그대로 (UHPS 정밀, 일부 폰트 미지원).
     """
     if uhps is None:
         uhps = 'core' if precise else 'basic'
     precise_inner = uhps in ('core', 'full')
+    # 모듈 글로벌 mark 갱신 (assembler가 사용)
+    global PANJEOM_HIGH, PANJEOM_RISING, LENGTH_MARK
+    style = TONE_STYLES.get(tone_style, TONE_STYLES['ipa'])
+    PANJEOM_HIGH = style['high']
+    PANJEOM_RISING = style['rising']
+    LENGTH_MARK = style['length']
+
+    def _safe_fallback(s):
+        if not safe_fonts: return s
+        for bad, good in _FONT_SAFE_FALLBACK.items():
+            s = s.replace(bad, good)
+        return s
 
     if lang_iso == 'ipa':
         ipa_norm = _normalize_ipa(text, uhps=uhps)
         tokens = _tokenize_ipa(ipa_norm, precise=(uhps == 'full'))
-        return _assemble(tokens, precise=precise_inner)
+        return _safe_fallback(_assemble(tokens, precise=precise_inner))
 
     try:
         import epitran
@@ -708,7 +740,7 @@ def transcribe_universal(text, lang_iso, mode='hangul', precise=True, uhps=None)
 
     ipa_norm = _normalize_ipa(ipa, uhps=uhps)
     tokens = _tokenize_ipa(ipa_norm, precise=(uhps == 'full'))
-    return _assemble(tokens, precise=precise_inner)
+    return _safe_fallback(_assemble(tokens, precise=precise_inner))
 
 
 def supported_universal_languages():
