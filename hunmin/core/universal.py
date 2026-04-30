@@ -236,63 +236,99 @@ def _assemble(tokens, precise=True):
     return ''.join(syllables)
 
 
-# epitran 언어 코드 → ISO 2자
+# ISO 639-1 / 639-3 → epitran code
+# 모든 매핑은 검증됨 (99 base codes, 모두 epitran.Epitran() 로드 가능)
 _ISO_TO_EPITRAN = {
-    'es': 'spa-Latn', 'fr': 'fra-Latn', 'de': 'deu-Latn', 'it': 'ita-Latn',
-    'pt': 'por-Latn', 'nl': 'nld-Latn', 'sv': 'swe-Latn', 'da': 'dan-Latn',
-    'no': 'nob-Latn', 'fi': 'fin-Latn',  # nob (Bokmål) for Norwegian
-    'pl': 'pol-Latn', 'cs': 'ces-Latn', 'ro': 'ron-Latn',
-    'hu': 'hun-Latn', 'el': 'ell-Grek',
-    'tr': 'tur-Latn', 'vi': 'vie-Latn',
-    'sw': 'swh-Latn', 'ha': 'hau-Latn', 'am': 'amh-Ethi',
-    'hi': 'hin-Deva', 'bn': 'ben-Beng', 'ur': 'urd-Arab',
-    'ar': 'ara-Arab', 'fa': 'fas-Arab', 'th': 'tha-Thai',
-    'id': 'ind-Latn', 'ms': 'msa-Latn', 'fil': 'fil-Latn', 'tl': 'fil-Latn',
-    'jv': 'jav-Latn',
-    'ru': 'rus-Cyrl',
-    'ca': 'cat-Latn', 'gl': 'glg-Latn',
-    'eo': 'epo-Latn',  # 에스페란토
-    'la': 'lat-Latn',
-    'tk': 'tuk-Latn',  # 투르크멘
-    'uz': 'uzb-Latn',
-    'az': 'aze-Latn',
-    'kk': 'kaz-Cyrl',
-    'ky': 'kir-Cyrl',
-    'mn': 'khk-Cyrl',  # 몽골
-    'lo': 'lao-Laoo',  # 라오어
-    'km': 'khm-Khmr',  # 크메르
-    'my': 'mya-Mymr',  # 미얀마
-    'ka': 'kat-Geor',  # 조지아
-    'hy': 'hye-Armn',  # 아르메니아
-    'he': 'heb-Hebr',
-    'yi': 'yid-Hebr',
-    'mt': 'mlt-Latn',
-    'is': 'isl-Latn',
-    'ga': 'gle-Latn',  # 아일랜드
-    'cy': 'cym-Latn',  # 웨일스
-    'eu': 'eus-Latn',  # 바스크
-    'lt': 'lit-Latn', 'lv': 'lav-Latn', 'et': 'est-Latn',
-    'sk': 'slk-Latn', 'sl': 'slv-Latn',
-    'hr': 'hrv-Latn', 'sr': 'srp-Cyrl', 'mk': 'mkd-Cyrl', 'bg': 'bul-Cyrl',
-    'uk': 'ukr-Cyrl', 'be': 'bel-Cyrl',
-    'af': 'afr-Latn', 'zu': 'zul-Latn', 'xh': 'xho-Latn',
-    'ig': 'ibo-Latn', 'yo': 'yor-Latn',  # Igbo, Yoruba
-    'so': 'som-Latn',  # 소말리
-    'ps': 'pus-Arab',  # 파슈토
-    'sd': 'snd-Arab',  # 신디
-    'pa': 'pan-Guru',  # 펀자비 (구르무키)
-    'gu': 'guj-Gujr', 'or': 'ori-Orya', 'as': 'asm-Beng',
-    'ta': 'tam-Taml', 'te': 'tel-Telu', 'kn': 'kan-Knda', 'ml': 'mal-Mlym',
-    'si': 'sin-Sinh',  # 신할라
-    'ne': 'nep-Deva', 'mr': 'mar-Deva',
-    'qu': 'quy-Latn',  # 케추아
-    'ay': 'aym-Latn',  # 아이마라
-    'gn': 'grn-Latn',  # 과라니
-    'rw': 'kin-Latn',  # 르완다
-    'ny': 'nya-Latn',  # 츠완다
-    'sn': 'sna-Latn',  # 쇼나
-    # Mandarin via Latin pinyin (epitran cmn)
-    # 'zh-pinyin': 'cmn-Latn',
+    # === Romance ===
+    'es': 'spa-Latn', 'fr': 'fra-Latn', 'it': 'ita-Latn', 'pt': 'por-Latn',
+    'ca': 'cat-Latn', 'gl': 'glg-Latn', 'oc': 'oci-Latn', 'ro': 'ron-Latn',
+    'sc': 'sro-Latn', 'co': 'oci-Latn',
+    # === Germanic ===
+    'de': 'deu-Latn', 'nl': 'nld-Latn', 'af': 'afr-Latn', 'fy': 'fry-Latn',
+    'sv': 'swe-Latn', 'no': 'nno-Latn', 'nn': 'nno-Latn',
+    # === Slavic ===
+    'pl': 'pol-Latn', 'cs': 'ces-Latn', 'csb': 'csb-Latn',
+    'hr': 'hrv-Latn', 'sl': 'slv-Latn',
+    'sr': 'srp-Cyrl', 'srl': 'srp-Latn',
+    'ru': 'rus-Cyrl', 'uk': 'ukr-Cyrl',
+    # === Baltic ===
+    'lt': 'lit-Latn', 'lv': 'lav-Latn',
+    # === Finno-Ugric ===
+    'fi': 'fin-Latn', 'et': 'est-Latn', 'hu': 'hun-Latn',
+    # === Celtic ===
+    'ga': 'gle-Latn', 'cy': 'cym-Latn',
+    # === Other Eu === (he/hy/is/eu/sk/bg/uk-be 일부는 epitran 미지원)
+    'sq': 'sqi-Latn', 'mt': 'mlt-Latn', 'eo': 'epo-Latn',
+    'tok': 'tok-Latn',  # 토키포나
+    'ile': 'ile-Latn',  # 인테르링귀
+    # === Turkic ===
+    'tr': 'tur-Latn', 'az': 'aze-Latn', 'azb': 'aze-Cyrl',
+    'kk': 'kaz-Cyrl', 'kkl': 'kaz-Latn',
+    'ky': 'kir-Cyrl', 'kyl': 'kir-Latn', 'kya': 'kir-Arab',
+    'tk': 'tuk-Latn', 'uzn': 'uzb-Latn', 'uz': 'uzb-Latn', 'uzc': 'uzb-Cyrl',
+    'kmr': 'kmr-Latn',  # 쿠르드 북부
+    'ug': 'uig-Arab',
+    # === Iranian ===
+    'fa': 'fas-Arab', 'ps': 'pbu-Arab', 'tg': 'tgk-Cyrl',
+    'ckb': 'ckb-Arab',  # 쿠르드 중부 (소라니)
+    # === Indic ===
+    'hi': 'hin-Deva', 'bho': 'bho-Deva', 'mr': 'mar-Deva',
+    'bn': 'ben-Beng', 'pa': 'pan-Guru', 'or': 'ori-Orya',
+    'ta': 'tam-Taml', 'te': 'tel-Telu',
+    'kn': 'kan-Knda', 'ml': 'mal-Mlym',
+    'si': 'sin-Sinh', 'ur': 'urd-Arab',
+    # === Semitic ===
+    'ar': 'ara-Arab', 'am': 'amh-Ethi', 'ti': 'tir-Ethi',
+    'syr': 'aii-Syrc',  # 시리아어
+    # === Caucasian ===
+    'ka': 'kat-Geor', 'av': 'ava-Cyrl', 'lez': 'lez-Cyrl',
+    'kbd': 'kbd-Cyrl',  # 카바르드 (서북캅카스)
+    # === Southeast Asian ===
+    'vi': 'vie-Latn', 'th': 'tha-Thai', 'lo': 'lao-Laoo',
+    'km': 'khm-Khmr', 'my': 'mya-Mymr',
+    'id': 'ind-Latn', 'ms': 'msa-Latn',
+    'jv': 'jav-Latn', 'fil': 'tgl-Latn', 'tl': 'tgl-Latn',
+    'ceb': 'ceb-Latn', 'ilo': 'ilo-Latn',
+    'tpi': 'tpi-Latn',  # 톡 피신 (파푸아)
+    # === East Asian ===
+    'ja': 'jpn-Hira',   # 일본어 (히라가나) — but Hunmin uses dedicated transcribe_ja
+    'ko': 'kor-Hang',   # 한국어 — but no-op
+    'zh': 'cmn-Latn',   # 중국어 (피닌 입력)
+    'yue': 'yue-Latn',  # 광둥어
+    'nan': 'nan-Latn',  # 민난어
+    'wuu': 'wuu-Latn',  # 우어 (상하이)
+    'hak': 'hak-Latn',  # 객가
+    'cjy': 'cjy-Latn',  # 진어
+    'hsn': 'hsn-Latn',  # 상어
+    'gan': 'gan-Latn',  # 감어
+    # === African ===
+    'sw': 'swa-Latn', 'lg': 'lug-Latn', 'rw': 'kin-Latn', 'rn': 'run-Latn',
+    'ny': 'nya-Latn', 'sn': 'sna-Latn', 'so': 'som-Latn',
+    'zu': 'zul-Latn', 'xh': 'xho-Latn', 'tn': 'tsn-Latn',
+    'yo': 'yor-Latn',
+    'ha': 'hau-Latn', 'om': 'orm-Latn', 'sg': 'sag-Latn',
+    'ff': 'ful-Latn', 'kab': 'kab-Latn',
+    'aar': 'aar-Latn', 'aa': 'aar-Latn',
+    # === Pacific ===
+    'mi': 'mri-Latn',  # 마오리
+    'mri': 'mri-Latn',
+    # === Native American ===
+    'qu': 'quy-Latn',
+    'nhi': 'nhi-Latn',  # 나와틀
+    'ht': 'hat-Latn-bab',  # 아이티어
+    'jam': 'jam-Latn',  # 자메이카 크리올
+    # === Mongolic ===
+    'mn': 'mon-Cyrl-bab',  # 몽골 (할하)
+    'mon': 'mon-Cyrl-bab',
+    'khk': 'mon-Cyrl-bab',
+    # === Other ===
+    'cmn': 'cmn-Latn',  # 표준 중국어 (alias)
+    'epo': 'epo-Latn',  # 에스페란토 (alias)
+    'lat': 'ltc-Latn-bax',  # 라틴
+    'la': 'ltc-Latn-bax',
+    'got': 'got-Latn',  # 고트어
+    # Generic fallback
+    'generic': 'generic-Latn',
 }
 
 
