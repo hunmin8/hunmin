@@ -14,54 +14,104 @@ import re
 import unicodedata
 
 
-# === IPA phoneme → UHPS jamo (precise mode = Old Hangul 사용) ===
-# 표는 IPA → (kind, jamo) — kind는 'C' (자음), 'V' (모음), 'SV' (반모음)
+# === IPA phoneme → UHPS v2 jamo (옛한글 + 한글 자모 확장 사용) ===
+# IPA 78개 phoneme을 한글 자모에 1:1 매핑. precise=True일 때 활용.
+# basic (precise=False)은 modern Korean 자모로 대체.
+#
+# 사용 자모 (Unicode):
+#   현대 한글 (U+3131-U+318F)
+#   옛한글: ㆄ U+3184 (/f/), ㅸ U+3178 (/v/), ㅿ U+317F (/z/),
+#          ㆁ U+3181 (/ŋ/), ㆆ U+3186 (/ʔ/), ㆅ U+3185 (/x/, 쌍히읗)
+#          ㅱ U+3171 (/ɱ/, 미음+이응)
+#          ㅥ U+3165 (/ɲ/, 쌍니은)
+#          ㅼ U+317C (/θ/, 시옷+디귿) — 영어 think
+#          ㅽ U+317D (/ð/, 시옷+비읍) — 영어 this
+#          ᄾ U+113E (/ʃ/, 치두음 시옷) — 영어 shoe (mandarin sibilant)
+#          ᄶ U+1136 (/ʒ/, 치두음 지읒) — 영어 pleasure
+#          ᄛ U+111B (/ʁ/, 가벼운 ㄹ) — 프랑스 R
+#          ㆍ U+318D (/ɑ/, 아래아) — 영어 father
+#          ㆎ U+318E (/ɔ/, 아래아+이) — 영어 caught
+#          ㅙ U+3159 (/œ/) — 프랑스 oeuvre (재활용)
+
 _IPA_PHONEMES = {
-    # Plosives (stops) — 어두에서 ㅋ/ㅌ/ㅍ (aspirated default for foreign)
+    # === Plosives ===
     'p': ('C', 'ㅍ'), 'b': ('C', 'ㅂ'),
     't': ('C', 'ㅌ'), 'd': ('C', 'ㄷ'),
     'k': ('C', 'ㅋ'), 'ɡ': ('C', 'ㄱ'), 'g': ('C', 'ㄱ'),
-    'q': ('C', 'ㅋ'),  # uvular k
-    'ʔ': ('C', 'ㆆ'),  # glottal stop (Old Hangul)
-    # Nasals
+    'q': ('C', 'ㅋ'),  # uvular k (rough — same as k)
+    'ʔ': ('C', 'ㆆ'),  # glottal stop — 옛한글 여린히읗
+    # 흡착음/임플로시브 (rough)
+    'ɓ': ('C', 'ㅂ'), 'ɗ': ('C', 'ㄷ'), 'ɠ': ('C', 'ㄱ'),
+    # === Nasals ===
     'm': ('C', 'ㅁ'), 'n': ('C', 'ㄴ'),
-    'ɲ': ('C', 'ㄴ'),  # palatal n (will be palatalized)
-    'ŋ': ('C', 'ㆁ'),  # eng (Old Hangul) — basic 모드는 ㅇ jong
-    # Fricatives
-    'f': ('OLD', 'ㆄ'),  # /f/ — UHPS ㆄ
-    'v': ('OLD', 'ㅸ'),  # /v/ — UHPS ㅸ
-    's': ('C', 'ㅅ'), 'z': ('OLD', 'ㅿ'),  # /z/ — ㅿ
-    'ʃ': ('C', 'ㅅ'),  # /ʃ/ → 시 (palatal context)
-    'ʒ': ('C', 'ㅈ'),
+    'ɲ': ('C', 'ㅥ'),  # palatal n — 쌍니은 U+3165
+    'ŋ': ('C', 'ㆁ'),  # velar n — 옛한글 옛이응
+    'ɴ': ('C', 'ㆁ'),  # uvular n
+    'ɱ': ('C', 'ㅱ'),  # labiodental m — 옛한글 미음+이응 U+3171
+    # === Fricatives ===
+    'f': ('OLD', 'ㆄ'),     # /f/ — 옛한글 피읖+이응 U+3184
+    'v': ('OLD', 'ㅸ'),     # /v/ — 옛한글 비읍+이응 U+3178
+    'ɸ': ('OLD', 'ㆄ'),     # bilabial f
+    'β': ('OLD', 'ㅸ'),     # bilabial v
+    's': ('C', 'ㅅ'),
+    'z': ('OLD', 'ㅿ'),     # /z/ — 반시옷 U+317F
+    'θ': ('OLD', 'ㅼ'),     # English 'think' th — 시옷+디귿 U+317C
+    'ð': ('OLD', 'ㅽ'),     # English 'this' th — 시옷+비읍 U+317D
+    'ʃ': ('OLD', 'ᄾ'),     # English 'shoe' — 치두음 시옷 U+113E
+    'ʒ': ('OLD', 'ᄶ'),     # English 'pleasure' — 치두음 지읒 U+1136
+    'ɕ': ('OLD', 'ᄾ'),     # alveolo-palatal s
+    'ʑ': ('OLD', 'ᄶ'),     # alveolo-palatal z
+    'ʂ': ('OLD', 'ᄾ'),     # retroflex s
+    'ʐ': ('OLD', 'ᄶ'),     # retroflex z
     'h': ('C', 'ㅎ'), 'ɦ': ('C', 'ㅎ'),
-    'x': ('C', 'ㅎ'),  # German Bach
-    'ç': ('C', 'ㅎ'),  # German ich
-    'θ': ('C', 'ㅅ'), 'ð': ('C', 'ㄷ'),
-    'ɣ': ('C', 'ㄱ'),  # voiced velar fricative
-    'ɸ': ('OLD', 'ㆄ'),  # bilabial f
-    'β': ('OLD', 'ㅸ'),  # bilabial v
-    'ʁ': ('C', 'ㄹ'),  # French R
-    'χ': ('C', 'ㅎ'),
-    # Affricates (multi-char; handled separately too)
-    # 't͡ʃ' → ㅊ, 'd͡ʒ' → ㅈ — preprocessed
-    # Liquids / R
-    'l': ('C', 'ㄹ'), 'ɭ': ('C', 'ㄹ'), 'ɮ': ('C', 'ㄹ'),
+    'x': ('OLD', 'ㆅ'),     # German 'Bach' — 쌍히읗 U+3185
+    'ɣ': ('OLD', 'ㆅ'),     # voiced velar fricative
+    'ç': ('OLD', 'ㆅ'),     # German 'ich' — palatal h
+    'χ': ('OLD', 'ㆅ'),     # uvular x
+    'ʁ': ('OLD', 'ᄛ'),     # French R — 가벼운 ㄹ U+111B
+    'ʀ': ('OLD', 'ᄛ'),     # uvular trilled R
+    'ħ': ('OLD', 'ㆅ'),     # Arabic pharyngeal h
+    'ʕ': ('C', 'ㆆ'),       # Arabic pharyngeal voiced (~ glottal)
+    'ʜ': ('OLD', 'ㆅ'),
+    'ʢ': ('C', 'ㆆ'),
+    # === Affricates (multi-char digraphs handled separately) ===
+    'ʧ': ('C', 'ㅊ'),  # tʃ
+    'ʤ': ('C', 'ㅈ'),  # dʒ
+    'ʦ': ('C', 'ㅊ'),  # ts
+    'ʣ': ('C', 'ㅈ'),  # dz
+    # === Liquids ===
+    'l': ('C', 'ㄹ'), 'ɭ': ('C', 'ㄹ'), 'ɮ': ('C', 'ㄹ'), 'ʎ': ('C', 'ㄹ'),
     'r': ('C', 'ㄹ'), 'ɾ': ('C', 'ㄹ'), 'ɹ': ('C', 'ㄹ'),
-    'ʀ': ('C', 'ㄹ'), 'ɽ': ('C', 'ㄹ'),
-    # Glides / approximants
-    'j': ('SV_MARKER', 'y'),  # 다음 모음과 합쳐 palatal vowel
-    'w': ('SV_MARKER', 'w'),  # 다음 모음과 합쳐 W vowel
-    'ɥ': ('SV_MARKER', 'y'),  # French u-glide → y로 처리
-    # Vowels
-    'a': ('V', 'ㅏ'), 'ɑ': ('V', 'ㅏ'), 'ɐ': ('V', 'ㅏ'),
-    'æ': ('V', 'ㅐ'), 'ɛ': ('V', 'ㅔ'), 'e': ('V', 'ㅔ'),
-    'ə': ('V', 'ㅓ'), 'ʌ': ('V', 'ㅓ'),
-    'ɜ': ('V', 'ㅓ'), 'ɞ': ('V', 'ㅓ'),
-    'i': ('V', 'ㅣ'), 'ɪ': ('V', 'ㅣ'), 'ɨ': ('V', 'ㅡ'), 'ɯ': ('V', 'ㅡ'),
-    'o': ('V', 'ㅗ'), 'ɔ': ('V', 'ㅗ'),
-    'u': ('V', 'ㅜ'), 'ʊ': ('V', 'ㅜ'),
-    'y': ('V', 'ㅟ'), 'ø': ('V', 'ㅚ'), 'œ': ('V', 'ㅚ'),
-    'ɵ': ('V', 'ㅓ'), 'ɤ': ('V', 'ㅓ'),
+    'ɽ': ('C', 'ㄹ'),
+    # === Glides / Approximants ===
+    'j': ('SV_MARKER', 'y'),
+    'w': ('SV_MARKER', 'w'),
+    'ɥ': ('SV_MARKER', 'y'),
+    'ʋ': ('OLD', 'ㅸ'),
+    # === Vowels ===
+    # Front
+    'i': ('V', 'ㅣ'), 'ɪ': ('V', 'ㅣ'),
+    'e': ('V', 'ㅔ'), 'ɛ': ('V', 'ㅔ'),
+    'æ': ('V', 'ㅐ'), 'a': ('V', 'ㅏ'),
+    # Front rounded
+    'y': ('V', 'ㅟ'), 'ʏ': ('V', 'ㅟ'),
+    'ø': ('V', 'ㅚ'), 'œ': ('V', 'ㅙ'),  # ø vs œ 구별
+    # Central
+    'ɨ': ('V', 'ㅡ'), 'ʉ': ('V', 'ㅡ'),
+    'ə': ('V', 'ㅓ'), 'ɵ': ('V', 'ㅓ'),
+    'ɐ': ('V', 'ㅏ'),
+    # Back
+    'ɯ': ('V', 'ㅡ'), 'u': ('V', 'ㅜ'), 'ʊ': ('V', 'ㅜ'),
+    'ɤ': ('V', 'ㅓ'), 'o': ('V', 'ㅗ'),
+    'ʌ': ('V', 'ㅓ'),
+    'ɔ': ('OLD', 'ㆎ'),    # /ɔ/ — 아래아+이 (open-mid back rounded) U+318E
+    'ɑ': ('OLD', 'ㆍ'),    # /ɑ/ — 아래아 (open back unrounded) U+318D
+    'ɒ': ('OLD', 'ㆍ'),    # /ɒ/ — open back rounded
+    # 비음 모음 (French) — V + 코다 ㆁ 추가
+    'ã': ('V_NASAL', 'ㅏ'),
+    'ɛ̃': ('V_NASAL', 'ㅔ'),
+    'ɔ̃': ('V_NASAL', 'ㆎ'),
+    'œ̃': ('V_NASAL', 'ㅙ'),
 }
 
 # 다중자 IPA → 단일 토큰 변환 (preprocessing)
@@ -138,94 +188,156 @@ def _tokenize_ipa(ipa):
     return out
 
 
+_OLD_VOWELS = {'ㆎ', 'ㆍ', 'ㅙ'}  # OLD kind 중 모음들
+
+
+def _is_vowel_token(tok):
+    """V / V_NASAL / OLD-vowel."""
+    if not tok: return False
+    k, v = tok[0], tok[1] if len(tok) > 1 else ''
+    if k in ('V', 'V_NASAL'): return True
+    if k == 'OLD' and v in _OLD_VOWELS: return True
+    return False
+
+
+def _is_old_consonant(tok):
+    return tok and tok[0] == 'OLD' and tok[1] not in _OLD_VOWELS
+
+
 def _assemble(tokens, precise=True):
     """Token list → Hangul syllable string.
-    precise=True: 옛한글 (ㆄ/ㅸ/ㅿ) 사용, False: ㅍ/ㅂ/ㅈ 으로 대체.
+    precise=True: 옛한글 (ㆄ/ㅸ/ㅿ/ㆅ/ᄾ/ᄶ/ᄛ/ㅼ/ㅽ/ㅥ/ㅱ/ㆎ/ㆍ) 완전 사용.
+    precise=False: 모두 modern Korean 자모로 대체.
     """
-    OLD_TO_BASIC = {'ㆄ':'ㅍ', 'ㅸ':'ㅂ', 'ㅿ':'ㅈ', 'ㆁ':'ㅇ', 'ㆆ':'ㅎ'}
+    # 옛한글 → 기본 한글 fallback (precise=False 모드)
+    OLD_TO_BASIC = {
+        'ㆄ':'ㅍ', 'ㅸ':'ㅂ', 'ㅿ':'ㅈ', 'ㆁ':'ㅇ', 'ㆆ':'ㅎ',
+        'ㆅ':'ㅎ', 'ᄾ':'ㅅ', 'ᄶ':'ㅈ', 'ᄛ':'ㄹ',
+        'ㅼ':'ㅅ', 'ㅽ':'ㄷ', 'ㅥ':'ㄴ', 'ㅱ':'ㅁ',
+        'ㆎ':'ㅗ', 'ㆍ':'ㅏ', 'ㅙ':'ㅚ',
+    }
+
+    def _maybe_basic(j):
+        return OLD_TO_BASIC.get(j, j) if not precise else j
+
     syllables = []
     i = 0
     n = len(tokens)
     while i < n:
         kind, val = tokens[i]
         nxt = tokens[i+1] if i+1 < n else None
+
         if kind == 'SPACE':
-            syllables.append(' ')
-            i += 1; continue
+            syllables.append(' '); i += 1; continue
         if kind == 'PUNCT':
-            syllables.append(val)
-            i += 1; continue
-        # SV_MARKER (j/w) + V → palatal/W vowel
+            syllables.append(val); i += 1; continue
+
+        # SV_MARKER (j/w) — 앞 자음 또는 ㅇ과 결합
         if kind == 'SV_MARKER':
-            if nxt and nxt[0] == 'V':
-                vowel = nxt[1]
+            if nxt and _is_vowel_token(nxt):
+                vowel = _maybe_basic(nxt[1])
                 if val == 'y':
                     new_v = _Y_VOWEL.get(vowel, vowel)
-                    # 자음 onset (앞에 free C 있으면 그것 위에)
-                    if syllables and len(syllables[-1]) == 1:
-                        last = syllables[-1]
-                        # 자음 단독이면 합치기 (rare in this design)
-                        pass
-                    syllables.append(_compose('ㅇ', new_v))
-                else:  # w
+                else:
                     new_v = _W_VOWEL.get(vowel, vowel)
-                    syllables.append(_compose('ㅇ', new_v))
+                syllables.append(_compose('ㅇ', new_v))
+                # nasal 모음 → ㆁ jong (옛한글) 또는 ㅇ jong
+                if nxt[0] == 'V_NASAL':
+                    nasal_jong = 'ㆁ' if precise else 'ㅇ'
+                    syllables[-1] = _compose_with_jong(syllables[-1], nasal_jong)
                 i += 2; continue
-            # SV_MARKER alone: insert ㅇ + filler
             syllables.append(_compose('ㅇ', 'ㅡ'))
             i += 1; continue
-        # OLD jamo (ㆄ ㅸ ㅿ ㆁ ㆆ)
-        if kind == 'OLD':
-            jamo = val if precise else OLD_TO_BASIC.get(val, val)
-            if nxt and nxt[0] == 'V':
-                if precise and jamo in ('ㆄ', 'ㅸ', 'ㅿ', 'ㆁ', 'ㆆ'):
-                    # 옛한글은 모음과 결합 X, 단독으로 표시
-                    syllables.append(jamo)
-                    syllables.append(_compose('ㅇ', nxt[1]))
-                    i += 2; continue
+
+        # OLD jamo as 자음 (ㆄ ㅸ ㅿ ㆅ ᄾ ᄶ ᄛ ㅼ ㅽ ㅥ ㅱ) — 옛한글 자음
+        if kind == 'OLD' and val in OLD_TO_BASIC and OLD_TO_BASIC[val] in INITIALS:
+            jamo = _maybe_basic(val)
+            # precise=True: 옛한글 + ㅇ-syll로 분리 표기 (ML 분석 가능)
+            # precise=False: 기본 자음으로 합성 (대중적)
+            if nxt and _is_vowel_token(nxt):
+                target_v = _maybe_basic(nxt[1])
+                if precise:
+                    # 옛한글 + 모음 분리
+                    syllables.append(val)
+                    syll = _compose('ㅇ', target_v)
+                    if nxt[0] == 'V_NASAL':
+                        syll = _compose_with_jong(syll, 'ㆁ')
+                    syllables.append(syll)
                 else:
-                    syllables.append(_compose(jamo, nxt[1]))
-                    i += 2; continue
+                    syll = _compose(jamo, target_v)
+                    if nxt[0] == 'V_NASAL':
+                        syll = _compose_with_jong(syll, 'ㅇ')
+                    syllables.append(syll)
+                i += 2; continue
+            # 어말/자음 앞 — 단독 표시 또는 받침
+            if precise:
+                syllables.append(val)
+            elif jamo in FINALS and syllables and len(syllables[-1]) == 1:
+                # 받침으로 부착 시도
+                syllables[-1] = _compose_with_jong(syllables[-1], jamo) or syllables[-1]
             else:
-                syllables.append(jamo if precise else jamo)
-                i += 1; continue
-        # V (모음 단독) — 앞에 자음 있으면 합쳤어야 하는데 여기까지 왔으면 ㅇ-syll
+                syllables.append(_compose(jamo, 'ㅡ'))
+            i += 1; continue
+
+        # OLD vowel (ㆎ ㆍ ㅙ) — 옛한글/특수 모음
+        if kind == 'OLD' and val not in OLD_TO_BASIC:  # shouldn't happen
+            syllables.append(val); i += 1; continue
+        if kind == 'OLD':  # OLD 모음 (ㆎ ㆍ ㅙ)
+            jung = _maybe_basic(val)
+            syllables.append(_compose('ㅇ', jung))
+            i += 1; continue
+
+        # V (모음 단독)
         if kind == 'V':
             syllables.append(_compose('ㅇ', val))
             i += 1; continue
+
+        # V_NASAL (비음 모음, French)
+        if kind == 'V_NASAL':
+            jung = _maybe_basic(val)
+            nasal_jong = 'ㆁ' if precise else 'ㅇ'
+            syll = _compose('ㅇ', jung)
+            syllables.append(_compose_with_jong(syll, nasal_jong))
+            i += 1; continue
+
         # C (자음)
         if kind == 'C':
             cho = val
-            # SV_MARKER (j/w) + V 가 다음이면 palatal/W vowel + 자음 onset
-            if nxt and nxt[0] == 'SV_MARKER' and i+2 < n and tokens[i+2][0] == 'V':
+            # SV_MARKER + V 다음
+            if nxt and nxt[0] == 'SV_MARKER' and i+2 < n and _is_vowel_token(tokens[i+2]):
                 sv_kind = nxt[1]
-                v = tokens[i+2][1]
+                v = _maybe_basic(tokens[i+2][1])
                 if sv_kind == 'y':
                     new_v = _Y_VOWEL.get(v, v)
                 else:
                     new_v = _W_VOWEL.get(v, v)
                 if cho in INITIALS:
-                    syllables.append(_compose(cho, new_v))
+                    syll = _compose(cho, new_v)
                 else:
-                    syllables.append(cho + _compose('ㅇ', new_v))
+                    syll = cho + _compose('ㅇ', new_v)
+                if tokens[i+2][0] == 'V_NASAL':
+                    nasal_jong = 'ㆁ' if precise else 'ㅇ'
+                    syll = _compose_with_jong(syll, nasal_jong)
+                syllables.append(syll)
                 i += 3; continue
-            # 다음이 V면 합치기
-            if nxt and nxt[0] == 'V':
-                syllables.append(_compose(cho, nxt[1]))
+            # C + V/OLD/V_NASAL
+            if nxt and _is_vowel_token(nxt):
+                target_v = _maybe_basic(nxt[1])
+                if cho in INITIALS:
+                    syll = _compose(cho, target_v)
+                else:
+                    syll = cho + _compose('ㅇ', target_v)
+                if nxt[0] == 'V_NASAL':
+                    nasal_jong = 'ㆁ' if precise else 'ㅇ'
+                    syll = _compose_with_jong(syll, nasal_jong)
+                syllables.append(syll)
                 i += 2; continue
-            # 다음이 SPACE/PUNCT/end/자음 → 받침 또는 으-syll
-            # 어말/자음 앞 자음
-            ALLOW_FINAL = {'ㄴ','ㅁ','ㄹ','ㅇ','ㅂ','ㅅ','ㄱ','ㄷ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'}
-            if syllables and len(syllables[-1]) == 1:
-                last = syllables[-1]
-                code = ord(last)
-                if 0xAC00 <= code <= 0xD7A3:
-                    base = code - HANGUL_BASE
-                    cho_idx, jung_idx, jong_idx = base // 588, (base % 588) // 28, base % 28
-                    if jong_idx == 0 and cho in FINALS:
-                        # 받침 추가
-                        syllables[-1] = chr(HANGUL_BASE + cho_idx*588 + jung_idx*28 + FINALS.index(cho))
-                        i += 1; continue
+            # 자음 단독: 받침 시도 또는 으-syll
+            if syllables and len(syllables[-1]) == 1 and cho in FINALS:
+                attached = _compose_with_jong(syllables[-1], cho)
+                if attached:
+                    syllables[-1] = attached
+                    i += 1; continue
             # 으-syll
             if cho in INITIALS:
                 syllables.append(_compose(cho, 'ㅡ'))
@@ -234,6 +346,24 @@ def _assemble(tokens, precise=True):
             i += 1; continue
         i += 1
     return ''.join(syllables)
+
+
+def _compose_with_jong(syll, jong):
+    """기존 음절에 받침 추가. jong이 빈 자리이면 부착, 아니면 None 반환."""
+    if not syll or len(syll) != 1:
+        return None
+    code = ord(syll)
+    if not (0xAC00 <= code <= 0xD7A3):
+        return None
+    base = code - HANGUL_BASE
+    cho_idx = base // 588
+    jung_idx = (base % 588) // 28
+    jong_idx = base % 28
+    if jong_idx != 0:
+        return None  # 이미 받침 있음
+    if jong not in FINALS:
+        return None
+    return chr(HANGUL_BASE + cho_idx*588 + jung_idx*28 + FINALS.index(jong))
 
 
 # ISO 639-1 / 639-3 → epitran code
