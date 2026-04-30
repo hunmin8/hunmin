@@ -227,7 +227,16 @@ class Hunmin:
                     return _LANG_OVERRIDES[lang][key]
             return _PRECISE[lang](text, mode='hangul', precise=precise)
         else:
-            raise ValueError(f"Unsupported lang: {lang!r}. Supported: {sorted(self.supported())}")
+            # Universal IPA-based fallback (162 languages via epitran)
+            try:
+                from .core.universal import transcribe_universal
+                return transcribe_universal(text, lang, mode='hangul', precise=precise)
+            except ImportError:
+                raise ValueError(
+                    f"Unsupported lang: {lang!r}. Hardcoded: {sorted(self.supported())}. "
+                    f"For 100+ languages: pip install hunmin[universal]")
+            except ValueError:
+                raise
 
     def _jamo(self, text, lang):
         if lang in _DICT_LANGS:
