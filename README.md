@@ -5,41 +5,84 @@
 [![License](https://img.shields.io/pypi/l/hunmin)](https://github.com/meshpop/hunmin/blob/main/LICENSE)
 [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/foolsai/hunmin)
 
-> **외국어를 한글로 — 아이도 읽을 수 있는 발음 악보**
-> *Convert any language into a readable phonetic Hangul score.*
+> **모든 언어를 한국 화자가 읽을 수 있는 IPA-faithful 음소 표기로**  
+> *Convert any language into Korean-readable, IPA-faithful phonetic Hangul.*
 
 **[🎼 온라인 데모 사용해보기](https://huggingface.co/spaces/foolsai/hunmin)**
 
-```python
-from hunmin import transcribe
+## ⭐ Primary Mode — UHPS-full
 
-transcribe("student",  "en")              # 스튜던트
-transcribe("hello",    "en")              # 헬로
-transcribe("中国",      "zh")              # 중궈
-transcribe("東京",      "ja")              # 도쿄
-transcribe("こんにちは",   "ja")              # 곤니치와
-transcribe("familia",  "es", level=3)     # ㆄ아밀리아  (옛한글 ㆄ = /f/)
-transcribe("Москва",   "ru", level=4)     # ㅁㅗㅅㅋㅸㅏ  (UHPS jamo)
-transcribe("LSTM",     "en")              # 엘에스티엠 (약어 자동 인식)
-transcribe("firebase", "en")              # 파이어베이스 (합성어 분해)
-transcribe("button",   "en")              # 버튼 (syllabic schwa)
+UHPS-full은 한국 화자가 읽을 수 있으면서 **IPA 정보를 거의 100% 보존**하는 모드.
+NIKL 외래어 표기처럼 음소 손실 없음 — 옛한글로 /f/ /v/ /z/ /θ/ 같은 한국어 외 음소 표기 + 장단·강세·성조 보존.
+
+```python
+from hunmin import transcribe, UHPS_FULL
+
+transcribe('father',  'ipa', mode=UHPS_FULL)  # via IPA: ˈfɑːðɚ
+# → ㆄㆍː ㅽ어    (/f/ ㆄ, 장음 ː, /ð/ ㅽ, schwa 어)
+
+transcribe('Mozart',  'de',  mode=UHPS_FULL)
+# → 모·ː차ㄹ트     (강세 위치 + 장음)
+
+transcribe('Bonjour', 'fr',  mode=UHPS_FULL)
+# → ㅂㆎᄶ우ᄛ      (/ɔ̃/ ㆎ, /ʒ/ ᄶ, /ʁ/ ᄛ — 모두 보존)
+
+transcribe('xin chào', 'ipa', mode=UHPS_FULL)  # via IPA: sin t͡ɕaːw
+# → 신 차ː으       (장음 보존, 음절 분리)
 ```
 
-**14개 핵심 언어** NIKL 외래어 표기 (`pip install hunmin`).
-**+ ~120 ISO 코드** universal 모드 (`hunmin[universal]`, IPA 자동 추출).
-**+ IPA 직접 입력** (`lang='ipa'`) — IPA로 표기 가능한 어떤 언어든.
+| 단어 | NIKL (음소 손실) | **UHPS-full** (보존) |
+|------|----------------|---------------------|
+| `father` | 파더 | **ㆄㆍː ㅽ어** |
+| `pizza` | 피자 | **피·트차** |
+| `Bonjour` | 봉주르 | **ㅂㆎᄶ우ᄛ** |
+| `Beijing` | 베이징 | **베이ㅈ이·ㆁ** |
 
-**UHPS Spec compliance: 100%** (95/95 tests, `tests/test_uhps_spec.py`) — hunmin의 진짜 정확도 metric.
+**옛한글 추정 가이드** (5분만 익히면 직관적):
+ㆄ=강한ㅍ(/f/) · ㅸ=약한ㅂ(/v/) · ㅿ=약한ㅈ(/z/) · ㆅ=강한ㅎ(/x/) · ᄾ=치찰ㅅ(/ʃ/) · ᄶ=치찰ㅈ(/ʒ/) · ᄛ=가벼운ㄹ(/ʁ/) · ㅼ=ㅅㄷ(/θ/) · ㅽ=ㅅㅂ(/ð/) · ㆎ=ㅗㅓ사이(/ɔ/) · ㆍ=ㅏㅓ사이(/ɑ/) · ㆁ=강조ㅇ(/ŋ/)
 
-NIKL 외래어 표기 벤치 (보조 지표):
-- 사용자 경험 (사전+룰 결합): 영어 98.5% / 다국어 100% / 일본 도·현 92%
-- **Held-out 룰 정확도** (사전에 없는 단어만):
-  - 영어 en_gold held-out: 97.8% (45 — regression suite)
-  - 영어 en_heldout_diverse: **64.3%** (42 — 다양한 외래어, 진짜 generalization)
-  - 다국어: 100% (15)
-- 외부 NIKL gold (동구권 1299단어, leakage 0): 11.5% — 룰 없는 영역의 룰 한계
+→ 자세한 비교: [docs/UHPS_FULL_SHOWCASE.md](docs/UHPS_FULL_SHOWCASE.md)
 
-> 사전(`_HANGUL_OVERRIDES`)은 NIKL 위원회가 "단어별로 굳혀놓은 표기" 처리용 (룰로 도출 불가). 룰은 사전에 없는 일반 케이스 처리. 두 layer가 의도된 분담.
+## 기본 사용 — 5 modes
+
+```python
+from hunmin import transcribe, HUNMIN_NIKL, HUNMIN_PHONETIC, UHPS_CORE, UHPS_JAMO, UHPS_FULL
+
+# 1. HUNMIN_NIKL — 한국어 외래어 표기 (사람 읽기, NIKL 친화)
+transcribe('hello', 'en', mode=HUNMIN_NIKL)        # 헬로
+# 2. HUNMIN_PHONETIC — 음운 정확 (NIKL 사전 우회)
+transcribe('hello', 'en', mode=HUNMIN_PHONETIC)    # 헐로
+# 3. UHPS_CORE — 옛한글 음소 코드 (자모 분리, IPA 1:1)
+transcribe('hello', 'en', mode=UHPS_CORE)          # 허로우
+# 4. UHPS_JAMO — 분해된 자모 시퀀스 (ML 입력용)
+transcribe('student', 'en', mode=UHPS_JAMO)        # ㅅㅌㅜㄷㅓㄴㅌ
+# 5. UHPS_FULL — UHPS-core + 운율 (★ primary)
+transcribe('hello', 'en', mode=UHPS_FULL)          # 허로·우
+```
+
+## Mixed-script — `transcribe_auto`
+
+모든 입력 (라틴/키릴/한자/일본/한글/그리스/히브리/아르메니아/아랍/힌디/태국 + 숫자/기호) 100% UHPS 공간으로 인코딩:
+
+```python
+from hunmin import transcribe_auto
+
+transcribe_auto('Hello 中国 5 apples & C++')
+# → '헬로 중궈 오 애펄즈 앤드 시플러스플러스'
+transcribe_auto('Καλημέρα 친구! $100 + 50%')
+# → '카리메라 친구! 달러일영영 플러스 오영퍼센트'
+```
+
+## 정확도
+
+**진짜 정확도 metric — UHPS Spec compliance: 100%** (95/95 tests, `tests/test_uhps_spec.py`).
+
+NIKL 외래어 표기 벤치 (보조 지표 — NIKL 위원회 결정 따라가기 측정, 천장 ~25%):
+- 사용자 경험 (사전+룰): 영어 98.5% / 다국어 100% / 도·현 92%
+- Held-out 룰: 영어 en_heldout_diverse 64.3%
+- 외부 NIKL gold (동구권 1299단어, leakage 0): **19.8%** (v3.1 9.7% → v3.14 19.8%, ~2x)
+
+> **NIKL 정확도는 hunmin 본질의 정확도가 아님.** UHPS-full은 NIKL의 위원회 결정과 무관하게 IPA 기준으로 측정된다.
 
 ---
 
@@ -284,6 +327,10 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.15.0** (2026.05) — UHPS-full을 primary mode로 reframe + showcase
+  * **README hero 재구성** — UHPS-full 중심, NIKL은 호환 layer로 강등
+  * `docs/UHPS_FULL_SHOWCASE.md` — UHPS-full vs NIKL 비교, 옛한글 추정 가이드
+  * 메시지: "NIKL 정확도는 hunmin 본질이 아니다. UHPS-full이 진짜 product."
 * **v3.14.0** (2026.05) — Serbian Cyrillic rule (Vukov azbuka 트릭)
   * `hunmin/core/serbian.py` — 깔끔한 30줄: Cyrillic→Latin 1:1 변환 후 Croatian 룰 재사용
   * **Vukov azbuka principle**: Vuk Karadžić의 키릴 = Gaj의 라틴 (Љ↔Lj, Њ↔Nj, Ђ↔Đ, Ц↔C, Ч↔Č 등)
