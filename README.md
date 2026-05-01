@@ -284,6 +284,14 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.5.0** (2026.04) — Hungarian rule module
+  * `hunmin/core/hungarian.py` — letter-by-letter NIKL 헝가리어 룰
+  * 핵심: a → ㅓ (Hu /ɒ/), á → ㅏ, cs → ㅊ, gy → 죠/져, ny → 녀/뇨, sz → ㅅ, zs → 주, ly → 야/요
+  * Geminate 자음 흡수 (tt/nn/ll → 받침 또는 단일)
+  * Palatalization: ny+a → 녀, gy+a → 쟈, ty+a → 탸 등
+  * **EE_GOLD hu**: 2.5% → **19.1%** (v3.4 → v3.5, +16.6pt — Hungarian 룰 모듈)
+  * `_PRECISE` 라우팅에 hu 추가 (12 hardcoded langs)
+  * 전체 테스트: **230 passed**
 * **v3.4.0** (2026.04) — 만다린 ze fix + Vietnamese/Hu/Sk overrides + held-out 확장
   * **만다린 ze→쩌 NIKL 정정** — 毛泽东 마오저둥 → **마오쩌둥** (NIKL 외래어 표기 표준)
     * 전체 매핑: ze 쩌, zei 쩨이, zen 쩐, zeng 쩡 (z-front-vowel rule)

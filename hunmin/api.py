@@ -3,7 +3,7 @@ import re
 from .core import (
     transcribe_es, transcribe_it, transcribe_de, transcribe_ru,
     transcribe_fr, transcribe_pt, transcribe_nl, transcribe_pl,
-    transcribe_tr, transcribe_id, transcribe_en,
+    transcribe_tr, transcribe_id, transcribe_en, transcribe_hu,
     transcribe_cjk,
 )
 
@@ -49,12 +49,12 @@ def _apply_geo_abbrev(hangul, orig_text):
         cleaned = cleaned.rstrip() + ' '
     return cleaned + trans
 
-# 11 Latin/Cyrillic langs use precise rule modules
+# 12 Latin/Cyrillic langs use precise rule modules
 _PRECISE = {
     'es': transcribe_es, 'it': transcribe_it, 'de': transcribe_de,
     'ru': transcribe_ru, 'fr': transcribe_fr, 'pt': transcribe_pt,
     'nl': transcribe_nl, 'pl': transcribe_pl, 'tr': transcribe_tr,
-    'id': transcribe_id, 'en': transcribe_en,
+    'id': transcribe_id, 'en': transcribe_en, 'hu': transcribe_hu,
 }
 # CJK uses v1 deterministic dict (requires pykakasi/pypinyin/hanja for ja/zh)
 _DICT_LANGS = {'ja', 'zh', 'ko'}
