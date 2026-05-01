@@ -185,6 +185,29 @@ def _detect_latin_lang(chunk):
     return None
 
 
+# === Manual letter → IPA mappings for scripts not supported by epitran ===
+# epitran 미지원 언어는 직접 IPA로 변환해서 lang='ipa' 경로로 전사.
+_GREEK_TO_IPA = {
+    'α': 'a', 'β': 'v', 'γ': 'ɣ', 'δ': 'ð', 'ε': 'e',
+    'ζ': 'z', 'η': 'i', 'θ': 'θ', 'ι': 'i', 'κ': 'k',
+    'λ': 'l', 'μ': 'm', 'ν': 'n', 'ξ': 'ks', 'ο': 'o',
+    'π': 'p', 'ρ': 'r', 'σ': 's', 'ς': 's', 'τ': 't',
+    'υ': 'i', 'φ': 'f', 'χ': 'x', 'ψ': 'ps', 'ω': 'o',
+    # 강세 모음 (액센트 제거 후 base)
+    'ά': 'a', 'έ': 'e', 'ή': 'i', 'ί': 'i', 'ό': 'o',
+    'ύ': 'i', 'ώ': 'o', 'ϊ': 'i', 'ϋ': 'i', 'ΐ': 'i', 'ΰ': 'i',
+}
+
+def _greek_to_ipa(text):
+    """Modern Greek text → IPA (rough). lang='ipa' 경로로 전사하기 위함."""
+    s = text.lower()
+    # Digraphs/diphthongs (longer first)
+    s = s.replace('μπ', 'b').replace('ντ', 'd').replace('γκ', 'g')
+    s = s.replace('αι', 'e').replace('ει', 'i').replace('οι', 'i')
+    s = s.replace('αυ', 'av').replace('ευ', 'ev').replace('ου', 'u')
+    return ''.join(_GREEK_TO_IPA.get(c, c) for c in s)
+
+
 def _detect_cjk_lang(chunk, full_text):
     """CJK 한자 chunk — full_text에 hiragana/katakana 있으면 ja, 아니면 zh."""
     for ch in full_text:
@@ -251,6 +274,18 @@ def transcribe_auto(text, primary_lang='en', mode=None,
             else:
                 out.append(piece)
             continue
+        # Greek — manual IPA fallback (epitran 미지원)
+        if script == 'Greek':
+            ipa = _greek_to_ipa(chunk)
+            try:
+                out.append(_tr(ipa, 'ipa', mode=mode))
+            except Exception:
+                if strict:
+                    leaked.extend(chunk)
+                else:
+                    out.append(chunk)
+            continue
+
         # Letter scripts
         target_lang = _SCRIPT_TO_LANG.get(script)
         if target_lang is None:

@@ -284,6 +284,11 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.8.1** (2026.04) — Greek IPA fallback (epitran 없는 언어 지원 패턴)
+  * Greek (`Καλημέρα`) — letter→IPA 매핑 후 `lang='ipa'` 경로로 전사
+  * **패턴 정립**: epitran 매핑 없는 언어 = letter→IPA 헬퍼만 작성하면 무한 확장
+  * `Καλημέρα` → 카리메라, `Σωκράτης` → 솤라팃, `Ωμέγα` → 오메하
+  * Greek strict=True 통과 (이전엔 ValueError)
 * **v3.8.0** (2026.04) — Mixed-script auto-routing + digit/symbol 인코딩 — **leak 0 보장**
   * `transcribe_auto(text, primary_lang='en', mode=...)` — 모든 입력 100% UHPS 공간으로
   * **스크립트별 chunk 자동 분리** — Latin/Cyrillic/Greek/Arabic/Devanagari/Thai/CJK/Hiragana/Katakana/Hangul
