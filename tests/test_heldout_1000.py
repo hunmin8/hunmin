@@ -30,7 +30,7 @@ MIN_EXACT_PCT = {
     'id': 88.0,   # observed 91.3
     'it': 92.0,   # observed 94.7 (v3.25 gemination drop)
     'ja': 92.0,   # observed 96.0
-    'nl': 44.0,   # observed 46.9
+    'nl': 60.0,   # observed 62.5 (v3.26 long-vowels, no-받침-final, d-devoicing)
     'pl': 64.0,   # observed 66.7
     'pt': 68.0,   # observed 70.8 (v3.25 rr→/h/, final-o→ㅜ)
     'ro': 67.0,   # observed 70.3
@@ -38,12 +38,12 @@ MIN_EXACT_PCT = {
     'sk': 76.0,   # observed 80.0
     'sr': 70.0,   # observed 73.5
     'tr': 80.0,   # observed 84.8
-    'vi': 40.0,   # observed 43.6 (Vietnamese diacritic edge cases)
+    'vi': 60.0,   # observed 64.1 (v3.26 nh-coda, t/c-coda, space-drop)
     'zh': 90.0,   # observed 94.2
 }
 
-MIN_OVERALL_EXACT_PCT = 70.0   # observed 72.6 (v3.25)
-MIN_OVERALL_CER_PCT = 84.0     # observed 86.1 (v3.25)
+MIN_OVERALL_EXACT_PCT = 71.0   # observed 73.9 (v3.26)
+MIN_OVERALL_CER_PCT = 85.0     # observed 87.1 (v3.26)
 
 
 def _edit_distance(a, b):

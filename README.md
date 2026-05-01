@@ -327,6 +327,24 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.27.0** (2026.05) — UHPS-full eval expansion (primary product)
+  * `tests/gold/uhps_external.jsonl` **35 → 143 entries** (4x)
+    * 옛한글 음소 다양화 — /f/=ㆄ, /v/=ㅸ, /θ/=ㅼ, /ð/=ㅽ, /z/=ㅿ, /ʒ/=ᄶ, /ʃ/=ᄾ, /x/=ㆅ, /ʁ/=ᄛ, /ɲ/=ㅥ, /ɔ/=ㆎ, /ɑ/=ㆍ, /ŋ/=ㆁ받침
+    * Prosody: 장음 ː, 강세 ˈ ˌ, Mandarin 4성, Vietnamese 6성, diphthongs
+    * Multilingual: en/de/fr/es/it/ru/zh/ja/vi/ar/ko 다양한 케이스
+  * `scripts/gen_uhps_external_v2.py` — 추후 확장용 generator
+  * UHPS-full을 진짜 **primary product**로 — NIKL은 호환층 (#v3.15 reframe 일관성 유지)
+  * 전체 테스트: **511 passed** (+108 새 UHPS-full 회귀)
+* **v3.26.0** (2026.05) — vi/nl NIKL polishing
+  * **Vietnamese (vi): 43.6 → 64.1%** (+20.5pt)
+    * 어말 nh → 받침 ㄴ, 어말 t/c/p → 받침 ㅅ/ㄱ/ㅂ
+    * 음절 사이 공백 제거 (gia đình → 자딘, mặt trời → 맛쩌이)
+  * **Dutch (nl): 46.9 → 62.5%** (+15.6pt)
+    * Long-vowel 'aa' 분리 (maan 만 → 마안)
+    * 어말 무성 폐쇄음 받침 흡수 X (kerk 케륵 → 케르크)
+    * 어말 'd' devoicing → ㅌ (wind 빈드 → 빈트)
+  * **전체: 72.6 → 73.9%** (+1.3pt)
+  * 전체 테스트: **403 passed**
 * **v3.25.0** (2026.05) — Per-language NIKL gap fixes (es/pt/it)
   * **Spanish (es): 84.1 → 98.6%** (+14.5pt)
     * 'rr' → 단일 ㄹ (NIKL: 다음 음절 초성). perro 펠로 → **페로**

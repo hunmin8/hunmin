@@ -112,7 +112,8 @@ def _phonemize(word, precise=False):
                 v = VOWEL_J[nxt]
                 out.append(_compose('ㄴ', Y_V.get(v, v)))
                 i += 2; continue
-            out.append('니'); i += 1; continue
+            # 어말 nh → 받침 ㄴ NIKL (đình 딘, bánh 반, thành 탄)
+            out.append('ㄴ'); i += 1; continue
         if c == '\x04':  # ph
             if _is_vowel(nxt):
                 out.append(_compose(F if precise else 'ㅍ', VOWEL_J[nxt]))
@@ -160,6 +161,12 @@ def _phonemize(word, precise=False):
                 out.append(_compose('ㄷ', VOWEL_J[nxt]))
                 i += 2; continue
             out.append('드'); i += 1; continue
+
+        # 어말 c/t/p → 받침 ㄱ/ㅅ/ㅂ (Vietnamese final stops, NIKL)
+        # đất 덧, mặt 맛, nước 느억 (c→ㄱ받침)
+        if c in 'ctp' and not _is_vowel(nxt) and i + 1 == n:
+            jong_map = {'c':'ㄱ', 't':'ㅅ', 'p':'ㅂ'}
+            out.append(jong_map[c]); i += 1; continue
 
         # Generic consonants
         # NIKL: c/k → ㄲ (Vietnamese 일반)
@@ -224,12 +231,18 @@ def _absorb_finals(syls):
 
 
 def transcribe(text, mode='hangul', precise=False, phonetic=False):
-    """Vietnamese text → Hangul (NIKL convention, 톤 무시)."""
+    """Vietnamese text → Hangul (NIKL convention, 톤 무시).
+
+    NIKL 베트남어: 음절 사이 공백 제거 (gia đình → 자딘, Hà Nội → 하노이).
+    문장부호는 유지.
+    """
     parts = re.split(r'(\s+|[,.!?;:])', text)
     out = []
     for part in parts:
         if not part: continue
-        if part.isspace() or re.match(r'[,.!?;:]', part):
+        if part.isspace():
+            continue  # NIKL: drop inter-syllable spaces
+        if re.match(r'[,.!?;:]', part):
             out.append(part); continue
         syls = _phonemize(part, precise=precise)
         out.append(''.join(syls))

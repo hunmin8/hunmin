@@ -2,6 +2,38 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.27.0] — 2026-05-01 — UHPS-full eval expansion (primary product)
+
+### Added
+- `tests/gold/uhps_external.jsonl` 35 → **143 entries** (4x)
+  - 옛한글 음소 다양화: /f/=ㆄ, /v/=ㅸ, /θ/=ㅼ, /ð/=ㅽ, /z/=ㅿ, /ʒ/=ᄶ, /ʃ/=ᄾ, /x/=ㆅ, /ʁ/=ᄛ, /ɲ/=ㅥ, /ɔ/=ㆎ, /ɑ/=ㆍ, /ŋ/=ㆁ받침
+  - Prosody: 장음 ː, primary ˈ, secondary ˌ, Mandarin 4성, Vietnamese 6성
+  - Multilingual: en/de/fr/es/it/ru/zh/ja/vi/ar/ko 다양한 케이스
+  - Diphthongs, 자음 클러스터, 단어 단위 stress
+- `scripts/gen_uhps_external_v2.py` — 추후 확장용 generator
+
+### Philosophy
+- **UHPS-full = primary product**. NIKL은 호환층 (#3.15 reframe 후 일관).
+- 이번 eval은 IPA → UHPS-full 매핑이 **spec-faithful**한지 회귀 잠금 (lock-in).
+
+### Tests
+- 전체: 403 → **511 passed** (+108 새 UHPS-full 회귀 케이스)
+
+## [3.26.0] — 2026-05-01 — vi/nl NIKL polishing
+
+### Fixed
+- **Vietnamese (vi): 43.6 → 64.1%** (+20.5pt)
+  - 어말 'nh' → 받침 ㄴ (đình 디니 → 딘, bánh 바니 → 반)
+  - 어말 t/c/p → 받침 ㅅ/ㄱ/ㅂ (đất 더트 → 덧, nước 느어크 → 느억)
+  - 음절 사이 공백 제거 (gia đình 자 디니 → 자딘)
+- **Dutch (nl): 46.9 → 62.5%** (+15.6pt)
+  - 'aa' → 두 음절 분리 (maan 만 → 마안)
+  - 어말 무성 폐쇄음 받침 흡수 X (kerk 케륵 → 케르크, dorp 도릅 → 도르프)
+  - 어말 'd' devoicing → ㅌ (wind 빈드 → 빈트, stad 스타드 → 스타트)
+
+### Measured
+- 전체: 72.6 → **73.9% exact** (+1.3pt, +13 correct)
+
 ## [3.25.0] — 2026-05-01 — Per-language NIKL gap fixes (es/pt/it)
 
 ### Fixed

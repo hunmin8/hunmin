@@ -109,8 +109,11 @@ def _phonemize(word, precise):
         if di in ('ou', 'au'):
             out.append(('V', 'ㅏ')); out.append(('V', 'ㅜ'))
             i += 2; continue
+        # NIKL Dutch: long vowels (aa/ee/oo/uu) → 두 음절로 분리
+        # maan 마안, zee 제, kooi 코위, muur 뮈르
+        # (단, 'ee'/'oo' before single consonant final → single Korean vowel)
         if di == 'aa':
-            out.append(('V', 'ㅏ')); i += 2; continue
+            out.append(('V', 'ㅏ')); out.append(('V', 'ㅏ')); i += 2; continue
         if di == 'ee':
             out.append(('V', 'ㅔ')); i += 2; continue
         if di == 'oo':
@@ -323,16 +326,14 @@ def _assemble(phonemes, precise):
                     if _add_jong_to_last(syllables, cho):
                         i += 1; continue
                 syllables.append(_compose(cho, 'ㅡ')); i += 1; continue
+            # NIKL Dutch: 어말 무성 폐쇄음은 받침 흡수 X, 별도 음절 (kerk 케르크, dorp 도르프, park 파르크)
             if src in ('c','k','q') and cho == 'ㅋ':
-                if syllables and not _has_jong(syllables[-1]):
-                    if _add_jong_to_last(syllables, 'ㄱ'):
-                        i += 1; continue
                 syllables.append(_compose('ㅋ', 'ㅡ')); i += 1; continue
             if src == 'p' and cho == 'ㅍ':
-                if syllables and not _has_jong(syllables[-1]):
-                    if _add_jong_to_last(syllables, 'ㅂ'):
-                        i += 1; continue
                 syllables.append(_compose('ㅍ', 'ㅡ')); i += 1; continue
+            # NIKL Dutch: 어말 'd' devoicing → ㅌ (wind 빈트, stad 스타트)
+            if src == 'd' and i + 1 == len(phonemes):
+                syllables.append(_compose('ㅌ', 'ㅡ')); i += 1; continue
             syllables.append(_compose(cho, 'ㅡ')); i += 1; continue
         i += 1
     return ''.join(syllables)
