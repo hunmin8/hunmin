@@ -2,6 +2,27 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.31.0] — 2026-05-01 — UHPS-full hand-curated showcase (primary product)
+
+### Added (Track B — primary product strengthening)
+- `tests/gold/uhps_showcase.jsonl` — **40 hand-curated UHPS-full entries**, 각 항목마다 `feature` + `rationale` 명시
+  - 옛한글 음소 13종 (S01-S12, S25): /f/ /v/ /θ/ /ð/ /z/ /ʒ/ /ʃ/ /x/ /ʁ/ /ɲ/ /ɔ/ /ɑ/ /ŋ/
+  - Prosody (S14-S20): 장음 ː, 1차 강세 ·, 2차 강세 ˗, Mandarin 4성 (¯ ↗ ↘↗ ↘)
+  - Diphthongs (S21-S25): /aɪ/ /eɪ/ /oʊ/ /aʊ/ /ɔɪ/
+  - Clusters (S27, S28): /θr/, /str/
+  - Schwa/rhotic (S29, S30): /ə/ /ɚ/
+  - Affricates (S33-S35): /ts/ /dʒ/ /tʃ/
+  - Multi-feature (S37, S38): breathe, garage
+- `tests/test_uhps_showcase.py` — 40 spec compliance 테스트 (40 passed)
+
+### Found (known gaps documented)
+- **S31_KNOWN_GAP**: French nasal /ɛ̃/ → 엔진 nasalization 마커 drop (vɛ̃ should → ㅸ엥, currently → ㅸ에)
+- **S32_KNOWN_GAP**: French nasal /ɑ̃/ similarly drops nasal mark
+- **S40_KNOWN_GAP**: Russian palatalized /tʲ/ → ㄷ받침 (Spec) vs ㅌ받침 (engine)
+
+### Tests
+- 511 → **551 passed** (+40 새 showcase 회귀)
+
 ## [3.30.0] — 2026-05-01 — Russian soft-sign (ь) NIKL fix
 
 ### Fixed

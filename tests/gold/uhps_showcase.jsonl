@@ -1,0 +1,38 @@
+{"id": "S01", "feature": "/f/ → ㆄ", "ipa": "fɪʃ", "uhps_full_expected": "ㆄ이ᄾ", "rationale": "Old Hangul ㆄ for /f/ (NIKL uses ㅍ which loses /f//p/ distinction). 'fish' showcases /f/ + /ɪ/ + /ʃ/."}
+{"id": "S02", "feature": "/v/ → ㅸ", "ipa": "ˈvɛri", "uhps_full_expected": "ㅸ에·리", "rationale": "Old Hangul ㅸ (light-b) for /v/. Korean ㅂ would lose voicing distinction."}
+{"id": "S03", "feature": "/θ/ → ㅼ", "ipa": "θɪŋk", "uhps_full_expected": "ㅼ잉크", "rationale": "Sibyeok ㅼ (s+t) for English think-/θ/. Adjacent /ŋ/ → ㆁ받침 → 잉. Final /k/ → 크."}
+{"id": "S04", "feature": "/ð/ → ㅽ", "ipa": "ðɪs", "uhps_full_expected": "ㅽ잇", "rationale": "Sibyeok ㅽ (s+b) for English this-/ð/. Final /s/ → ㅅ받침 (NIKL-style coda absorption)."}
+{"id": "S05", "feature": "/z/ → ㅿ", "ipa": "ziːroʊ", "uhps_full_expected": "ㅿ이ː로우", "rationale": "Banchieum ㅿ (vanished sibilant) for /z/. Korean ㅈ confuses /z/ and /dʒ/."}
+{"id": "S06", "feature": "/ʒ/ → ᄶ", "ipa": "ʒɑːnrə", "uhps_full_expected": "ᄶㆍː느러", "rationale": "Old jamo ᄶ for /ʒ/. /ɑː/=ㆍ + length. Stress not marked here."}
+{"id": "S07", "feature": "/ʃ/ → ᄾ", "ipa": "ʃoʊ", "uhps_full_expected": "ᄾ오우", "rationale": "Old ᄾ for /ʃ/. NIKL splits as 시오 (slightly different)."}
+{"id": "S08", "feature": "/x/ → ㆅ", "ipa": "bax", "uhps_full_expected": "바ㆅ", "rationale": "Sschangㆅ for German /x/ (Bach). Word-final → not 받침 (NIKL: 바흐 with 으-syll instead). UHPS-full keeps ㆅ."}
+{"id": "S09", "feature": "/ʁ/ → ᄛ", "ipa": "paʁi", "uhps_full_expected": "파ᄛ이", "rationale": "Yeoeumridi ᄛ for French uvular /ʁ/. NIKL collapses /r/ /ʁ/ /ɾ/ all into ㄹ. Engine composes 'p+a' to 파."}
+{"id": "S10", "feature": "/ɲ/ → ㅥ", "ipa": "maˈɲana", "uhps_full_expected": "마ㅥ야·나", "rationale": "Nieun-cieuc ㅥ for Spanish/Italian palatal nasal /ɲ/. /ɲ+a/ palatalizes to ya glide. Stressed on 나."}
+{"id": "S11", "feature": "/ɔ/ → ㆎ", "ipa": "kɔːt", "uhps_full_expected": "ㅋㆎː트", "rationale": "Yeo ㆎ for open-mid back rounded /ɔː/. NIKL collapses /ɔ/ /o/ both → ㅗ."}
+{"id": "S12", "feature": "/ɑ/ → ㆍ", "ipa": "ˈfɑːðər", "uhps_full_expected": "ㆄㆍ·ːㅽ얼", "rationale": "Arae-a ㆍ for open back /ɑː/. With /f/=ㆄ, length, primary stress, /ð/=ㅽ. Master case."}
+{"id": "S13", "feature": "/ŋ/ → ㆁ받침", "ipa": "sɪŋ", "uhps_full_expected": "싱", "rationale": "ŋ at coda → ㆁ받침 auto-collapses to standard ㅇ받침 (NFC). Output is plain 싱."}
+{"id": "S14", "feature": "Length /ː/", "ipa": "siː", "uhps_full_expected": "시ː", "rationale": "Length marker ː kept verbatim. NIKL drops length completely."}
+{"id": "S15", "feature": "Primary stress ˈ → ·", "ipa": "ˈrɛkərd", "uhps_full_expected": "레·컬드", "rationale": "Primary stress as middledot · attached to stressed vowel. middledot is default tone_style."}
+{"id": "S16", "feature": "Secondary stress ˌ → ˗", "ipa": "ˌɪnfərˈmeɪʃən", "uhps_full_expected": "이˗느ㆄ얼메·이ᄾ언", "rationale": "Secondary stress as ˗ (modifier minus). Primary on '메·이'. Both stress levels preserved."}
+{"id": "S17", "feature": "Mandarin tone1 (high) ˥", "ipa": "ma˥", "uhps_full_expected": "마¯", "rationale": "High level tone (Mandarin 1성). arrow style: ¯. Default tone_style for tone-bar IPA."}
+{"id": "S18", "feature": "Mandarin tone2 (rising) ˧˥", "ipa": "ma˧˥", "uhps_full_expected": "마↗", "rationale": "Rising tone (Mandarin 2성). arrow ↗."}
+{"id": "S19", "feature": "Mandarin tone3 (dipping) ˨˩˦", "ipa": "ma˨˩˦", "uhps_full_expected": "마↘↗", "rationale": "Dipping tone (Mandarin 3성). arrow ↘↗ shows the fall-rise contour."}
+{"id": "S20", "feature": "Mandarin tone4 (falling) ˥˩", "ipa": "ma˥˩", "uhps_full_expected": "마↘", "rationale": "Falling tone (Mandarin 4성). arrow ↘."}
+{"id": "S21", "feature": "Diphthong /aɪ/", "ipa": "haɪ", "uhps_full_expected": "하이", "rationale": "Diphthong /aɪ/ → 아이 (two syllables in Hangul). 'h' onset."}
+{"id": "S22", "feature": "Diphthong /eɪ/", "ipa": "deɪ", "uhps_full_expected": "데이", "rationale": "/eɪ/ diphthong → 에이."}
+{"id": "S23", "feature": "Diphthong /oʊ/", "ipa": "ɡoʊ", "uhps_full_expected": "고우", "rationale": "/oʊ/ → 오우. Korean approximation."}
+{"id": "S24", "feature": "Diphthong /aʊ/", "ipa": "haʊ", "uhps_full_expected": "하우", "rationale": "/aʊ/ → 아우."}
+{"id": "S25", "feature": "Diphthong /ɔɪ/", "ipa": "bɔɪ", "uhps_full_expected": "ㅂㆎ이", "rationale": "/ɔɪ/ uses ㆎ for the open-o + ㅣ glide."}
+{"id": "S27", "feature": "Cluster /θr/", "ipa": "θriː", "uhps_full_expected": "ㅼ리ː", "rationale": "/θ/=ㅼ + /r/=ㄹ + /iː/. Cluster with length."}
+{"id": "S28", "feature": "Cluster /str/", "ipa": "striːt", "uhps_full_expected": "슽리ː트", "rationale": "Initial /s/+/t/+/r/ cluster + length + final stop. 't' absorbs as ㅌ받침 to '스'."}
+{"id": "S29", "feature": "Schwa /ə/", "ipa": "əˈbʌv", "uhps_full_expected": "어버·ㅸ", "rationale": "Schwa /ə/ → 어. /v/=ㅸ at end. Stress on second syllable."}
+{"id": "S30", "feature": "Rhotic /ɚ/", "ipa": "ˈfɑːðɚ", "uhps_full_expected": "ㆄㆍ·ːㅽ어", "rationale": "Rhotic schwa /ɚ/ → 어 (same as plain schwa in UHPS-full). Compare with /ə/ case S29."}
+{"id": "S31_KNOWN_GAP", "feature": "Nasal /ɛ̃/ French (engine drops nasalization)", "ipa": "vɛ̃", "uhps_full_expected": "ㅸ에", "rationale": "KNOWN GAP: French nasal /ɛ̃/ should be 'ㅸ엥' but engine drops nasalization marker. v3.x roadmap: improve nasal preservation."}
+{"id": "S32_KNOWN_GAP", "feature": "Nasal /ɑ̃/ French (engine drops)", "ipa": "blɑ̃", "uhps_full_expected": "브ㄹㆍ", "rationale": "KNOWN GAP: French /ɑ̃/ should preserve nasal. Engine: 브ㄹㆍ (no nasal). v3.x todo."}
+{"id": "S33", "feature": "/ts/ affricate (NIKL contraction)", "ipa": "tsuˈnami", "uhps_full_expected": "추나·미", "rationale": "/tsu/ → 추 (Japanese loanword convention). NIKL: 츠우 separated; UHPS-full: contracted to 추."}
+{"id": "S34", "feature": "/dʒ/ affricate", "ipa": "ˈdʒɑːz", "uhps_full_expected": "ㅈㆍ·ːㅿ", "rationale": "/dʒ/ → ㅈ. /ɑː/=ㆍ. Word-final /z/=ㅿ."}
+{"id": "S35", "feature": "/tʃ/ affricate", "ipa": "tʃiːz", "uhps_full_expected": "치ːㅿ", "rationale": "/tʃ/ → ㅊ. /iː/. /z/=ㅿ at end."}
+{"id": "S37", "feature": "Multi-feature word: 'breathe'", "ipa": "briːð", "uhps_full_expected": "브리ːㅽ", "rationale": "Initial cluster /br/, length, final /ð/=ㅽ."}
+{"id": "S38", "feature": "Word-final /ʒ/", "ipa": "ɡəˈrɑːʒ", "uhps_full_expected": "거ㄹㆍ·ːᄶ", "rationale": "garage: schwa, stress, /ɑː/=ㆍ length, final /ʒ/=ᄶ."}
+{"id": "S39", "feature": "Greek /θ/", "ipa": "θeˈos", "uhps_full_expected": "ㅼ에오·스", "rationale": "Greek θεός: /θ/=ㅼ. Stress on second syllable."}
+{"id": "S40_KNOWN_GAP", "feature": "Russian /ʐ/ (palatalization to 받침)", "ipa": "ʐɨtʲ", "uhps_full_expected": "ᄶ읕", "rationale": "Russian жить: engine produces 'ᄶ읕' (with ㅌ받침). Spec: palatalized /tʲ/ should be ㄷ받침. v3.x todo."}

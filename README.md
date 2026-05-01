@@ -341,6 +341,12 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.31.0** (2026.05) — UHPS-full hand-curated showcase (primary product)
+  * `tests/gold/uhps_showcase.jsonl` — **40 hand-curated UHPS-full entries**, 각 항목마다 spec rationale 명시
+    * 옛한글 음소 13종 + prosody + diphthongs + clusters + affricates 다 covers
+    * 3개 known gaps 명시 (French nasals, Russian palatalization)
+  * `tests/test_uhps_showcase.py` — primary product spec compliance 회귀
+  * 전체 테스트: **551 passed** (+40 새 spec showcase)
 * **v3.30.0** (2026.05) — Russian soft-sign (ь) NIKL fix
   * **Russian (ru): 69.1 → 72.7%** (+3.6pt)
     * 어말 ь after nasal/liquid → 받침 (огонь 오곤, Казань 카잔)
