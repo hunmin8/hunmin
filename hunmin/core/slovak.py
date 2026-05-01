@@ -133,6 +133,13 @@ def _phonemize(word, precise=False):
         if c in ('ŕ','ĺ'):  # syllabic r/l
             out.append('르' if c == 'ŕ' else '리'); i += 1; continue
 
+        # 'c' = /ts/ — affricate
+        if c == 'c':
+            if _is_vowel(nxt):
+                out.append(_compose('ㅊ', VOWEL_J[nxt]))
+                i += 2; continue
+            out.append('츠'); i += 1; continue
+
         # Generic consonants
         if c in 'bdfgjhklmnprstvz':
             cons_map = {'b':'ㅂ','d':'ㄷ','f':F,'g':'ㄱ','j':'ㅇ','h':'ㅎ',

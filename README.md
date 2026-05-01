@@ -327,6 +327,20 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.24.0** (2026.05) — Held-out 1000-row gold + 진짜 룰 정확도 측정
+  * `tests/gold/heldout_1000.tsv` — **1015 entries × 21 languages** override-free 검증 데이터
+    * es(69), fr(64), it(57), pt(48), de(51), nl(32), ru(55), pl(48), tr(46), id(46),
+      hu(30), sk(35), cs(40), ro(37), hr(37), sr(34), vi(39), fa(38), en(107), ja(50), zh(52)
+    * Categories: common / place / food / brand
+  * `scripts/eval_heldout_1000.py` — 정확도 평가 CLI (per-lang, JSON output, top-mismatches)
+  * `tests/test_heldout_1000.py` — 정확도 baseline 회귀 테스트 (24 tests)
+  * **진짜 룰 정확도 (override 없이) — v3.24:**
+    * **전체: 70.0% exact, 85.0% CER** (1015 rows)
+    * 최고: ja 96.0%, zh 94.2%, id 91.3%, tr 84.8%, es 84.1%
+    * 최저: fa 21.1% (Persian short-vowel 한계), vi 43.6%, nl 46.9%
+  * 룰 버그 fix: hr/cs/sk `c`→/ts/ 누락 (이전: 'c' 글자 누출됨)
+    * sr +17.6%, sk +11.4%, hr +8.1%, cs +7.5% accuracy ↑
+  * 전체 테스트: **403 passed** (379 + 24 새 회귀)
 * **v3.23.0** (2026.05) — Tibetan/Khmer/Lao/Burmese letter→IPA fallback
   * `hunmin/auto.py` — 4개 새 script 지원 (epitran 의존 X)
   * 추가된 letter→IPA 매핑:

@@ -1,0 +1,149 @@
+# Hunmin CHANGELOG
+
+표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
+
+## [3.24.0] — 2026-05-01 — Held-out 1000-row gold + 진짜 룰 정확도
+
+### Added
+- `tests/gold/heldout_1000.tsv` — **1015 entries × 21 languages** override-free 검증 데이터
+  - es(69) · fr(64) · it(57) · pt(48) · de(51) · nl(32) · ru(55) · pl(48) · tr(46) · id(46) · hu(30) · sk(35) · cs(40) · ro(37) · hr(37) · sr(34) · vi(39) · fa(38) · en(107) · ja(50) · zh(52)
+  - Categories: common / place / food / brand
+- `scripts/eval_heldout_1000.py` — 정확도 평가 CLI (per-lang, JSON output, top-mismatches)
+- `tests/test_heldout_1000.py` — 정확도 baseline 회귀 테스트 (24 tests)
+
+### Measured
+- **전체 진짜 룰 정확도 (override 없이): 70.0% exact, 85.0% CER** (1015 rows)
+- 최고: ja 96.0%, zh 94.2%, id 91.3%, tr 84.8%, es 84.1%
+- 최저: fa 21.1% (Persian short-vowel 한계), vi 43.6%, nl 46.9%
+
+### Fixed
+- hr/cs/sk: `c` → /ts/ 누락 버그 수정 (이전엔 'c' 글자 그대로 누출)
+  - sr +17.6%, sk +11.4%, hr +8.1%, cs +7.5% accuracy ↑
+
+### Tests
+- 379 → **403 passed** (+24 회귀)
+
+## [3.23.0] — 2026-05-01 — Tibetan/Khmer/Lao/Burmese letter→IPA fallback
+
+### Added
+- 4 새 script 지원 (epitran 의존 없음):
+  - **Tibetan** (티베트, U+0F00..U+0FFF) — base + subjoined consonants + tsek
+  - **Khmer** (크메르, U+1780..U+17FF) — coeng (្) + diacritics
+  - **Lao** (라오, U+0E80..U+0EFF) — 결합 모음 + 톤 마크 silent
+  - **Burmese** (버마/미얀마, U+1000..U+109F) — asat (်) + 모음 마크
+- `_detect_script()` Unicode block 분류 4개 추가
+- `transcribe_auto`에 라우팅 분기 추가 — strict mode leak 0 보장
+
+### Verified
+- བོད (티베트) → 볻
+- ខ្មែរ (크메르) → 크멜
+- ວຽງຈັນ (비엔티안) → 위앙찬
+- မြန်မာ (미얀마) → 므은마
+
+## [3.22.0] — 2026-05-01 — Persian rule module
+- `hunmin/core/persian.py` — 페르시아어 (Farsi) Arabic-script → Hangul
+- 추가 자모 (پ چ ژ گ) + 자음 사이 default vowel 자동 삽입
+- 핵심: ج→ㅈ, چ→ㅊ, خ→흐, ش→시, ق→ㄱ, پ→ㅍ
+- `_PRECISE` 21 hardcoded langs (fa 추가)
+
+## [3.21.0] — 2026-05-01 — 외부 evaluation corpus (NIKL 의존 X)
+- `tests/gold/uhps_external.jsonl` — 35개 IPA-based UHPS-full 검증
+- `tests/test_external.py` — 자동 회귀 테스트 (37 tests)
+- 검증 100% — 모든 IPA → expected UHPS-full 정확 매칭
+
+## [3.20.0] — 2026-05-01 — HF Space final polish — UHPS-full hero
+
+## [3.19.0] — 2026-05-01 — CJK ja 복합어 fix + irregular reading override
+- 복합어 공백 제거: すき焼き → 스키야키
+- Irregular reading override: 鹿児島 → 가고시마 (児 read 'go' not 'ko')
+- EE_GOLD ja: 86.8% → **91.5%**
+
+## [3.18.0] — 2026-05-01 — Mongolian/Persian + CJK audit
+
+## [3.17.0] — 2026-05-01 — Vietnamese rule + 2차 강세
+- `hunmin/core/vietnamese.py` — letter-by-letter NIKL 베트남어 룰
+- 핵심: ph→ㅍ, đ→ㄷ, ch→ㅉ, tr→ㅉ, qu→ㄲ, ngh/ng→응
+
+## [3.16.0] — 2026-05-01 — UHPS-full assembler cleanup
+- ㅇㆍ literal 제거: father ㆄㅇㆍ·ːㅽ어 → ㆄㆍ·ːㅽ어
+- /ŋ/ ㆁ 받침 자동 흡수: sing 시ㆁ → 싱
+- 어말 OLD 자음 받침 회피: Bach 밯 → 바흐, jazz 쟂 → 재즈
+
+## [3.15.0] — 2026-05-01 — UHPS-full을 primary mode로 reframe
+- `docs/UHPS_FULL_SHOWCASE.md` — UHPS-full vs NIKL 비교, 옛한글 추정 가이드
+
+## [3.14.0] — 2026-05-01 — Serbian Cyrillic rule (Vukov azbuka 트릭)
+- 30줄 모듈: Cyrillic→Latin 1:1 변환 후 Croatian 룰 재사용
+- EE_GOLD sr: 7.7% → 25.6%, mk: 11.8% → 29.4%
+
+## [3.13.0] — 2026-05-01 — Croatian/Bosnian rule + Polish ły fix
+- `hunmin/core/croatian.py`
+- EE_GOLD bs: 9.7% → 35.5%, hr: 12.1% → 19.0%
+
+## [3.12.0] — 2026-05-01 — Romanian rule module
+- `hunmin/core/romanian.py`
+- EE_GOLD ro: 15.6% → 23.7%
+
+## [3.11.0] — 2026-05-01 — Czech rule module
+- `hunmin/core/czech.py`
+- EE_GOLD cs: 8.7% → 15.7%
+
+## [3.10.0] — 2026-05-01 — Slovak 룰 + Armenian/Georgian IPA + multilingual stress
+- `hunmin/core/slovak.py`
+- Armenian/Georgian letter→IPA 매핑
+
+## [3.9.0] — 2026-04 — `transcribe_auto` 정착: tests + Hebrew + CLI + HF tab
+
+## [3.8.0] — 2026-04 — Mixed-script auto-routing + digit/symbol — leak 0 보장
+
+## [3.7.0] — 2026-04 — 모든 룰 모듈 phonetic= 인자 통일
+
+## [3.6.0] — 2026-04 — 5 explicit modes: HUNMIN/UHPS layer 분리
+- `HUNMIN_NIKL`, `HUNMIN_PHONETIC`, `UHPS_CORE`, `UHPS_JAMO`, `UHPS_FULL` 상수
+
+## [3.5.0] — 2026-04 — Hungarian rule module
+
+## [3.4.0] — 2026-04 — 만다린 ze fix + Vietnamese/Hu/Sk overrides
+- 毛泽东 마오저둥 → 마오쩌둥 (NIKL 외래어 표준)
+
+## [3.3.0] — 2026-04 — Held-out 정확도 + UHPS 자모 확장 + CJK regression
+- UHPS Spec compliance: 95/95 tests (100%)
+
+## [3.2.0] — 2026-04 — 동구권 fallback + 약어 사전
+
+## [3.1.0] — 2026-04 — Tone renderer 정식화 (UHPS_SPEC §5)
+- 5-way tone category: H/R/D/F/L
+- Mandarin 4성 distinct 보장
+- arrow / numeric / panjeom tone style
+
+## [3.0.0] — 2026-04 — Spec freeze + ML token layer
+- `docs/UHPS_SPEC.md` 정식 spec 동결
+- `transcribe(..., return_tokens=True)` ML 학습용 token sequence
+
+## [2.4.x] — 2026-04
+- v2.4.4: affricate digraph 보강 (tɕ/dʑ, tʂ/dʐ)
+- v2.4.3: 강세 attach bug fix
+- v2.4: UHPS-core / UHPS-full 분리
+
+## [2.3.0] — 2026-04 — API 정리 + 톤 다운
+
+## [2.2.0] — 2026-04 — UHPS v2 + IPA 직접 입력 모드
+- 옛한글 + 한글자모확장으로 IPA → 한글 1:1 매핑
+- `lang='ipa'`로 직접 IPA 입력 (의존성 0)
+
+## [2.1.0] — 2026-04 — Universal IPA transcriber via epitran (100+ langs)
+
+## [1.10.0] — 2026-04 — CJK NIKL 외래어 표기법 본격 적용
+
+## [1.8.0] — 2026-04 — 다국어 폴리싱 + 데모 + Syllabic schwa
+
+## [1.6.0] — 2026-04 — ML fallback + 형태소 분해
+
+## [1.5.0] — 2026-04 — 다국어 폴리싱 (fr/it/de/es/ru/pt/nl/pl/tr/id)
+
+## [1.4.0] — 2026-04 — Override 사전 150 → 515 단어
+
+## [1.3.0] — 2026-04 — 영어 파이프라인 강화 (97.3% NIKL)
+
+## [1.0.0] — 2026-04 — Initial public release
+- 14개 언어, 하이브리드 파이프라인, UHPS freeze

@@ -120,6 +120,13 @@ def _phonemize(word, precise=False):
             out.append(_compose('ㅇ', 'ㅖ'))
             i += 1; continue
 
+        # 'c' = /ts/ — affricate
+        if c == 'c':
+            if _is_vowel(nxt):
+                out.append(_compose('ㅊ', VOWEL_J[nxt]))
+                i += 2; continue
+            out.append('츠'); i += 1; continue
+
         # Generic consonants
         if c in 'bdfgjhklmnprstvxz':
             cons_map = {'b':'ㅂ','d':'ㄷ','f':F,'g':'ㄱ','j':'ㅇ','h':'ㅎ',

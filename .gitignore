@@ -32,3 +32,6 @@ htmlcov/
 # Hunmin-specific
 *.bak
 results/
+eval_results/
+benchmark_*.json
+.benchmarks/
