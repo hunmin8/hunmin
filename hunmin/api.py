@@ -1,4 +1,12 @@
-"""Hunmin public API — Hunmin class + transcribe() shortcut."""
+"""Hunmin public API — Hunmin class + transcribe() shortcut.
+
+Five explicit modes (UHPS_SPEC §1.0):
+  HUNMIN_NIKL    — 사람 읽기, NIKL 외래어 표기 컨벤션 (default)
+  HUNMIN_PHONETIC — 사람 읽기, 음운적 (NIKL adapter OFF)
+  UHPS_CORE      — 옛한글 음소 코드 (자모 분리, IPA 1:1)
+  UHPS_JAMO      — 분해된 자모 시퀀스 (ML 입력용)
+  UHPS_FULL      — UHPS-core + 운율 (장단/강세/성조)
+"""
 import re
 from .core import (
     transcribe_es, transcribe_it, transcribe_de, transcribe_ru,
@@ -6,6 +14,21 @@ from .core import (
     transcribe_tr, transcribe_id, transcribe_en, transcribe_hu,
     transcribe_cjk,
 )
+
+# === Mode constants (v3.6) ===
+HUNMIN_NIKL = 'hunmin_nikl'
+HUNMIN_PHONETIC = 'hunmin_phonetic'
+UHPS_CORE = 'uhps_core'
+UHPS_JAMO = 'uhps_jamo'
+UHPS_FULL = 'uhps_full'
+
+_MODE_TO_LEVEL = {
+    HUNMIN_NIKL:     (1, False),  # (level, phonetic)
+    HUNMIN_PHONETIC: (1, True),
+    UHPS_CORE:       (3, False),
+    UHPS_JAMO:       (4, False),
+    UHPS_FULL:       (5, False),
+}
 
 
 # === 동구권/일반 약어 → 의미 번역 (NIKL 컨벤션) ===
@@ -313,38 +336,49 @@ class Hunmin:
     def __init__(self):
         pass
 
-    def transcribe(self, text, lang, level=1, return_tokens=False):
+    def transcribe(self, text, lang, level=1, return_tokens=False,
+                   mode=None, phonetic=False):
         """Convert text to Hangul transcription.
 
         Args:
             text (str): Input text in the source language.
             lang (str): Language code (en, es, ja, zh, ko, ...) or 'ipa'.
-            level (int): Output level (1-5).
-                1: Children-friendly Hangul (default)
-                2: Natural pronunciation
-                3: UHPS-core — 옛한글 자음/모음 1:1 (ㆄ/ㅸ/ㅿ/ㆅ/ᄾ/ᄶ/ᄛ/ㅼ/ㅽ/ㅥ/ㆎ/ㆍ)
-                4: UHPS jamo sequence (for ML)
-                5: UHPS-full — 장단/성조/강세/방점까지 완전 보존
-                   (옛 훈민정음 방점: 〮 거성, 〯 상성, ː 장음)
-            return_tokens (bool): True면 추상 토큰 시퀀스 [(KIND, value, ...), ...]
-                를 반환 (ML 학습용). UHPS_SPEC §6 참조.
-                level=3 → core 토큰, level=5 → full 토큰 (SUPRA 포함).
-                lang은 'ipa' 또는 universal-mode iso (epitran 필요).
+            mode (str, optional): One of the 5 explicit modes (preferred):
+                HUNMIN_NIKL     — 사람 읽기, NIKL 컨벤션 (default)
+                HUNMIN_PHONETIC — 사람 읽기, 음운 정확
+                UHPS_CORE       — 옛한글 음소 코드
+                UHPS_JAMO       — 자모 시퀀스 (ML)
+                UHPS_FULL       — UHPS-core + 운율
+                If specified, overrides level/phonetic args.
+            level (int): Legacy output level (1-5). Use `mode` instead.
+            phonetic (bool): NIKL adapter OFF (level=1만 유효).
+                False (default) — NIKL 외래어 표기법 적용
+                True            — 음운적 정확도 우선 (학습/언어학)
+            return_tokens (bool): UHPS_SPEC §6 추상 토큰 시퀀스 반환.
 
         Returns:
             str: Hangul or jamo transcription.
             list: return_tokens=True 일 경우 토큰 리스트.
         """
+        if mode is not None:
+            if mode not in _MODE_TO_LEVEL:
+                raise ValueError(f"Unknown mode: {mode!r}. "
+                                  f"Use one of: {list(_MODE_TO_LEVEL)}")
+            level, phonetic = _MODE_TO_LEVEL[mode]
+
         if return_tokens:
             return self._tokens(text, lang, level)
         if level == 4:
             return self._jamo(text, lang)
         elif level == 5:
-            return self._hangul(text, lang, precise=True, uhps='full')
+            return self._hangul(text, lang, precise=True, uhps='full',
+                                phonetic=phonetic)
         elif level == 3:
-            return self._hangul(text, lang, precise=True, uhps='core')
+            return self._hangul(text, lang, precise=True, uhps='core',
+                                phonetic=phonetic)
         else:  # 1 or 2
-            return self._hangul(text, lang, precise=False, uhps='basic')
+            return self._hangul(text, lang, precise=False, uhps='basic',
+                                phonetic=phonetic)
 
     def _tokens(self, text, lang, level):
         """추상 토큰 시퀀스 반환 (UHPS_SPEC §6).
@@ -455,14 +489,15 @@ class Hunmin:
             pass
         return out
 
-    def _hangul(self, text, lang, precise=False, uhps=None):
-        result = self._hangul_inner(text, lang, precise=precise, uhps=uhps)
+    def _hangul(self, text, lang, precise=False, uhps=None, phonetic=False):
+        result = self._hangul_inner(text, lang, precise=precise, uhps=uhps,
+                                     phonetic=phonetic)
         # v3.2: 후처리 — 지명 약어 의미 번역 (basic 모드만)
         if not precise and result and isinstance(result, str):
             result = _apply_geo_abbrev(result, text)
         return result
 
-    def _hangul_inner(self, text, lang, precise=False, uhps=None):
+    def _hangul_inner(self, text, lang, precise=False, uhps=None, phonetic=False):
         # IPA 직접 입력 모드 (epitran 의존성 X)
         if lang == 'ipa':
             from .core.universal import transcribe_universal
@@ -471,14 +506,20 @@ class Hunmin:
         if lang in _DICT_LANGS:
             return transcribe_cjk(text, lang, mode='hangul')
 
-        # NIKL 단어별 override (basic 모드만, 모든 lang에 대해)
-        if not precise and lang in _LANG_OVERRIDES:
+        # v3.6: phonetic=True면 _LANG_OVERRIDES 사전 skip (NIKL adapter OFF)
+        if not precise and not phonetic and lang in _LANG_OVERRIDES:
             key = text.lower().strip()
             if key in _LANG_OVERRIDES[lang]:
                 return _LANG_OVERRIDES[lang][key]
 
         if lang in _PRECISE:
-            return _PRECISE[lang](text, mode='hangul', precise=precise)
+            # 룰 모듈에 phonetic 플래그 전달 (지원하는 모듈만 사용)
+            try:
+                return _PRECISE[lang](text, mode='hangul', precise=precise,
+                                       phonetic=phonetic)
+            except TypeError:
+                # 룰 모듈이 phonetic 미지원 → 기본 호출
+                return _PRECISE[lang](text, mode='hangul', precise=precise)
         else:
             # Universal IPA-based fallback (162 languages via epitran)
             try:
@@ -521,12 +562,14 @@ class Hunmin:
 _default = Hunmin()
 
 
-def transcribe(text, lang, level=1, return_tokens=False):
+def transcribe(text, lang, level=1, return_tokens=False,
+               mode=None, phonetic=False):
     """Convert text to Hangul transcription (uses default Hunmin instance).
 
     See Hunmin.transcribe for full docs.
     """
-    return _default.transcribe(text, lang, level, return_tokens=return_tokens)
+    return _default.transcribe(text, lang, level, return_tokens=return_tokens,
+                                 mode=mode, phonetic=phonetic)
 
 
 def views(text, lang, meaning=None):

@@ -284,6 +284,25 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.6.0** (2026.04) — 5 explicit modes: HUNMIN/UHPS layer 분리
+  * **5개 mode 상수 도입** — `HUNMIN_NIKL`, `HUNMIN_PHONETIC`, `UHPS_CORE`, `UHPS_JAMO`, `UHPS_FULL`
+  * `transcribe(text, lang, mode=HUNMIN_PHONETIC)` — 음운 정확도 우선 (NIKL adapter OFF)
+  * `transcribe(text, lang, mode=HUNMIN_NIKL)` — NIKL 외래어 표기법 (default)
+  * **Hungarian prototype**: `Buda` → 부**더** (NIKL) vs 부**다** (phonetic), `Baranya` → **버러녀** vs **바라냐**
+  * `_LANG_OVERRIDES` 사전 skip when phonetic=True (NIKL 단어별 굳어진 표기 미적용)
+  * 모듈 옵트인 (hu 완료, en/es/fr 등 차후)
+  * `level=` 인자 backward compat 유지
+  * 전체 테스트: **230 passed**
+
+```python
+# 5 modes, explicit
+from hunmin import transcribe, HUNMIN_NIKL, HUNMIN_PHONETIC, UHPS_CORE, UHPS_JAMO, UHPS_FULL
+transcribe('Baranya', 'hu', mode=HUNMIN_NIKL)      # → 버러녀 (NIKL)
+transcribe('Baranya', 'hu', mode=HUNMIN_PHONETIC)  # → 바라냐 (음운)
+transcribe('Buda', 'hu', mode=UHPS_CORE)           # → 부더 (옛한글 코드)
+transcribe('Buda', 'hu', mode=UHPS_FULL)           # → 부더 (+운율)
+```
+
 * **v3.5.0** (2026.04) — Hungarian rule module
   * `hunmin/core/hungarian.py` — letter-by-letter NIKL 헝가리어 룰
   * 핵심: a → ㅓ (Hu /ɒ/), á → ㅏ, cs → ㅊ, gy → 죠/져, ny → 녀/뇨, sz → ㅅ, zs → 주, ly → 야/요

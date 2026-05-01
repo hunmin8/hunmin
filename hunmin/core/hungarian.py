@@ -39,8 +39,11 @@ def _compose(cho, jung, jong=''):
     return cho + jung + jong
 
 
-VOWEL_J = {
-    'a': 'ㅓ',  # NIKL: Hungarian a /ɒ/ → ㅓ
+# Two layers of vowel mapping — see UHPS_SPEC §1.0 for layer separation
+# Phonetic (음운적): IPA-faithful, language-learning oriented
+# NIKL: 외래어 표기법 컨벤션 (Korean reader-friendly, may diverge from phonetic)
+VOWEL_J_PHONETIC = {
+    'a': 'ㅏ',  # IPA /ɒ/ — closer to ㅏ phonetically
     'á': 'ㅏ',
     'e': 'ㅔ', 'é': 'ㅔ',
     'i': 'ㅣ', 'í': 'ㅣ',
@@ -50,6 +53,20 @@ VOWEL_J = {
     'ü': 'ㅟ', 'ű': 'ㅟ',
 }
 
+VOWEL_J_NIKL = {
+    'a': 'ㅓ',  # NIKL: Hungarian a /ɒ/ → ㅓ (외래어 표기법 컨벤션)
+    'á': 'ㅏ',
+    'e': 'ㅔ', 'é': 'ㅔ',
+    'i': 'ㅣ', 'í': 'ㅣ',
+    'o': 'ㅗ', 'ó': 'ㅗ',
+    'ö': 'ㅚ', 'ő': 'ㅚ',
+    'u': 'ㅜ', 'ú': 'ㅜ',
+    'ü': 'ㅟ', 'ű': 'ㅟ',
+}
+
+# Default = NIKL (HUNMIN-readable layer 기본값)
+VOWEL_J = VOWEL_J_NIKL
+
 VOWEL_LETTERS = set(VOWEL_J.keys())
 
 
@@ -57,8 +74,13 @@ def _is_vowel(c):
     return c in VOWEL_LETTERS
 
 
-def _phonemize(word, precise=False):
-    """Hungarian word → list of (cho, jung, jong) tuples or single jamo."""
+def _phonemize(word, precise=False, phonetic=False):
+    """Hungarian word → list of jamo tokens.
+    phonetic=True : 음운 정확도 우선 (a → ㅏ /ɒ/)
+    phonetic=False (default) : NIKL 컨벤션 (a → ㅓ)
+    """
+    global VOWEL_J
+    VOWEL_J = VOWEL_J_PHONETIC if phonetic else VOWEL_J_NIKL
     s = word.lower()
 
     # Normalize geminates: tt/nn/ll/kk/pp/bb/dd/gg/mm/rr/ss → 받침+자음
@@ -234,13 +256,14 @@ def _absorb_finals(syls):
     return result
 
 
-def transcribe(text, mode='hangul', precise=False):
+def transcribe(text, mode='hangul', precise=False, phonetic=False):
     """Hungarian text → Hangul.
 
     Args:
       text: input text
       mode: 'hangul' (default) — produces Korean surface
       precise: bool — if True, use 옛한글 ㆄ/ㅸ for f/v
+      phonetic: bool — True면 음운 정확도 (a → ㅏ), False면 NIKL (a → ㅓ)
     """
     # Word-level processing (split by space, preserve punctuation)
     parts = re.split(r'(\s+|[,.!?;:])', text)
@@ -250,6 +273,6 @@ def transcribe(text, mode='hangul', precise=False):
         if part.isspace() or re.match(r'[,.!?;:]', part):
             out.append(part)
             continue
-        syls = _phonemize(part, precise=precise)
+        syls = _phonemize(part, precise=precise, phonetic=phonetic)
         out.append(''.join(syls))
     return ''.join(out)
