@@ -327,6 +327,16 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.16.0** (2026.05) — UHPS-full assembler cleanup
+  * **ㅇㆍ literal 제거** — `father` ㆄㅇㆍ·ːㅽ어 → **ㆄㆍ·ːㅽ어** (clean)
+    * OLD vowels (ㆎ, ㆍ)는 standard VOWELS 밖 → ㅇ 끼우지 않고 단독 출력
+  * **/ŋ/ ㆁ 받침 자동 흡수** — `sing` 시ㆁ → **싱**, `king` 키ㆁ → **킹**
+  * **어말 OLD 자음 받침 회피** — NIKL 컨벤션 따라 ㅡ-syll 사용:
+    * `Bach` 밯 → **바흐** (/x/ ㆅ → 흐)
+    * `jazz` 쟂 → **재즈** (/z/ ㅿ → 즈)
+    * `film` 필므 정상 (m → 받침 ㅁ + 으-syll)
+  * 비음 OLD (ㅥ→ㄴ, ㅱ→ㅁ)는 받침 가능 유지
+  * 전체 테스트: **342 passed**
 * **v3.15.0** (2026.05) — UHPS-full을 primary mode로 reframe + showcase
   * **README hero 재구성** — UHPS-full 중심, NIKL은 호환 layer로 강등
   * `docs/UHPS_FULL_SHOWCASE.md` — UHPS-full vs NIKL 비교, 옛한글 추정 가이드

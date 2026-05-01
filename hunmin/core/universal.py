@@ -555,10 +555,17 @@ def _assemble(tokens, precise=True):
                 if precise:
                     # 옛한글 + 모음 분리
                     syllables.append(val)
-                    syll = _compose('ㅇ', target_v)
-                    if nxt[0] == 'V_NASAL':
-                        syll = _compose_with_jong(syll, 'ㆁ')
-                    syllables.append(syll)
+                    # OLD vowels (ㆍ, ㆎ)는 _compose가 literal 'ㅇㆎ' 반환 → 깔끔히 단독 출력
+                    if target_v in _OLD_VOWELS and target_v not in VOWELS:
+                        syllables.append(target_v)
+                        # nasal 모음 일 때 ㆁ 추가 (받침 못 붙이니 단독)
+                        if nxt[0] == 'V_NASAL':
+                            syllables.append('ㆁ')
+                    else:
+                        syll = _compose('ㅇ', target_v)
+                        if nxt[0] == 'V_NASAL':
+                            syll = _compose_with_jong(syll, 'ㆁ') or syll
+                        syllables.append(syll)
                 else:
                     syll = _compose(jamo, target_v)
                     if nxt[0] == 'V_NASAL':
@@ -568,11 +575,16 @@ def _assemble(tokens, precise=True):
             # 어말/자음 앞 — 단독 표시 또는 받침
             if precise:
                 syllables.append(val)
-            elif jamo in FINALS and syllables and len(syllables[-1]) == 1:
-                # 받침으로 부착 시도
-                syllables[-1] = _compose_with_jong(syllables[-1], jamo) or syllables[-1]
             else:
-                syllables.append(_compose(jamo, 'ㅡ'))
+                # OLD 자음 (마찰음 ㆄ/ㅸ/ㅿ/ㆅ/ᄾ/ᄶ/ㅼ/ㅽ + ᄛ + ㅥ/ㅱ) → 받침 회피
+                # NIKL 컨벤션: 어말 마찰음/외래자음 → ㅡ-syll (예: Bach → 바흐, jazz → 재즈)
+                # 단, 비음(ㅥ→ㄴ, ㅱ→ㅁ)는 받침 가능
+                avoid_jong = val not in ('ㅥ', 'ㅱ')
+                if (not avoid_jong and jamo in FINALS and syllables
+                        and len(syllables[-1]) == 1):
+                    syllables[-1] = _compose_with_jong(syllables[-1], jamo) or syllables[-1]
+                else:
+                    syllables.append(_compose(jamo, 'ㅡ'))
             i += 1; continue
 
         # OLD vowel (ㆎ ㆍ ㅙ) — 옛한글/특수 모음
@@ -580,7 +592,11 @@ def _assemble(tokens, precise=True):
             syllables.append(val); i += 1; continue
         if kind == 'OLD':  # OLD 모음 (ㆎ ㆍ ㅙ)
             jung = _maybe_basic(val)
-            syllables.append(_compose('ㅇ', jung))
+            if jung in VOWELS:
+                syllables.append(_compose('ㅇ', jung))
+            else:
+                # ㆎ, ㆍ는 standard VOWELS 밖 → 단독 표시 (clean)
+                syllables.append(jung)
             i += 1; continue
 
         # V (모음 단독)
@@ -660,8 +676,14 @@ def _assemble(tokens, precise=True):
                 syllables.append(syll)
                 i += 2; continue
             # 자음 단독: 받침 시도 또는 으-syll
-            if syllables and len(syllables[-1]) == 1 and cho in FINALS:
-                attached = _compose_with_jong(syllables[-1], cho)
+            # ㆁ (옛이응 /ŋ/) → 받침-ㅇ로 대체해서 흡수 시도
+            jong_cand = 'ㅇ' if cho == 'ㆁ' else cho
+            # NIKL 컨벤션: 어말 마찰음(s/z/f/v/x계열) → ㅡ-syll (받침 X)
+            # 마찰음 표시는 OLD 자음들(ㆄ/ㅸ/ㅿ/ㆅ/ᄾ/ᄶ/ㅼ/ㅽ) — 받침 회피
+            avoid_jong = cho in ('ㆄ','ㅸ','ㅿ','ㆅ','ᄾ','ᄶ','ㅼ','ㅽ')
+            if (not avoid_jong and syllables and len(syllables[-1]) == 1
+                    and jong_cand in FINALS):
+                attached = _compose_with_jong(syllables[-1], jong_cand)
                 if attached:
                     syllables[-1] = attached
                     i += 1; continue
@@ -669,7 +691,15 @@ def _assemble(tokens, precise=True):
             if cho in INITIALS:
                 syllables.append(_compose(cho, 'ㅡ'))
             else:
-                syllables.append(cho)
+                # OLD 자음 — 단독 + ㅡ-syll로 자모 보존
+                if cho in OLD_TO_BASIC and OLD_TO_BASIC[cho] in INITIALS:
+                    if precise:
+                        syllables.append(cho)
+                        syllables.append(_compose('ㅇ', 'ㅡ'))
+                    else:
+                        syllables.append(_compose(OLD_TO_BASIC[cho], 'ㅡ'))
+                else:
+                    syllables.append(cho)
             i += 1; continue
         i += 1
     return ''.join(syllables)
