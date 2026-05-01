@@ -220,6 +220,82 @@ _LANG_OVERRIDES = {
         'terima': '테리마',
         'kasih': '카시',
     },
+    # === Hungarian (hu) — NIKL (well-known names only; 룰 모듈 미구현) ===
+    'hu': {
+        'budapest': '부다페스트',
+        'debrecen': '데브레첸',
+        'szeged': '세게드',
+        'miskolc': '미슈콜츠',
+        'pécs': '페치',
+        'pecs': '페치',
+        'győr': '죄르',
+        'gyor': '죄르',
+        'eger': '에게르',
+        'budapest': '부다페스트',
+        # 인사
+        'köszönöm': '쾨쇠뇜',
+        'koszonom': '쾨쇠뇜',
+        'jó napot': '요너포트',
+        # 인명
+        'kossuth': '코슈트',
+        'orbán': '오르반',
+        'orban': '오르반',
+        'puskás': '푸스카시',
+        'puskas': '푸스카시',
+    },
+    # === Slovak (sk) — NIKL (well-known names only) ===
+    'sk': {
+        'bratislava': '브라티슬라바',
+        'košice': '코시체',
+        'kosice': '코시체',
+        'prešov': '프레쇼프',
+        'presov': '프레쇼프',
+        'žilina': '질리나',
+        'zilina': '질리나',
+        'banská bystrica': '반스카비스트리차',
+        'tatry': '타트리',
+        # 인사
+        'ďakujem': '댜쿠옘',
+        'dakujem': '댜쿠옘',
+        'ahoj': '아호이',
+    },
+    # === Vietnamese (vi) — NIKL 외래어 표기법 ===
+    'vi': {
+        # 지명
+        'hà nội': '하노이',
+        'hanoi': '하노이',
+        'sài gòn': '사이공',
+        'saigon': '사이공',
+        'hồ chí minh': '호찌민',
+        'ho chi minh': '호찌민',
+        'đà nẵng': '다낭',
+        'da nang': '다낭',
+        'huế': '후에',
+        'hue': '후에',
+        'hải phòng': '하이퐁',
+        'hai phong': '하이퐁',
+        'nha trang': '나트랑',
+        'đà lạt': '달랏',
+        'da lat': '달랏',
+        'cần thơ': '껀터',
+        'phú quốc': '푸꾸옥',
+        'mê kông': '메콩',
+        'mekong': '메콩',
+        # 인사/일상
+        'xin chào': '신짜오',
+        'cảm ơn': '깜언',
+        'tạm biệt': '땀비엣',
+        'phở': '퍼',
+        # 인명
+        'nguyễn': '응우옌',
+        'nguyen': '응우옌',
+        'trần': '쩐',
+        'lê': '레',
+        'phạm': '팜',
+        'võ': '보',
+        'đặng': '당',
+        'bùi': '부이',
+    },
 }
 
 
@@ -394,12 +470,14 @@ class Hunmin:
                                          precise=precise, uhps=uhps)
         if lang in _DICT_LANGS:
             return transcribe_cjk(text, lang, mode='hangul')
-        elif lang in _PRECISE:
-            # Per-language Hangul override (단일 단어만; 공백/구두점이면 룰 사용)
-            if not precise and lang in _LANG_OVERRIDES:
-                key = text.lower().strip()
-                if key in _LANG_OVERRIDES[lang]:
-                    return _LANG_OVERRIDES[lang][key]
+
+        # NIKL 단어별 override (basic 모드만, 모든 lang에 대해)
+        if not precise and lang in _LANG_OVERRIDES:
+            key = text.lower().strip()
+            if key in _LANG_OVERRIDES[lang]:
+                return _LANG_OVERRIDES[lang][key]
+
+        if lang in _PRECISE:
             return _PRECISE[lang](text, mode='hangul', precise=precise)
         else:
             # Universal IPA-based fallback (162 languages via epitran)

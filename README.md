@@ -33,7 +33,10 @@ transcribe("button",   "en")              # 버튼 (syllabic schwa)
 
 NIKL 외래어 표기 벤치 (보조 지표):
 - 사용자 경험 (사전+룰 결합): 영어 98.5% / 다국어 100% / 일본 도·현 92%
-- **Held-out 룰 정확도** (사전에 없는 단어만): 영어 **97.8%** (45) / 다국어 **100%** (15)
+- **Held-out 룰 정확도** (사전에 없는 단어만):
+  - 영어 en_gold held-out: 97.8% (45 — regression suite)
+  - 영어 en_heldout_diverse: **64.3%** (42 — 다양한 외래어, 진짜 generalization)
+  - 다국어: 100% (15)
 - 외부 NIKL gold (동구권 1299단어, leakage 0): 11.5% — 룰 없는 영역의 룰 한계
 
 > 사전(`_HANGUL_OVERRIDES`)은 NIKL 위원회가 "단어별로 굳혀놓은 표기" 처리용 (룰로 도출 불가). 룰은 사전에 없는 일반 케이스 처리. 두 layer가 의도된 분담.
@@ -281,6 +284,15 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.4.0** (2026.04) — 만다린 ze fix + Vietnamese/Hu/Sk overrides + held-out 확장
+  * **만다린 ze→쩌 NIKL 정정** — 毛泽东 마오저둥 → **마오쩌둥** (NIKL 외래어 표기 표준)
+    * 전체 매핑: ze 쩌, zei 쩨이, zen 쩐, zeng 쩡 (z-front-vowel rule)
+  * **Vietnamese (vi)** override 추가 — 38개 (Hà Nội, Hồ Chí Minh, xin chào, Nguyễn 등)
+  * **Hungarian (hu)** override 추가 — Budapest, Debrecen, Kossuth 등
+  * **Slovak (sk)** override 추가 — Bratislava, Košice, Tatry 등
+  * `_LANG_OVERRIDES` 라우팅 — `_PRECISE` 룰 모듈 없는 언어도 override 적용
+  * **en_heldout_diverse.tsv** — 92 다양한 외래어 (42 진짜 held-out): **64.3%** (vs en_gold 97.8%)
+  * 전체 테스트: **230 passed** (xfail 0)
 * **v3.3.0** (2026.04) — Held-out 정확도 + UHPS 자모 확장 + CJK regression
   * **Held-out gold** (override-free): 영어 97.8% (45) / 다국어 100% (15) — 진짜 룰 정확도
   * IPA 자모 매핑 16개 추가: retroflex (ʈ ɖ ɳ), palatal (c ɟ ʝ), uvular (ɢ ʙ), 중설모음 (ɘ ɜ ɞ), 등

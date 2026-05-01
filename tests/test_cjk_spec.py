@@ -39,8 +39,7 @@ ZH_GOLD = [
     ('广州', '광저우'),
     ('深圳', '선전'),
     ('习近平', '시진핑'),
-    pytest.param('毛泽东', '마오쩌둥', marks=pytest.mark.xfail(
-        reason="NIKL says ze→쩌, current pinyin table has ze→저 (known v3.x gap)")),
+    ('毛泽东', '마오쩌둥'),  # v3.4: NIKL ze→쩌 fix applied
     ('邓小平', '덩샤오핑'),
     ('武汉', '우한'),
     ('成都', '청두'),
