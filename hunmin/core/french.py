@@ -464,15 +464,27 @@ def _phonemize(word, precise):
 
 
 def _intervocalic_l_post(phonemes):
-    """Hangul mode only: intervocalic L doubling."""
+    """Hangul mode only: intervocalic L doubling + Cl cluster.
+
+    NIKL French: Cl 클러스터 → 받침-ㄹ + ㄹV (glace 글라스, plage 플라주, fleur 플뢰르, plaisir 플레지르)
+    """
+    CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄷ', 'ㅌ', 'ㆄ'}
     out2 = []
     for k, ph in enumerate(phonemes):
+        # Existing intervocalic L
         if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
                 and k > 0 and phonemes[k-1][0] in ('V', 'SV')
                 and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
             out2.append(('RR', 'ㄹ', 'l_double'))
-        else:
-            out2.append(ph)
+            continue
+        # Cl cluster (consonant + 'l' + V) → 받침-ㄹ + ㄹV
+        if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
+                and k > 0 and phonemes[k-1][0] in ('C', 'OLD')
+                and len(phonemes[k-1]) >= 2 and phonemes[k-1][1] in CLUSTER_C
+                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+            out2.append(('RR', 'ㄹ', 'l_cluster'))
+            continue
+        out2.append(ph)
     return out2
 
 

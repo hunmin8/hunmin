@@ -2,6 +2,16 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.29.0] — 2026-05-01 — French Cl-cluster polish
+
+### Fixed
+- **French (fr): 68.8 → 75.0%** (+6.2pt)
+  - Cl 클러스터 → 받침-ㄹ + ㄹV (NIKL 표기법 일관 적용)
+  - glace 그라스 → 글라스, plage 프라주 → 플라주, fleur 프뢰르 → 플뢰르, plaisir 프레지르 → 플레지르
+
+### Measured
+- 전체: 74.9 → **75.3% exact** (+0.4pt, +4 correct)
+
 ## [3.28.0] — 2026-05-01 — German NIKL polish
 
 ### Fixed

@@ -24,7 +24,7 @@ MIN_EXACT_PCT = {
     'en': 58.0,   # observed 60.7
     'es': 96.0,   # observed 98.6 (v3.25 rr→ㄹ, Cl-cluster)
     'fa': 18.0,   # observed 21.1 (Persian short-vowel hard limit)
-    'fr': 65.0,   # observed 68.8
+    'fr': 73.0,   # observed 75.0 (v3.29 Cl-cluster)
     'hr': 65.0,   # observed 67.6
     'hu': 70.0,   # observed 73.3
     'id': 88.0,   # observed 91.3
@@ -42,8 +42,8 @@ MIN_EXACT_PCT = {
     'zh': 90.0,   # observed 94.2
 }
 
-MIN_OVERALL_EXACT_PCT = 73.0   # observed 74.9 (v3.28)
-MIN_OVERALL_CER_PCT = 86.0     # observed 87.6 (v3.28)
+MIN_OVERALL_EXACT_PCT = 73.5   # observed 75.3 (v3.29)
+MIN_OVERALL_CER_PCT = 86.0     # observed 87.7 (v3.29)
 
 
 def _edit_distance(a, b):

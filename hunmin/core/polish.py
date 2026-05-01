@@ -449,7 +449,27 @@ def _to_jamo_seq(phonemes):
 
 
 def _intervocalic_l_post(phonemes):
-    return phonemes  # Polish: no intervocalic doubling
+    """Polish: intervocalic L doubling + Cl cluster (NIKL convention).
+
+    ulica 우리차 → 울리차 (intervocalic l → 받침-ㄹ + ㄹV)
+    chleb 흐레브 → 흘레프 (Cl cluster, 흘+레)
+    """
+    CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄷ', 'ㅌ', 'ㅎ', 'ㆄ'}
+    out2 = []
+    for k, ph in enumerate(phonemes):
+        if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
+                and k > 0 and phonemes[k-1][0] in ('V', 'SV')
+                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+            out2.append(('RR', 'ㄹ', 'l_double'))
+            continue
+        if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
+                and k > 0 and phonemes[k-1][0] in ('C', 'OLD')
+                and len(phonemes[k-1]) >= 2 and phonemes[k-1][1] in CLUSTER_C
+                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+            out2.append(('RR', 'ㄹ', 'l_cluster'))
+            continue
+        out2.append(ph)
+    return out2
 
 def transcribe_pl(text, precise=True, mode='hangul', phonetic=False):
     """pl → Hangul. mode: 'hangul'/'jamo'/'spaced'."""
