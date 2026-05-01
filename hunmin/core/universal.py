@@ -254,37 +254,36 @@ _NASAL_MAP = {
 #   STRESS = lexical stress                  — 별도 (강세는 tone과 다름)
 TONE_STYLES = {
     # 분절체계용 stress/length만 박은 것 (default 호환)
+    # tone_stress2 = 2차 강세 (ˌ) — v3.17 추가
     'panjeom':   {
         'high': '〮', 'rising': '〯', 'length': 'ː',
         'tone_H': '〮', 'tone_R': '〯', 'tone_D': '〯〮',
-        'tone_F': '〮〯', 'tone_L': '', 'tone_stress': '〮',
+        'tone_F': '〮〯', 'tone_L': '', 'tone_stress': '〮', 'tone_stress2': '〮',
     },
     'ipa':       {
         'high': 'ˈ',  'rising': 'ˇ',  'length': 'ː',
         'tone_H': '˥', 'tone_R': '˧˥', 'tone_D': '˨˩˦',
-        'tone_F': '˥˩', 'tone_L': '˩', 'tone_stress': 'ˈ',
+        'tone_F': '˥˩', 'tone_L': '˩', 'tone_stress': 'ˈ', 'tone_stress2': 'ˌ',
     },
     'middledot': {
         'high': '·',  'rising': '··', 'length': 'ː',
         'tone_H': '·', 'tone_R': '··', 'tone_D': '··',
-        'tone_F': '·', 'tone_L': '', 'tone_stress': '·',
+        'tone_F': '·', 'tone_L': '', 'tone_stress': '·', 'tone_stress2': '˗',
     },
     'ascii':     {
         'high': "'",  'rising': '^',  'length': ':',
         'tone_H': "'", 'tone_R': '^', 'tone_D': '^^',
-        'tone_F': "'", 'tone_L': '_', 'tone_stress': "'",
+        'tone_F': "'", 'tone_L': '_', 'tone_stress': "'", 'tone_stress2': ',',
     },
-    # v3.1: arrow style — 톤 윤곽을 화살표로 시각화
     'arrow':     {
         'high': '¯',  'rising': '↗',  'length': 'ː',
         'tone_H': '¯', 'tone_R': '↗', 'tone_D': '↘↗',
-        'tone_F': '↘', 'tone_L': '↓', 'tone_stress': '·',
+        'tone_F': '↘', 'tone_L': '↓', 'tone_stress': '·', 'tone_stress2': '˗',
     },
-    # v3.1: numeric — Mandarin 1-5 디지트 슈퍼스크립트
     'numeric':   {
         'high': '¹',  'rising': '²',  'length': 'ː',
         'tone_H': '¹', 'tone_R': '²', 'tone_D': '³',
-        'tone_F': '⁴', 'tone_L': '₁', 'tone_stress': '·',
+        'tone_F': '⁴', 'tone_L': '₁', 'tone_stress': '·', 'tone_stress2': '˗',
     },
 }
 # 모듈 변수 (런타임 변경 가능)
@@ -383,6 +382,10 @@ def _tokenize_ipa(ipa, precise=False):
                 pending_stress = PANJEOM_HIGH
             i += 1; continue
         if ch in _STRESS_SECONDARY:
+            # v3.17: 2차 강세 표시 — primary와 마찬가지로 다음 모음에 attach
+            if precise:
+                style = TONE_STYLES.get(_DEFAULT_TONE_STYLE, TONE_STYLES['middledot'])
+                pending_stress = style.get('tone_stress2', '')
             i += 1; continue
 
         # Tone bars (multi-char patterns first — D/F before H/L)

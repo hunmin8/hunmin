@@ -327,6 +327,13 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.17.0** (2026.05) — Vietnamese rule + 2차 강세
+  * `hunmin/core/vietnamese.py` — letter-by-letter NIKL 베트남어 룰
+  * 핵심: ph→ㅍ, đ→ㄷ, ch→ㅉ, tr→ㅉ, x→ㅅ palatal, qu→ㄲ, ngh/ng→응(어말 받침 ㅇ), 6성 NIKL 무시 (NFD strip)
+  * 검증 8/8 pass: `xin chào`→신짜오, `Hà Nội`→하노이, `Đà Nẵng`→다낭, `Hồ Chí Minh`→호찌민, `Nguyễn`→응우옌
+  * **2차 강세 (`ˌ`)** 표시 추가 — `tone_stress2` per style: middledot/arrow/numeric→`˗`, ipa→`ˌ`, ascii→`,`, panjeom→`〮`
+  * `_PRECISE` 20 hardcoded langs (vi 추가)
+  * 전체 테스트: **342 passed**
 * **v3.16.0** (2026.05) — UHPS-full assembler cleanup
   * **ㅇㆍ literal 제거** — `father` ㆄㅇㆍ·ːㅽ어 → **ㆄㆍ·ːㅽ어** (clean)
     * OLD vowels (ㆎ, ㆍ)는 standard VOWELS 밖 → ㅇ 끼우지 않고 단독 출력
