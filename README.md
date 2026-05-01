@@ -284,6 +284,12 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.12.0** (2026.05) — Romanian rule module
+  * `hunmin/core/romanian.py` — letter-by-letter NIKL 루마니아어 룰
+  * 핵심: ă→ㅓ, â/î→ㅡ, ș→ㅅ, **ț→ㅊ** (ts), c+e/i→ㅊ vs c→ㅋ, g+e/i→ㅈ vs g→ㄱ, ch/gh silent-h
+  * **EE_GOLD ro**: 15.6% → **23.7%** (+8.1pt, 358 entries — 최대 절대 개선)
+  * `_PRECISE` 15 hardcoded langs (ro 추가)
+  * 전체 테스트: **342 passed**
 * **v3.11.0** (2026.05) — Czech rule module
   * `hunmin/core/czech.py` — letter-by-letter NIKL 체코어 룰
   * 핵심: ch→흐, š→ㅅ, ž→주, č→ㅊ, **ř→ㅈ** (Czech 고유음), ť/ď/ň→palatal, ě→ㅖ

@@ -12,7 +12,7 @@ from .core import (
     transcribe_es, transcribe_it, transcribe_de, transcribe_ru,
     transcribe_fr, transcribe_pt, transcribe_nl, transcribe_pl,
     transcribe_tr, transcribe_id, transcribe_en, transcribe_hu,
-    transcribe_sk, transcribe_cs,
+    transcribe_sk, transcribe_cs, transcribe_ro,
     transcribe_cjk,
 )
 
@@ -79,7 +79,7 @@ _PRECISE = {
     'ru': transcribe_ru, 'fr': transcribe_fr, 'pt': transcribe_pt,
     'nl': transcribe_nl, 'pl': transcribe_pl, 'tr': transcribe_tr,
     'id': transcribe_id, 'en': transcribe_en, 'hu': transcribe_hu,
-    'sk': transcribe_sk, 'cs': transcribe_cs,
+    'sk': transcribe_sk, 'cs': transcribe_cs, 'ro': transcribe_ro,
 }
 # CJK uses v1 deterministic dict (requires pykakasi/pypinyin/hanja for ja/zh)
 _DICT_LANGS = {'ja', 'zh', 'ko'}
