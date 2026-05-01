@@ -91,8 +91,8 @@ transcribe_auto('Καλημέρα 친구! $100 + 50%')
 NIKL은 한국어 외래어 표기법이며 hunmin의 본질이 아님. 그러나 한국 사용자 호환을 위해 NIKL convention을 따라가는 정확도도 측정:
 
 - **Held-out 1015 단어 × 21개 언어** (`tests/gold/heldout_1000.tsv`, override-free):
-  - **75.3% exact / 87.7% CER**
-  - 최고: **es 98.6%, ja 96.0%, it 94.7%, zh 94.2%, id 91.3%, tr 84.8%, de 80.4%, sk 80.0%**
+  - **75.5% exact / 87.9% CER**
+  - 최고: **es 98.6%, ja 96.0%, it 94.7%, zh 94.2%, id 91.3%, tr 84.8%, de 80.4%, sk 80.0%, fr 75.0%**
   - 중간: pt 70.8%, hu 73.3%, sr 73.5%, sk 80.0%
   - 하위: nl 62.5%, vi 64.1%, fa 21.1% (Persian short-vowel 한계)
 
@@ -341,6 +341,11 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.30.0** (2026.05) — Russian soft-sign (ь) NIKL fix
+  * **Russian (ru): 69.1 → 72.7%** (+3.6pt)
+    * 어말 ь after nasal/liquid → 받침 (огонь 오곤, Казань 카잔)
+    * PALATAL_BREAK — 자음+ь+모음 syllable break (семья 셈야)
+  * **전체: 75.3 → 75.5%** (+0.2pt)
 * **v3.29.0** (2026.05) — French Cl-cluster polish
   * **French (fr): 68.8 → 75.0%** (+6.2pt)
     * Cl 클러스터 받침-ㄹ + ㄹV (glace 글라스, plage 플라주, fleur 플뢰르, plaisir 플레지르)

@@ -141,7 +141,20 @@ def _phonemize(word, precise):
 
         # === ь (soft sign), ъ (hard sign) ===
         if c in ('ь', 'ъ'):
-            # 어말 ь after consonant → emit V ㅣ (palatalize: рь → 리, ть → 티, мь → 미)
+            # NIKL Russian: 어말 ь after nasal/liquid (н/м/л) → 받침 흡수, ㅣ 안 붙임
+            # огонь 아곤, Казань 카잔, рубль 루블
+            if c == 'ь' and out and out[-1][0] == 'C' and out[-1][1] in ('ㄴ', 'ㅁ', 'ㄹ'):
+                if i+1 >= n or s[i+1] not in CYRILLIC_VOWELS:
+                    # 어말 또는 자음 앞 → drop ь, C는 받침 처리됨
+                    i += 1
+                    continue
+                # Internal ь before vowel: 받침 + 새 syllable.
+                # семья 셈야: м은 받침, я는 새 syllable (ㅇ+ㅑ).
+                # 마커로 표시 (assembler에서 처리)
+                out.append(('PALATAL_BREAK',))
+                i += 1
+                continue
+            # 어말 ь after other consonants (т/д/в/с/з 등) → emit V ㅣ (palatalize)
             if c == 'ь' and (i+1 >= n) and out and out[-1][0] == 'C':
                 out.append(('V', 'ㅣ'))
                 i += 1
@@ -322,6 +335,17 @@ def _assemble(phonemes, precise):
 
         if kind == 'GEM':
             _add_jong_to_last(syllables, ph[1])
+            i += 1
+            continue
+
+        if kind == 'PALATAL_BREAK':
+            # NIKL: 이전 syllable에 받침 ㄴ/ㅁ/ㄹ 강제, 다음 vowel은 새 syllable.
+            # 직전 phoneme이 'C'였고 syllable이 그 자음으로 끝나야 함.
+            # 직전 syllable의 마지막에 받침 강제 (이미 _compose된 마지막 syll이 cho-only 형태).
+            # 마지막 syllable 검사: 자음 단독이면 (e.g., ㅁ) 이전 syllable에 받침으로.
+            if syllables and len(syllables[-1]) == 1 and syllables[-1] in ('ㄴ','ㅁ','ㄹ'):
+                jong = syllables.pop()
+                _add_jong_to_last(syllables, jong)
             i += 1
             continue
 

@@ -34,7 +34,7 @@ MIN_EXACT_PCT = {
     'pl': 64.0,   # observed 66.7
     'pt': 68.0,   # observed 70.8 (v3.25 rr→/h/, final-o→ㅜ)
     'ro': 67.0,   # observed 70.3
-    'ru': 65.0,   # observed 69.1
+    'ru': 70.0,   # observed 72.7 (v3.30 ь soft-sign nasal/liquid drop)
     'sk': 76.0,   # observed 80.0
     'sr': 70.0,   # observed 73.5
     'tr': 80.0,   # observed 84.8
@@ -42,8 +42,8 @@ MIN_EXACT_PCT = {
     'zh': 90.0,   # observed 94.2
 }
 
-MIN_OVERALL_EXACT_PCT = 73.5   # observed 75.3 (v3.29)
-MIN_OVERALL_CER_PCT = 86.0     # observed 87.7 (v3.29)
+MIN_OVERALL_EXACT_PCT = 74.0   # observed 75.5 (v3.30)
+MIN_OVERALL_CER_PCT = 86.0     # observed 87.9 (v3.30)
 
 
 def _edit_distance(a, b):

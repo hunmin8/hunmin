@@ -2,6 +2,17 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.30.0] — 2026-05-01 — Russian soft-sign (ь) NIKL fix
+
+### Fixed
+- **Russian (ru): 69.1 → 72.7%** (+3.6pt)
+  - 어말 ь after nasal/liquid (н/м/л/р) → 받침 (NIKL: ㅣ 추가 안 함)
+  - PALATAL_BREAK marker — 자음+ь+모음 사이 syllable break (семья 셈야)
+  - огонь 오고니 → **오곤**, Казань 카자니 → **카잔**, семья 세먀 → **셈야**
+
+### Measured
+- 전체: 75.3 → **75.5% exact** (+0.2pt, +2 correct)
+
 ## [3.29.0] — 2026-05-01 — French Cl-cluster polish
 
 ### Fixed
