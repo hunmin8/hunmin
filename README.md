@@ -327,6 +327,16 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.19.0** (2026.05) — CJK ja 복합어 fix + irregular reading override
+  * **복합어 공백 제거** — hiragana/katakana 섞이면 인명이 아니라 복합어 → 공백 join 안 함
+    * `すき焼き` 스키 야키 → **스키야키**, `お好み焼き` 오 고노미 야키 → **오코노미야키**
+  * **Irregular reading override 추가** — pykakasi 미스 보정:
+    * `鹿児島` 가코시마 → **가고시마** (児 read 'go' not 'ko')
+    * `うどん` 우돈 → **우동** (어말 ん → ㅇ받침 NIKL fix)
+    * `ラーメン` 라멘, `おにぎり` 오니기리, `天ぷら` 덴푸라 등 추가
+  * **EE_GOLD ja**: 86.8% → **91.5%** (+4.7pt, 5/5 fix 통과)
+  * dist 정리는 host에서 (sandbox 권한 제한)
+  * 전체 테스트: **342 passed**
 * **v3.18.0** (2026.05) — Mongolian/Persian + CJK audit
   * **Mongolian Cyrillic** letter→IPA — 35자 매핑 (Ulaanbaatar→울라안바아타르 등)
     * Cyrillic chunk 자동 sub-detection: ө/ү 발견 시 → mn 라우팅 (vs ru)

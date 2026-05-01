@@ -275,6 +275,22 @@ _JA_PHRASE_OVERRIDES = {
     '中国': '중국',  # 한자 그대로 한국 reading
     '東京': '도쿄',
     '大阪': '오사카',
+    # Irregular kanji readings (pykakasi 미스)
+    '鹿児島': '가고시마',  # pykakasi: kako (잘못), NIKL: 가고
+    # NIKL 굳어진 외래어 표기 (pykakasi의 음운변동과 다름)
+    'うどん': '우동',       # final ん → ㅇ받침 (irregular)
+    'らーめん': '라멘',     # 라멘 (NIKL)
+    'ラーメン': '라멘',
+    # 음식 복합어 (NIKL: 공백 없이)
+    'すき焼き': '스키야키',
+    'お好み焼き': '오코노미야키',
+    'たこ焼き': '다코야키',
+    'お好みやき': '오코노미야키',
+    'たこやき': '다코야키',
+    'すきやき': '스키야키',
+    'おにぎり': '오니기리',
+    'てんぷら': '덴푸라',
+    '天ぷら': '덴푸라',
 }
 
 
@@ -333,7 +349,10 @@ def transcribe_ja(text, mode='hangul', precise=True):
 
     # 인명 spacing: 한자 단어 + 행정 suffix 없음 + segment 2개 이상 → 공백 join
     # (江崎玲於奈 → 에사키 레오나, 夏目漱石 → 나쓰메 소세키)
-    if has_kanji and not last_is_admin and n_segs >= 2:
+    # 단, hiragana/katakana 섞이면 복합어 (すき焼き) → 공백 X
+    has_kana = any(0x3040 <= ord(ch) <= 0x309F or 0x30A0 <= ord(ch) <= 0x30FF
+                    for ch in text_strip)
+    if has_kanji and not has_kana and not last_is_admin and n_segs >= 2:
         # 마지막이 multi-char admin suffix (天皇 등)이면 segment 1까지만 spacing
         # 단순히 각 segment 사이 공백
         joined = []
