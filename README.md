@@ -327,6 +327,14 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.20.0** (2026.05) — HF Space final polish — UHPS-full hero 탭
+  * **새 첫 탭 ⭐ UHPS-full (primary)** — NIKL vs UHPS-full 직접 비교
+  * **옛한글 추정 가이드 inline** — 14개 옛한글 매핑 표 (ㆄ=강한ㅍ, ㅸ=약한ㅂ 등)
+  * 11개 hero examples (father, pizza, Mozart, Bonjour, café, xin chào 등)
+  * Title 메시지 변경: "모든 언어를 한국 화자가 읽을 수 있는 IPA-faithful 음소 표기로"
+  * UHPS-full을 NIKL 위에 명시적으로 둠
+  * 5 tabs 구조: ⭐UHPS-full / 🌐Auto / 🔭Multi-view / 🎚️Levels / 🤖Tokens
+  * 전체 테스트: **342 passed**
 * **v3.19.0** (2026.05) — CJK ja 복합어 fix + irregular reading override
   * **복합어 공백 제거** — hiragana/katakana 섞이면 인명이 아니라 복합어 → 공백 join 안 함
     * `すき焼き` 스키 야키 → **스키야키**, `お好み焼き` 오 고노미 야키 → **오코노미야키**
