@@ -2,6 +2,17 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.32.0] — 2026-05-01 — UHPS-full nasal preservation fix
+
+### Fixed (Track B continued)
+- **`_compose_with_jong` ㆁ→ㅇ remap**: 옛한글 ㆁ을 받침 자리에 받아들이도록 수정 (FINALS는 표준만 지원)
+- **French nasal /ɛ̃/** 이제 정확히 'ㅸ엥'로 출력 (vingt 빙 → ㅸ엥)
+- **French nasal /œ̃/** 이제 '왱' (un → 왱)
+- Showcase S31 더 이상 KNOWN_GAP 아님 — 정상 case로 승격
+
+### Tests
+- 551 passed (전부 유지)
+
 ## [3.31.0] — 2026-05-01 — UHPS-full hand-curated showcase (primary product)
 
 ### Added (Track B — primary product strengthening)

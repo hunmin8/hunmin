@@ -134,8 +134,8 @@
 {"id": 134, "text": "beautiful", "lang": "en", "ipa": "ˈbjuːtɪfəl", "uhps_full_expected": "뷰·ː티ㆄ얼", "phonemes": ["ˈ", "b", "j", "u", "ː", "t", "ɪ", "f", "ə", "l"], "test": "glide+length+/f/"}
 {"id": 135, "text": "Argentina", "lang": "es", "ipa": "aɾxenˈtina", "uhps_full_expected": "알ㆅ엔티·나", "phonemes": ["a", "ɾ", "x", "e", "n", "ˈ", "t", "i", "n", "a"], "test": "es /x/+/n/"}
 {"id": 136, "text": "viernes", "lang": "es", "ipa": "ˈbjeɾnes", "uhps_full_expected": "볘·르넷", "phonemes": ["ˈ", "b", "j", "e", "ɾ", "n", "e", "s"], "test": "es /j/+/r/"}
-{"id": 137, "text": "vingt", "lang": "fr", "ipa": "vɛ̃", "uhps_full_expected": "ㅸ에", "phonemes": ["v", "ɛ", "̃"], "test": "fr /ɛ̃/ nasal"}
-{"id": 138, "text": "un", "lang": "fr", "ipa": "œ̃", "uhps_full_expected": "왜", "phonemes": ["œ", "̃"], "test": "fr /œ̃/ nasal"}
+{"id": 137, "text": "vingt", "lang": "fr", "ipa": "vɛ̃", "uhps_full_expected": "ㅸ엥", "phonemes": ["v", "ɛ", "̃"], "test": "fr /ɛ̃/ nasal"}
+{"id": 138, "text": "un", "lang": "fr", "ipa": "œ̃", "uhps_full_expected": "왱", "phonemes": ["œ", "̃"], "test": "fr /œ̃/ nasal"}
 {"id": 139, "text": "blanc", "lang": "fr", "ipa": "blɑ̃", "uhps_full_expected": "브ㄹㆍ", "phonemes": ["b", "l", "ɑ", "̃"], "test": "fr /ɑ̃/"}
 {"id": 140, "text": "chiesa", "lang": "it", "ipa": "ˈkjɛːza", "uhps_full_expected": "켸·ːㅿ아", "phonemes": ["ˈ", "k", "j", "ɛ", "ː", "z", "a"], "test": "it /j/+/ɛː/+/z/"}
 {"id": 141, "text": "zucchero", "lang": "it", "ipa": "ˈtsukːero", "uhps_full_expected": "추·크ː에로", "phonemes": ["ˈ", "t", "s", "u", "k", "ː", "e", "r", "o"], "test": "it /ts/"}

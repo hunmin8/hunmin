@@ -341,6 +341,10 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.32.0** (2026.05) — UHPS-full nasal preservation fix
+  * `_compose_with_jong` 옛한글 ㆁ → ㅇ remap (받침 자리 호환)
+  * **French nasals**: `vɛ̃` → **ㅸ엥** (이전 ㅸ에), `œ̃` → **왱**
+  * Showcase S31 KNOWN_GAP → 정상 case 승격
 * **v3.31.0** (2026.05) — UHPS-full hand-curated showcase (primary product)
   * `tests/gold/uhps_showcase.jsonl` — **40 hand-curated UHPS-full entries**, 각 항목마다 spec rationale 명시
     * 옛한글 음소 13종 + prosody + diphthongs + clusters + affricates 다 covers

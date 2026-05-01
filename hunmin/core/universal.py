@@ -709,7 +709,11 @@ def _assemble(tokens, precise=True):
 
 
 def _compose_with_jong(syll, jong):
-    """기존 음절에 받침 추가. jong이 빈 자리이면 부착, 아니면 None 반환."""
+    """기존 음절에 받침 추가. jong이 빈 자리이면 부착, 아니면 None 반환.
+
+    옛한글 ㆁ은 표준 한글 완성형에서 받침 자리에 못 들어가므로 ㅇ으로 매핑하여 결합.
+    NFC 정규화 후에도 ㆁ과 ㅇ받침은 시각적으로 동일.
+    """
     if not syll or len(syll) != 1:
         return None
     code = ord(syll)
@@ -721,6 +725,9 @@ def _compose_with_jong(syll, jong):
     jong_idx = base % 28
     if jong_idx != 0:
         return None  # 이미 받침 있음
+    # ㆁ → ㅇ for actual composition (표준 한글 받침 자리)
+    if jong == 'ㆁ':
+        jong = 'ㅇ'
     if jong not in FINALS:
         return None
     return chr(HANGUL_BASE + cho_idx*588 + jung_idx*28 + FINALS.index(jong))
