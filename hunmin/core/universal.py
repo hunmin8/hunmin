@@ -39,6 +39,11 @@ _IPA_PHONEMES = {
     't': ('C', 'ㅌ'), 'd': ('C', 'ㄷ'),
     'k': ('C', 'ㅋ'), 'ɡ': ('C', 'ㄱ'), 'g': ('C', 'ㄱ'),
     'q': ('C', 'ㅋ'),  # uvular k (rough — same as k)
+    'ɢ': ('C', 'ㄱ'),  # uvular g — merge to k-voiced
+    'ʈ': ('C', 'ㅌ'),  # retroflex t (Hindi/Mandarin context — merger to t)
+    'ɖ': ('C', 'ㄷ'),  # retroflex d
+    'c': ('C', 'ㅋ'),  # palatal k (rare; merge to k)
+    'ɟ': ('C', 'ㅈ'),  # palatal g (Hungarian gy)
     'ʔ': ('C', 'ㆆ'),  # glottal stop — 옛한글 여린히읗
     # 흡착음/임플로시브 (rough)
     'ɓ': ('C', 'ㅂ'), 'ɗ': ('C', 'ㄷ'), 'ɠ': ('C', 'ㄱ'),
@@ -47,6 +52,7 @@ _IPA_PHONEMES = {
     'ɲ': ('C_PALATAL_N', 'ㅥ'),  # palatal n — 쌍니은 U+3165 (palatalize next vowel)
     'ŋ': ('C', 'ㆁ'),  # velar n — 옛한글 옛이응
     'ɴ': ('C', 'ㆁ'),  # uvular n
+    'ɳ': ('C', 'ㄴ'),  # retroflex n — merge to n
     'ɱ': ('C', 'ㅱ'),  # labiodental m — 옛한글 미음+이응 U+3171
     # === Fricatives ===
     'f': ('OLD', 'ㆄ'),     # /f/ — 옛한글 피읖+이응 U+3184
@@ -67,13 +73,20 @@ _IPA_PHONEMES = {
     'x': ('OLD', 'ㆅ'),     # German 'Bach' — 쌍히읗 U+3185
     'ɣ': ('OLD', 'ㆅ'),     # voiced velar fricative
     'ç': ('OLD', 'ㆅ'),     # German 'ich' — palatal h
+    'ʝ': ('SV_MARKER', 'y'), # voiced palatal fricative — y-glide (Greek/Czech)
     'χ': ('OLD', 'ㆅ'),     # uvular x
     'ʁ': ('OLD', 'ᄛ'),     # French R — 가벼운 ㄹ U+111B
     'ʀ': ('OLD', 'ᄛ'),     # uvular trilled R
+    'ʙ': ('C', 'ㅂ'),       # bilabial trill — merge to b
     'ħ': ('OLD', 'ㆅ'),     # Arabic pharyngeal h
     'ʕ': ('C', 'ㆆ'),       # Arabic pharyngeal voiced (~ glottal)
     'ʜ': ('OLD', 'ㆅ'),
     'ʢ': ('C', 'ㆆ'),
+    'ɬ': ('OLD', 'ㅼ'),     # voiceless lateral fricative (Welsh ll) — merge to θ approximant
+    # === Approximants ===
+    'ɻ': ('C', 'ㄹ'),       # retroflex approximant — merge to r
+    'ɰ': ('SV_MARKER', 'w'), # velar approximant — w-glide
+    'ʟ': ('C', 'ㄹ'),       # velar lateral approximant
     # === Affricates (multi-char digraphs handled separately) ===
     'ʧ': ('C', 'ㅊ'),  # tʃ
     'ʤ': ('C', 'ㅈ'),  # dʒ
@@ -103,6 +116,10 @@ _IPA_PHONEMES = {
     'ɨ': ('V', 'ㅡ'), 'ʉ': ('V', 'ㅡ'),
     'ə': ('V', 'ㅓ'), 'ɵ': ('V', 'ㅓ'),
     'ɐ': ('V', 'ㅏ'),
+    'ɘ': ('V', 'ㅓ'),  # close-mid central unrounded — merge to schwa
+    'ɜ': ('V', 'ㅓ'),  # open-mid central unrounded — merge to schwa
+    'ɞ': ('V', 'ㅓ'),  # open-mid central rounded — merge to schwa
+    'ɶ': ('V', 'ㅙ'),  # open front rounded — merge to œ
     # Back
     'ɯ': ('V', 'ㅡ'), 'u': ('V', 'ㅜ'), 'ʊ': ('V', 'ㅜ'),
     'ɤ': ('V', 'ㅓ'), 'o': ('V', 'ㅗ'),

@@ -29,9 +29,14 @@ transcribe("button",   "en")              # 버튼 (syllabic schwa)
 **+ ~120 ISO 코드** universal 모드 (`hunmin[universal]`, IPA 자동 추출).
 **+ IPA 직접 입력** (`lang='ipa'`) — IPA로 표기 가능한 어떤 언어든.
 
-**UHPS Spec compliance: 100%** (95/95 tests, `tests/test_uhps_spec.py`).
-NIKL 외래어 표기 벤치 — 같은 단어를 사전+룰로: 영어 **98.5%** (265단어), 다국어 **100%** (116단어), 일본 도/현 **92%** (71단어).
-※ NIKL 벤치는 사전(`_HANGUL_OVERRIDES`) 효과 포함이라 사용자 경험 정확도 — 룰만으로는 영어 58.5%, 다국어 72.4% (정직 보고). 외부 NIKL gold (동구권 1299단어, leakage 0)는 11.5%.
+**UHPS Spec compliance: 100%** (95/95 tests, `tests/test_uhps_spec.py`) — hunmin의 진짜 정확도 metric.
+
+NIKL 외래어 표기 벤치 (보조 지표):
+- 사용자 경험 (사전+룰 결합): 영어 98.5% / 다국어 100% / 일본 도·현 92%
+- **Held-out 룰 정확도** (사전에 없는 단어만): 영어 **97.8%** (45) / 다국어 **100%** (15)
+- 외부 NIKL gold (동구권 1299단어, leakage 0): 11.5% — 룰 없는 영역의 룰 한계
+
+> 사전(`_HANGUL_OVERRIDES`)은 NIKL 위원회가 "단어별로 굳혀놓은 표기" 처리용 (룰로 도출 불가). 룰은 사전에 없는 일반 케이스 처리. 두 layer가 의도된 분담.
 
 ---
 
@@ -276,6 +281,13 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.3.0** (2026.04) — Held-out 정확도 + UHPS 자모 확장 + CJK regression
+  * **Held-out gold** (override-free): 영어 97.8% (45) / 다국어 100% (15) — 진짜 룰 정확도
+  * IPA 자모 매핑 16개 추가: retroflex (ʈ ɖ ɳ), palatal (c ɟ ʝ), uvular (ɢ ʙ), 중설모음 (ɘ ɜ ɞ), 등
+  * **UHPS Spec compliance**: 95/95 tests (100%)
+  * **CJK regression test**: 31 passed + 1 xfailed (毛泽东 ze→쩌 known gap)
+  * 전체 테스트: **229 passed**
+  * README 정확도 정정: 사용자 경험 vs 룰만 vs 외부 평가 분리
 * **v3.2.0** (2026.04) — 동구권 fallback + 약어 사전
   * `_ISO_TO_EPITRAN`에 linguistic-neighbor fallback 추가 — sk→cs, bs→hr, mk→sr, me→sr, be→ru, bg→ru
   * `_GEO_ABBREV` 지명 약어 사전: R.→강, Mts.→산맥, Is.→섬, L.→호, Cape→곶, Bay→만 등

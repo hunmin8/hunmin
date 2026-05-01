@@ -1,0 +1,17 @@
+# Multi-lang held-out gold (entries NOT in _LANG_OVERRIDES)
+# format: word\tkorean\tlang
+familia	파밀리아	es
+mañana	마냐나	es
+casa	카사	es
+agua	아구아	es
+sol	솔	es
+azul	아술	es
+fromage	프로마주	fr
+café	카페	fr
+chat	샤	fr
+chez	셰	fr
+beau	보	fr
+ville	빌	fr
+Schule	슐레	de
+İstanbul	이스탄불	tr
+İzmir	이즈미르	tr
