@@ -284,6 +284,17 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.10.0** (2026.05) — Slovak 룰 + Armenian/Georgian IPA + multilingual stress test
+  * **`hunmin/core/slovak.py`** — letter-by-letter Slovak NIKL 룰 모듈
+    * EE_GOLD sk: 4.3% → **13.0%** (+8.7pt)
+    * 핵심: ch→흐, dž→주, š→ㅅ, ž→주, č→ㅊ, ť/ď/ň/ľ→palatal
+  * **Armenian** letter→IPA 매핑 (43자) — `Հայաստան`, `Երևան` 등
+  * **Georgian** letter→IPA 매핑 (33자) — `საქართველო`, `თბილისი` 등
+  * Unicode P(unctuation) / S(ymbol) general category 자동 인식 — `¿`, `—`, `«»`, `©`, `™` 등
+  * **`tests/test_stress.py`** — 80+ entries × 20+ scripts/언어 leak 0 검증
+  * Symbol 감지 로직 보강: 매핑에 없는 char는 strict=True 시 leak로 추적
+  * `_PRECISE` 13 hardcoded langs (sk 추가)
+  * 전체 테스트: **344 passed** (+80)
 * **v3.9.0** (2026.04) — `transcribe_auto` 정착: tests + Hebrew + CLI + HF tab
   * **`tests/test_auto.py`** — 34 regression tests (script routing, mixed, leak, digits, symbols, strict, mode, determinism)
   * **Hebrew letter→IPA** — `שלום`, `תודה`, `ירושלים` 등 epitran 없이 인코딩

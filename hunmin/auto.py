@@ -41,6 +41,12 @@ def _detect_script(ch):
     # Hebrew
     if 0x0590 <= cp <= 0x05FF:
         return 'Hebrew'
+    # Armenian
+    if 0x0530 <= cp <= 0x058F or 0xFB13 <= cp <= 0xFB17:
+        return 'Armenian'
+    # Georgian
+    if 0x10A0 <= cp <= 0x10FF or 0x2D00 <= cp <= 0x2D2F:
+        return 'Georgian'
     # Arabic
     if 0x0600 <= cp <= 0x06FF or 0xFB50 <= cp <= 0xFDFF:
         return 'Arabic'
@@ -75,6 +81,12 @@ def _detect_script(ch):
     cat = unicodedata.category(ch)
     if cat.startswith('M'):
         return 'Combining'
+    # Unicode punctuation — ¿, ¡, —, –, ", ", « » etc
+    if cat.startswith('P'):
+        return 'Punct'
+    # Unicode symbols (Sm/Sc/So) — ©, ™, € etc → treat as Symbol
+    if cat.startswith('S'):
+        return 'Symbol'
     return 'Other'
 
 
@@ -258,6 +270,44 @@ def _hebrew_to_ipa(text):
     return ''.join(_HEBREW_TO_IPA.get(c, c) for c in text)
 
 
+# === Armenian → IPA (Eastern Armenian) ===
+_ARMENIAN_TO_IPA = {
+    'ա':'a','բ':'b','գ':'g','դ':'d','ե':'e','զ':'z',
+    'է':'e','ը':'ə','թ':'tʰ','ժ':'ʒ','ի':'i','լ':'l',
+    'խ':'x','ծ':'ʦ','կ':'k','հ':'h','ձ':'ʣ','ղ':'ʁ',
+    'ճ':'ʧ','մ':'m','յ':'j','ն':'n','շ':'ʃ','ո':'o',
+    'չ':'ʧʰ','պ':'p','ջ':'ʤ','ռ':'r','ս':'s','վ':'v',
+    'տ':'t','ր':'ɾ','ց':'ʦʰ','ու':'u','փ':'pʰ','ք':'kʰ',
+    'օ':'o','ֆ':'f',
+    # uppercase
+    'Ա':'a','Բ':'b','Գ':'g','Դ':'d','Ե':'e','Զ':'z',
+    'Է':'e','Ը':'ə','Թ':'tʰ','Ժ':'ʒ','Ի':'i','Լ':'l',
+    'Խ':'x','Ծ':'ʦ','Կ':'k','Հ':'h','Ձ':'ʣ','Ղ':'ʁ',
+    'Ճ':'ʧ','Մ':'m','Յ':'j','Ն':'n','Շ':'ʃ','Ո':'o',
+    'Չ':'ʧʰ','Պ':'p','Ջ':'ʤ','Ռ':'r','Ս':'s','Վ':'v',
+    'Տ':'t','Ր':'ɾ','Ց':'ʦʰ','Փ':'pʰ','Ք':'kʰ',
+    'Օ':'o','Ֆ':'f',
+}
+
+def _armenian_to_ipa(text):
+    s = text.replace('ու', 'u').replace('ՈՒ', 'u').replace('Ու', 'u')
+    return ''.join(_ARMENIAN_TO_IPA.get(c, c) for c in s)
+
+
+# === Georgian → IPA ===
+_GEORGIAN_TO_IPA = {
+    'ა':'a','ბ':'b','გ':'g','დ':'d','ე':'e','ვ':'v',
+    'ზ':'z','თ':'tʰ','ი':'i','კ':'kʼ','ლ':'l','მ':'m',
+    'ნ':'n','ო':'o','პ':'pʼ','ჟ':'ʒ','რ':'r','ს':'s',
+    'ტ':'tʼ','უ':'u','ფ':'pʰ','ქ':'kʰ','ღ':'ʁ','ყ':'qʼ',
+    'შ':'ʃ','ჩ':'ʧʰ','ც':'ʦʰ','ძ':'ʣ','წ':'ʦʼ','ჭ':'ʧʼ',
+    'ხ':'x','ჯ':'ʤ','ჰ':'h',
+}
+
+def _georgian_to_ipa(text):
+    return ''.join(_GEORGIAN_TO_IPA.get(c, c) for c in text)
+
+
 def _detect_cjk_lang(chunk, full_text):
     """CJK 한자 chunk — full_text에 hiragana/katakana 있으면 ja, 아니면 zh."""
     for ch in full_text:
@@ -305,8 +355,11 @@ def transcribe_auto(text, primary_lang='en', mode=None,
             piece = ''.join(_transliterate_symbol(c, symbols, primary_lang)
                               for c in chunk)
             out.append(piece)
-            if symbols == 'keep':
-                leaked.extend(c for c in chunk if c not in SYMBOL_TO_KOR)
+            # leak: 매핑에 없는 기호 (모든 mode에서 — drop은 강제 OK 표시 위해 mode!=drop만 체크)
+            if symbols != 'drop':
+                for c in chunk:
+                    if c not in SYMBOL_TO_KOR:
+                        leaked.append(c)
             continue
         if script == 'Digit':
             out.append(_transliterate_digits(chunk, digits, primary_lang))
@@ -342,6 +395,28 @@ def transcribe_auto(text, primary_lang='en', mode=None,
         # Hebrew — manual IPA fallback
         if script == 'Hebrew':
             ipa = _hebrew_to_ipa(chunk)
+            try:
+                out.append(_tr(ipa, 'ipa', mode=mode))
+            except Exception:
+                if strict:
+                    leaked.extend(chunk)
+                else:
+                    out.append(chunk)
+            continue
+        # Armenian — manual IPA fallback
+        if script == 'Armenian':
+            ipa = _armenian_to_ipa(chunk)
+            try:
+                out.append(_tr(ipa, 'ipa', mode=mode))
+            except Exception:
+                if strict:
+                    leaked.extend(chunk)
+                else:
+                    out.append(chunk)
+            continue
+        # Georgian — manual IPA fallback
+        if script == 'Georgian':
+            ipa = _georgian_to_ipa(chunk)
             try:
                 out.append(_tr(ipa, 'ipa', mode=mode))
             except Exception:
