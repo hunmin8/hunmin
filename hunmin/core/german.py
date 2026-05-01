@@ -159,6 +159,27 @@ def _phonemize(word, precise):
             i += 4
             continue
 
+        # NIKL German: word-initial 'st'/'sp' → 슈ㅌ/슈ㅍ (Stadt 슈타트, Strasse 슈트라세, Stuttgart)
+        if c == 's' and nxt in ('t', 'p') and i == 0:
+            target = 'ㅌ' if nxt == 't' else 'ㅍ'
+            out.append(('C', 'ㅅ', 'sch'))  # 슈
+            out.append(('SV', 'ㅠ'))
+            out.append(('C', target, nxt))
+            i += 2
+            continue
+
+        # NIKL German: 'tz' → ㅊ (single), Platz 플라츠, Schnitzel 슈니첼
+        if c == 't' and nxt == 'z':
+            out.append(('C', 'ㅊ', 'z'))
+            i += 2
+            continue
+
+        # 'ck' → ㅋ (single, drop k of cluster), Brücke 브뤼케
+        if c == 'c' and nxt == 'k':
+            out.append(('C', 'ㅋ', 'k'))
+            i += 2
+            continue
+
         # sch + V → palatal Korean vowel
         if c == 's' and nxt == 'c' and nxt2 == 'h':
             if nxt3 in SCH_VOWEL:
@@ -348,7 +369,13 @@ def _phonemize(word, precise):
             out.append(('C', 'ㄹ', 'r'))
             i += 1; continue
         if c == 's':
-            out.append(('C', 'ㅅ', 's'))
+            # NIKL German: 모음 앞 's' → ㅈ (voicing). Sonne 조네, Käse 케제, Insel 인젤
+            # 단, 이전 char가 's'이면 (ss 계열) → ㅅ 유지 (Wasser 바서, Fluss 플루스)
+            prev_c = s[i-1] if i > 0 else ''
+            if nxt in VOWEL_J and prev_c != 's':
+                out.append(('C', 'ㅈ', 's'))
+            else:
+                out.append(('C', 'ㅅ', 's'))
             i += 1; continue
         if c == 'ß':
             out.append(('C', 'ㅅ', 'ß'))
@@ -391,15 +418,27 @@ def _phonemize(word, precise):
 
 
 def _intervocalic_l_post(phonemes):
-    """Hangul mode only: intervocalic L doubling."""
+    """Hangul mode only: intervocalic L doubling + Cl cluster.
+
+    NIKL German: pl/bl/fl/gl/kl + V → 플라/블라/플라/글라/클라 (받침-ㄹ)
+    Fluss 플루스, Platz 플라츠
+    """
+    CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄷ', 'ㅌ', 'ㅍ', 'ㆄ'}  # incl. ㆄ for /f/
     out2 = []
     for k, ph in enumerate(phonemes):
         if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
                 and k > 0 and phonemes[k-1][0] in ('V', 'SV')
                 and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
             out2.append(('RR', 'ㄹ', 'l_double'))
-        else:
-            out2.append(ph)
+            continue
+        # Cl cluster (consonant + 'l' + V)
+        if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
+                and k > 0 and phonemes[k-1][0] in ('C', 'OLD')
+                and len(phonemes[k-1]) >= 2 and phonemes[k-1][1] in CLUSTER_C
+                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+            out2.append(('RR', 'ㄹ', 'l_cluster'))
+            continue
+        out2.append(ph)
     return out2
 
 

@@ -73,16 +73,30 @@ transcribe_auto('Καλημέρα 친구! $100 + 50%')
 # → '카리메라 친구! 달러일영영 플러스 오영퍼센트'
 ```
 
-## 정확도
+## 정확도 — 두 트랙 분리
+
+### ⭐ 트랙 1 (primary): UHPS-full IPA-faithful 측정
 
 **진짜 정확도 metric — UHPS Spec compliance: 100%** (95/95 tests, `tests/test_uhps_spec.py`).
 
-NIKL 외래어 표기 벤치 (보조 지표 — NIKL 위원회 결정 따라가기 측정, 천장 ~25%):
-- 사용자 경험 (사전+룰): 영어 98.5% / 다국어 100% / 도·현 92%
-- Held-out 룰: 영어 en_heldout_diverse 64.3%
-- 외부 NIKL gold (동구권 1299단어, leakage 0): **19.8%** (v3.1 9.7% → v3.14 19.8%, ~2x)
+- **UHPS-full 외부 회귀**: **143개 IPA → UHPS-full 케이스** lock-in (`tests/gold/uhps_external.jsonl`)
+  - 옛한글 음소 13종 모두 (/f/=ㆄ, /v/=ㅸ, /θ/=ㅼ, /ð/=ㅽ, /z/=ㅿ, /ʒ/=ᄶ, /ʃ/=ᄾ, /x/=ㆅ, /ʁ/=ᄛ, /ɲ/=ㅥ, /ɔ/=ㆎ, /ɑ/=ㆍ, /ŋ/=ㆁ받침)
+  - Prosody (장음 ː, 강세 ˈ ˌ, Mandarin 4성, Vietnamese 6성), diphthongs, 자음 클러스터
+  - 11개 언어 (en/de/fr/es/it/ru/zh/ja/vi/ar/ko)
+- **자모 정밀화**: ㅇㆍ literal 제거, ㆁ받침 자동, 어말 OLD 처리 등 cleanup 완료
+- **leak 0**: 21+개 script 모두 strict mode에서 인코딩 100% (한자/CJK/Devanagari/Tibetan/Khmer 등)
 
-> **NIKL 정확도는 hunmin 본질의 정확도가 아님.** UHPS-full은 NIKL의 위원회 결정과 무관하게 IPA 기준으로 측정된다.
+### NIKL 호환층 (secondary): 외래어 표기법 일치도
+
+NIKL은 한국어 외래어 표기법이며 hunmin의 본질이 아님. 그러나 한국 사용자 호환을 위해 NIKL convention을 따라가는 정확도도 측정:
+
+- **Held-out 1015 단어 × 21개 언어** (`tests/gold/heldout_1000.tsv`, override-free):
+  - **74.9% exact / 87.6% CER**
+  - 최고: **ja 96.0%, es 98.6%, it 94.7%, zh 94.2%, id 91.3%, tr 84.8%, de 80.4%**
+  - 중간: pt 70.8%, hu 73.3%, sr 73.5%, sk 80.0%
+  - 하위: nl 62.5%, vi 64.1%, fa 21.1% (Persian short-vowel 한계)
+
+> **NIKL 정확도는 hunmin 본질의 정확도가 아님.** UHPS-full은 NIKL의 위원회 결정과 무관하게 IPA 기준으로 측정된다. NIKL 트랙은 호환을 위한 보조 metric.
 
 ---
 
@@ -327,6 +341,14 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.28.0** (2026.05) — German NIKL polish
+  * **German (de): 60.8 → 80.4%** (+19.6pt)
+    * 어두 'st'/'sp' → 슈ㅌ/슈ㅍ (Stadt 슈타트, Stuttgart, Strudel)
+    * 'tz' → ㅊ 단일 (Platz, Schnitzel)
+    * 'ck' → ㅋ 단일 (Brücke 브뤼케)
+    * 모음 앞 's' → ㅈ voicing (Sonne 조네, Käse 케제, Insel 인젤, Sauerkraut 자우어크라우트)
+    * Cl 클러스터 → 받침-ㄹ + ㄹV (Fluss 플루스)
+  * **전체: 73.9 → 74.9%** (+1.0pt)
 * **v3.27.0** (2026.05) — UHPS-full eval expansion (primary product)
   * `tests/gold/uhps_external.jsonl` **35 → 143 entries** (4x)
     * 옛한글 음소 다양화 — /f/=ㆄ, /v/=ㅸ, /θ/=ㅼ, /ð/=ㅽ, /z/=ㅿ, /ʒ/=ᄶ, /ʃ/=ᄾ, /x/=ㆅ, /ʁ/=ᄛ, /ɲ/=ㅥ, /ɔ/=ㆎ, /ɑ/=ㆍ, /ŋ/=ㆁ받침

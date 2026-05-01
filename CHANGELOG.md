@@ -2,6 +2,20 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.28.0] — 2026-05-01 — German NIKL polish
+
+### Fixed
+- **German (de): 60.8 → 80.4%** (+19.6pt)
+  - 어두 'st'/'sp' → 슈ㅌ/슈ㅍ (Stadt 슈타트, Strasse 슈트라세, Stuttgart, Strudel)
+  - 'tz' → ㅊ 단일 (Platz 플라츠, Schnitzel 슈니첼)
+  - 'ck' → ㅋ 단일 (Brücke 브뤼케)
+  - 모음 앞 's' → ㅈ voicing (Sonne 조네, Käse 케제, Insel 인젤, Sauerkraut 자우어)
+  - 'ss' 다음 's' → ㅅ 유지 (Wasser 바서)
+  - Cl/Cr 클러스터 → 받침-ㄹ + ㄹV (Fluss 플루스, Park 파르크 일부)
+
+### Measured
+- 전체: 73.9 → **74.9% exact** (+1.0pt, +10 correct)
+
 ## [3.27.0] — 2026-05-01 — UHPS-full eval expansion (primary product)
 
 ### Added

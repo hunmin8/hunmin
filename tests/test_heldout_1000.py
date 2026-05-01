@@ -20,7 +20,7 @@ GOLD = Path(__file__).parent / 'gold' / 'heldout_1000.tsv'
 # v3.24 baseline (2026-05): observed values shown after `:`
 MIN_EXACT_PCT = {
     'cs': 65.0,   # observed 67.5
-    'de': 58.0,   # observed 60.8
+    'de': 78.0,   # observed 80.4 (v3.28 st/sp/tz/ck + s-voicing)
     'en': 58.0,   # observed 60.7
     'es': 96.0,   # observed 98.6 (v3.25 rr→ㄹ, Cl-cluster)
     'fa': 18.0,   # observed 21.1 (Persian short-vowel hard limit)
@@ -42,8 +42,8 @@ MIN_EXACT_PCT = {
     'zh': 90.0,   # observed 94.2
 }
 
-MIN_OVERALL_EXACT_PCT = 71.0   # observed 73.9 (v3.26)
-MIN_OVERALL_CER_PCT = 85.0     # observed 87.1 (v3.26)
+MIN_OVERALL_EXACT_PCT = 73.0   # observed 74.9 (v3.28)
+MIN_OVERALL_CER_PCT = 86.0     # observed 87.6 (v3.28)
 
 
 def _edit_distance(a, b):
