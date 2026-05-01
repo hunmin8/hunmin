@@ -284,6 +284,14 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.14.0** (2026.05) — Serbian Cyrillic rule (Vukov azbuka 트릭)
+  * `hunmin/core/serbian.py` — 깔끔한 30줄: Cyrillic→Latin 1:1 변환 후 Croatian 룰 재사용
+  * **Vukov azbuka principle**: Vuk Karadžić의 키릴 = Gaj의 라틴 (Љ↔Lj, Њ↔Nj, Ђ↔Đ, Ц↔C, Ч↔Č 등)
+  * **EE_GOLD sr**: 7.7% → **25.6%** (+17.9pt)
+  * **EE_GOLD mk**: 11.8% → **29.4%** (Macedonian Cyrillic도 sr 룰 라우팅)
+  * `_PRECISE` 19 hardcoded langs (sr/mk 추가)
+  * **EE_GOLD 전체: 18.5% → 19.8%**
+  * 전체 테스트: **342 passed**
 * **v3.13.0** (2026.05) — Croatian/Bosnian rule + Polish ły fix
   * `hunmin/core/croatian.py` — letter-by-letter NIKL 크로아티아어 룰 (Bosnian 공유)
   * 핵심: š/ž/č/ć→sibilants, lj/nj→palatal, đ/dj→ㅈ
