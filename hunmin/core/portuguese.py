@@ -147,7 +147,11 @@ def _phonemize(word, precise):
             'y':'ㅣ',
         }
         if c in single_v:
-            out.append(('V', single_v[c]))
+            # NIKL Brazilian: word-final unstressed 'o' → ㅜ (mercado 메르카두, queijo 케이주)
+            if c == 'o' and i + 1 == n:
+                out.append(('V', 'ㅜ'))
+            else:
+                out.append(('V', single_v[c]))
             i += 1
             continue
 
@@ -168,7 +172,11 @@ def _phonemize(word, precise):
             ymap = {'a':'ㅑ','e':'ㅖ','i':'ㅣ','o':'ㅛ','u':'ㅠ'}
             if nxt2 in ymap:
                 out.append(('C', 'ㄴ', 'nh'))
-                out.append(('SV', ymap[nxt2]))
+                # Brazilian: nh + word-final 'o' → 뉴 (caminho 카미뉴, vinho 비뉴)
+                if nxt2 == 'o' and i + 3 == n:
+                    out.append(('SV', 'ㅠ'))
+                else:
+                    out.append(('SV', ymap[nxt2]))
                 i += 3
                 continue
             out.append(('C', 'ㄴ', 'nh'))
@@ -209,10 +217,9 @@ def _phonemize(word, precise):
 
         # === Doubled consonants ===
         if c == nxt and c in 'bcdfgklmnprstvz':
-            # rr 보존 (intervocalic), 그 외 drop
+            # rr → /h/ (Brazilian Portuguese, NIKL standard)
             if c == 'r':
-                # rr at intervocalic → ㄹ + 받침ㄹ (like Spanish)
-                out.append(('RR', 'ㄹ'))
+                out.append(('RHO', 'ㅎ'))
                 i += 2
                 continue
             i += 1
@@ -360,6 +367,21 @@ def _assemble(phonemes, precise):
                 i += 1
             continue
 
+        if kind == 'RHO':
+            # NIKL Brazilian Portuguese: rr → /h/
+            # forró 포호, arroz 아호스, churrasco 슈하스쿠
+            if _next_is_vowel(phonemes, i):
+                vph = phonemes[i+1]
+                if vph[0] == 'NV':
+                    syllables.append(_compose('ㅎ', vph[1], 'ㅇ'))
+                else:
+                    syllables.append(_compose('ㅎ', vph[1]))
+                i += 2
+            else:
+                syllables.append(_compose('ㅎ', 'ㅡ'))
+                i += 1
+            continue
+
         if kind == 'X':
             if not syllables:
                 if _next_is_vowel(phonemes, i):
@@ -477,6 +499,8 @@ def _to_jamo_seq(phonemes):
                 out.append('ㄹ')
             else:
                 out.append('ㄹ'); out.append('ㄹ')
+        elif kind == 'RHO':
+            out.append('ㅎ')
         elif kind == 'GEM':
             out.append(ph[1])
         elif kind == 'NG_ASSIM':

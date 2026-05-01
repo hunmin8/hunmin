@@ -191,39 +191,10 @@ def _phonemize(word, precise):
                 continue
 
         # === DOUBLED CONSONANTS (gemination) ===
-        # cc + e/i (soft, /ttʃ/) → ㅅ받침. cc + 그외 → ㄱ받침.
-        # gg + e/i (soft, /ddʒ/) → ㅅ받침. gg + 그외 → ㄱ받침.
-        if c == 'c' and nxt == 'c':
-            if nxt2 in ('e','é','è','i','í','ì'):
-                out.append(('GEM', 'ㅅ'))
-            else:
-                out.append(('GEM', 'ㄱ'))
-            i += 1
-            continue
-        if c == 'g' and nxt == 'g':
-            if nxt2 in ('e','é','è','i','í','ì'):
-                out.append(('GEM', 'ㅅ'))
-            else:
-                out.append(('GEM', 'ㄱ'))
-            i += 1
-            continue
-        if c == nxt and c in 'bdklmnprstz':  # f/v 제외, c/g 별도 처리됨
-            jong_map = {
-                'b':'ㅂ', 'd':'ㅅ',
-                'k':'ㄱ', 'l':'ㄹ', 'm':'ㅁ', 'n':'ㄴ', 'p':'ㅂ',
-                'r':'ㄹ', 's':'ㅅ', 't':'ㅅ', 'z':'ㅅ',
-            }
-            jong = jong_map[c]
-            out.append(('GEM', jong))
-            i += 1
-            continue
-        # ff: precise mode → 단일 ㆄ로 (gemination 무시); basic → 단일 ㅍ
-        if c == 'f' and nxt == 'f':
-            i += 1
-            continue
-        # vv: 단일 v로
-        if c == 'v' and nxt == 'v':
-            i += 1
+        # NIKL 외래어 표기법 (이탈리아어): 겹자음은 단일 자음으로 적는다.
+        # pizza 피차, palazzo 팔라초, panettone 파네토네, trattoria 트라토리아
+        if c == nxt and c in 'bcdfgklmnprstvz':
+            i += 1  # consume first; second will be handled as single
             continue
 
         # === SINGLE CONSONANTS ===

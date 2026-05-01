@@ -126,8 +126,9 @@ def _phonemize(word, precise):
                 i += 2
                 continue
         if c == 'r' and nxt == 'r':
-            # rr → trill: 받침ㄹ + 새 ㄹV
-            out.append(('RR', 'ㄹ'))
+            # NIKL Spanish: rr → single ㄹ (다음 음절 초성)
+            # perro 페로, parra 파라, churros 추로스
+            out.append(('C', 'ㄹ', 'r'))
             i += 2
             continue
         if c == 'q' and nxt == 'u' and nxt2 in ('e','i','é','í'):
@@ -273,19 +274,31 @@ def _phonemize(word, precise):
 
 
 def _intervocalic_l_post(phonemes):
-    """Post-pass for hangul mode only: intervocalic L doubling.
+    """Post-pass for hangul mode only: intervocalic L doubling + Cl cluster.
 
     'C ㄹ l' between V/SV and V/SV → convert to RR (Korean orthographic convention).
+    Also 'C(p/b/g/f/s/k) + l + V' → 받침 ㄹ to previous + ㄹV (NIKL: pl→플라, bl→블란, gl→글레, sl→슬).
     NOT applied in jamo mode (phonologically inaccurate).
     """
+    CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄸ', 'ㄷ', 'ㅌ', 'ㅅ', 'ㅆ', 'ㆄ'}
     out2 = []
     for k, ph in enumerate(phonemes):
+        # Existing intervocalic L
         if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
                 and k > 0 and phonemes[k-1][0] in ('V', 'SV')
                 and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
-            out2.append(('RR', 'ㄹ', 'l_double'))  # marker: artificial doubling
-        else:
-            out2.append(ph)
+            out2.append(('RR', 'ㄹ', 'l_double'))
+            continue
+        # NEW: Consonant + l + V cluster (pl/bl/gl/fl/sl/cl)
+        # NIKL: previous C-syll gets 받침 ㄹ, then ㄹV
+        if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
+                and k > 0 and phonemes[k-1][0] == 'C'
+                and len(phonemes[k-1]) == 3 and phonemes[k-1][1] in CLUSTER_C
+                and phonemes[k-1][2] != 'l'
+                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+            out2.append(('RR', 'ㄹ', 'l_cluster'))
+            continue
+        out2.append(ph)
     return out2
 
 

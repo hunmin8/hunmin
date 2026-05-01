@@ -2,6 +2,22 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.25.0] — 2026-05-01 — Per-language NIKL gap fixes (es/pt/it)
+
+### Fixed
+- **Spanish (es): 84.1 → 98.6%** (+14.5pt)
+  - 'rr' → 단일 ㄹ (NIKL: 다음 음절 초성)
+  - Cl 자음 클러스터 (pl/bl/gl/fl/sl) → 받침 ㄹ + ㄹV
+- **Portuguese (pt): 52.1 → 70.8%** (+18.7pt)
+  - 'rr' → /h/ Brazilian (forró 포호, arroz 아호스)
+  - 어말 unstressed 'o' → ㅜ (Brazilian default)
+  - nh/lh + 어말 'o' → 뉴/류
+- **Italian (it): 80.7 → 94.7%** (+14.0pt)
+  - 겹자음은 단일 자음으로 (NIKL 외래어 표기법)
+
+### Measured
+- 전체: 70.0 → **72.6% exact** (+2.6pt, +8 correct)
+
 ## [3.24.0] — 2026-05-01 — Held-out 1000-row gold + 진짜 룰 정확도
 
 ### Added

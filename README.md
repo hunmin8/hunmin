@@ -327,6 +327,19 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.25.0** (2026.05) — Per-language NIKL gap fixes (es/pt/it)
+  * **Spanish (es): 84.1 → 98.6%** (+14.5pt)
+    * 'rr' → 단일 ㄹ (NIKL: 다음 음절 초성). perro 펠로 → **페로**
+    * Cl 자음 클러스터 (pl/bl/gl/fl/sl) → 받침 ㄹ + ㄹV. plaza 프라사 → **플라사**, blanco 브란코 → **블란코**
+  * **Portuguese (pt): 52.1 → 70.8%** (+18.7pt)
+    * 'rr' → /h/ Brazilian (NIKL). forró 폴로 → **포호**, arroz 알로즈 → **아호스**, churrasco 슐라스코 → **슈하스쿠**
+    * 어말 unstressed 'o' → ㅜ (Brazilian default). mercado 메르카도 → **메르카두**, queijo 케이조 → **케이주**, fado 파도 → **파두**
+    * nh + 어말 'o' → 뉴. caminho 카미뇨 → **카미뉴**, vinho 비뇨 → **비뉴**
+  * **Italian (it): 80.7 → 94.7%** (+14.0pt)
+    * NIKL 외래어 표기법 (이탈리아어): **겹자음은 단일 자음으로**
+    * pizza 핏차 → **피차**, palazzo 팔랏초 → **팔라초**, panettone 파넷토네 → **파네토네**, focaccia 포캇차 → **포카치아**
+  * **전체: 70.0 → 72.6% exact** (+2.6pt, 729→737 correct)
+  * 전체 테스트: **403 passed**
 * **v3.24.0** (2026.05) — Held-out 1000-row gold + 진짜 룰 정확도 측정
   * `tests/gold/heldout_1000.tsv` — **1015 entries × 21 languages** override-free 검증 데이터
     * es(69), fr(64), it(57), pt(48), de(51), nl(32), ru(55), pl(48), tr(46), id(46),

@@ -22,17 +22,17 @@ MIN_EXACT_PCT = {
     'cs': 65.0,   # observed 67.5
     'de': 58.0,   # observed 60.8
     'en': 58.0,   # observed 60.7
-    'es': 80.0,   # observed 84.1
+    'es': 96.0,   # observed 98.6 (v3.25 rr→ㄹ, Cl-cluster)
     'fa': 18.0,   # observed 21.1 (Persian short-vowel hard limit)
     'fr': 65.0,   # observed 68.8
     'hr': 65.0,   # observed 67.6
     'hu': 70.0,   # observed 73.3
     'id': 88.0,   # observed 91.3
-    'it': 78.0,   # observed 80.7
+    'it': 92.0,   # observed 94.7 (v3.25 gemination drop)
     'ja': 92.0,   # observed 96.0
     'nl': 44.0,   # observed 46.9
     'pl': 64.0,   # observed 66.7
-    'pt': 50.0,   # observed 52.1
+    'pt': 68.0,   # observed 70.8 (v3.25 rr→/h/, final-o→ㅜ)
     'ro': 67.0,   # observed 70.3
     'ru': 65.0,   # observed 69.1
     'sk': 76.0,   # observed 80.0
@@ -42,8 +42,8 @@ MIN_EXACT_PCT = {
     'zh': 90.0,   # observed 94.2
 }
 
-MIN_OVERALL_EXACT_PCT = 67.0   # observed 70.0
-MIN_OVERALL_CER_PCT = 82.0     # observed 85.0
+MIN_OVERALL_EXACT_PCT = 70.0   # observed 72.6 (v3.25)
+MIN_OVERALL_CER_PCT = 84.0     # observed 86.1 (v3.25)
 
 
 def _edit_distance(a, b):
