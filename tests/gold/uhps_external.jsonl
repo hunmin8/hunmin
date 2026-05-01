@@ -1,0 +1,35 @@
+{"id": 1, "text": "hello", "lang": "en", "ipa": "həˈloʊ", "uhps_full_expected": "허로·우", "phonemes": ["h", "ə", "ˈ", "l", "oʊ"], "test": "stress preserved"}
+{"id": 2, "text": "father", "lang": "en", "ipa": "ˈfɑːðɚ", "uhps_full_expected": "ㆄㆍ·ːㅽ어", "phonemes": ["ˈ", "f", "ɑː", "ð", "ɚ"], "test": "/f/=ㆄ /ð/=ㅽ length+stress"}
+{"id": 3, "text": "think", "lang": "en", "ipa": "θɪŋk", "uhps_full_expected": "ㅼ잉크", "phonemes": ["θ", "ɪ", "ŋ", "k"], "test": "/θ/=ㅼ /ŋ/=ㆁ받침"}
+{"id": 4, "text": "this", "lang": "en", "ipa": "ðɪs", "uhps_full_expected": "ㅽ잇", "phonemes": ["ð", "ɪ", "s"], "test": "/ð/=ㅽ"}
+{"id": 5, "text": "vision", "lang": "en", "ipa": "ˈvɪʒən", "uhps_full_expected": "ㅸ이·ᄶ언", "phonemes": ["ˈ", "v", "ɪ", "ʒ", "ə", "n"], "test": "/v/=ㅸ /ʒ/=ᄶ"}
+{"id": 6, "text": "zebra", "lang": "en", "ipa": "ˈziːbrə", "uhps_full_expected": "ㅿ이·ː브러", "phonemes": ["ˈ", "z", "iː", "b", "r", "ə"], "test": "/z/=ㅿ length"}
+{"id": 7, "text": "Bonjour", "lang": "fr", "ipa": "bɔ̃ʒuʁ", "uhps_full_expected": "ㅂㆎᄶ우ᄛ", "phonemes": ["b", "ɔ̃", "ʒ", "u", "ʁ"], "test": "/ɔ̃/=ㆎ /ʒ/=ᄶ /ʁ/=ᄛ"}
+{"id": 8, "text": "Champs", "lang": "fr", "ipa": "ʃɑ̃", "uhps_full_expected": "ᄾㆍㆁ", "phonemes": ["ʃ", "ɑ̃"], "test": "/ʃ/=ᄾ nasal /ɑ̃/=ㆍ"}
+{"id": 9, "text": "café", "lang": "fr", "ipa": "kafe", "uhps_full_expected": "카ㆄ에", "phonemes": ["k", "a", "f", "e"], "test": "/f/=ㆄ"}
+{"id": 10, "text": "Voilà", "lang": "fr", "ipa": "vwala", "uhps_full_expected": "ㅸ와라", "phonemes": ["v", "w", "a", "l", "a"], "test": "/v/=ㅸ glide"}
+{"id": 11, "text": "Bach", "lang": "de", "ipa": "bax", "uhps_full_expected": "바ㆅ", "phonemes": ["b", "a", "x"], "test": "/x/=ㆅ"}
+{"id": 12, "text": "Mozart", "lang": "de", "ipa": "ˈmoːtsart", "uhps_full_expected": "모·ː찰트", "phonemes": ["ˈ", "m", "oː", "ts", "a", "r", "t"], "test": "stress + length + /ts/"}
+{"id": 13, "text": "Mädchen", "lang": "de", "ipa": "ˈmɛːtçən", "uhps_full_expected": "메·ː트컨", "phonemes": ["ˈ", "m", "ɛː", "t", "ç", "ə", "n"], "test": "stress+length+/ç/=ㆅ"}
+{"id": 14, "text": "ich", "lang": "de", "ipa": "ɪç", "uhps_full_expected": "잌", "phonemes": ["ɪ", "ç"], "test": "/ç/=ㆅ"}
+{"id": 15, "text": "pizza", "lang": "it", "ipa": "ˈpittsa", "uhps_full_expected": "피·트차", "phonemes": ["ˈ", "p", "i", "tt", "s", "a"], "test": "stress + 이중자음"}
+{"id": 16, "text": "Verona", "lang": "it", "ipa": "veˈroːna", "uhps_full_expected": "ㅸ에로·ː나", "phonemes": ["v", "e", "ˈ", "r", "oː", "n", "a"], "test": "/v/=ㅸ stress+length"}
+{"id": 17, "text": "Madrid", "lang": "es", "ipa": "maˈðɾid", "uhps_full_expected": "마ㅽ리·드", "phonemes": ["m", "a", "ˈ", "ð", "ɾ", "i", "d"], "test": "/ð/=ㅽ stress"}
+{"id": 18, "text": "España", "lang": "es", "ipa": "esˈpaɲa", "uhps_full_expected": "엣파·ㅥ야", "phonemes": ["e", "s", "ˈ", "p", "a", "ɲ", "a"], "test": "/ɲ/=ㅥ stress"}
+{"id": 19, "text": "Москва", "lang": "ru", "ipa": "mɐˈskva", "uhps_full_expected": "맛크ㅸ아·", "phonemes": ["m", "ɐ", "ˈ", "s", "k", "v", "a"], "test": "/v/=ㅸ stress"}
+{"id": 20, "text": "Чехов", "lang": "ru", "ipa": "ˈʧɛxəf", "uhps_full_expected": "체·ㆅ어ㆄ", "phonemes": ["ˈ", "ʧ", "ɛ", "x", "ə", "f"], "test": "/x/=ㆅ /f/=ㆄ stress"}
+{"id": 21, "text": "中国", "lang": "zh", "ipa": "ʈʂʊŋ˥ kwo˧˥", "uhps_full_expected": "충· 코··", "phonemes": ["ʈʂ", "ʊ", "ŋ", "˥", "k", "w", "o", "˧˥"], "test": "tone1 + tone2"}
+{"id": 22, "text": "你好", "lang": "zh", "ipa": "ni˨˩˦ xau˨˩˦", "uhps_full_expected": "니·· ㆅ아우··", "phonemes": ["n", "i", "˨˩˦", "x", "a", "u", "˨˩˦"], "test": "tone3 dipping"}
+{"id": 23, "text": "我", "lang": "zh", "ipa": "wo˨˩˦", "uhps_full_expected": "오··", "phonemes": ["w", "o", "˨˩˦"], "test": "tone3 dipping"}
+{"id": 24, "text": "ありがとう", "lang": "ja", "ipa": "aɾiɡatoː", "uhps_full_expected": "아리가토ː", "phonemes": ["a", "ɾ", "i", "ɡ", "a", "t", "oː"], "test": "Japanese long /oː/"}
+{"id": 25, "text": "東京 (Tōkyō)", "lang": "ja", "ipa": "toːkjoː", "uhps_full_expected": "토ː쿄ː", "phonemes": ["t", "oː", "k", "j", "oː"], "test": "double long /oː/"}
+{"id": 26, "text": "xin chào", "lang": "vi", "ipa": "sin t͡ɕaːw", "uhps_full_expected": "신 차ː으", "phonemes": ["s", "i", "n", "t͡ɕ", "aː", "w"], "test": "Vietnamese /tɕ/ + length"}
+{"id": 27, "text": "Hà Nội", "lang": "vi", "ipa": "ha noj", "uhps_full_expected": "하 노으", "phonemes": ["h", "a", "n", "o", "j"], "test": "Vietnamese diphthong"}
+{"id": 28, "text": "Καλημέρα", "lang": "el", "ipa": "kaliˈmera", "uhps_full_expected": "카리메·라", "phonemes": ["k", "a", "l", "i", "ˈ", "m", "e", "r", "a"], "test": "Greek stress"}
+{"id": 29, "text": "Σωκράτης", "lang": "el", "ipa": "soˈkratis", "uhps_full_expected": "솤라·팃", "phonemes": ["s", "o", "ˈ", "k", "r", "a", "t", "i", "s"], "test": "Greek stress"}
+{"id": 30, "text": "ʈʂʊŋ", "lang": "ipa", "ipa": "ʈʂʊŋ", "uhps_full_expected": "충", "phonemes": ["ʈʂ", "ʊ", "ŋ"], "test": "retroflex affricate (Mandarin zh)"}
+{"id": 31, "text": "tɕja", "lang": "ipa", "ipa": "tɕja", "uhps_full_expected": "챠", "phonemes": ["tɕ", "j", "a"], "test": "alveolo-palatal affricate"}
+{"id": 32, "text": "ma˥", "lang": "ipa", "ipa": "ma˥", "uhps_full_expected": "마·", "phonemes": ["m", "a", "˥"], "test": "tone1 high"}
+{"id": 33, "text": "ma˧˥", "lang": "ipa", "ipa": "ma˧˥", "uhps_full_expected": "마··", "phonemes": ["m", "a", "˧˥"], "test": "tone2 rising"}
+{"id": 34, "text": "ma˨˩˦", "lang": "ipa", "ipa": "ma˨˩˦", "uhps_full_expected": "마··", "phonemes": ["m", "a", "˨˩˦"], "test": "tone3 dipping"}
+{"id": 35, "text": "ma˥˩", "lang": "ipa", "ipa": "ma˥˩", "uhps_full_expected": "마·", "phonemes": ["m", "a", "˥˩"], "test": "tone4 falling"}

@@ -327,6 +327,17 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.21.0** (2026.05) — 외부 evaluation corpus (NIKL 의존 X)
+  * `tests/gold/uhps_external.jsonl` — 35개 IPA-based UHPS-full 검증 케이스
+  * `tests/test_external.py` — 자동 회귀 테스트 (37 tests)
+  * **검증 100%** — 모든 IPA → expected UHPS-full 정확 매칭
+  * 검증 카테고리:
+    * 영어 음소 (/f/=ㆄ, /v/=ㅸ, /θ/=ㅼ, /ð/=ㅽ, /z/=ㅿ, /ʒ/=ᄶ)
+    * 운율 (장단 ː, 강세 ·)
+    * 다국어 (en/fr/de/it/es/ru/zh/ja/vi/el)
+    * Mandarin 4성 (1성·, 2성··, 3성··, 4성·)
+    * 자모 cleanup (ㆁ→ㅇ받침, OLD vowel 단독)
+  * 전체 테스트: **379 passed** (+37)
 * **v3.20.0** (2026.05) — HF Space final polish — UHPS-full hero 탭
   * **새 첫 탭 ⭐ UHPS-full (primary)** — NIKL vs UHPS-full 직접 비교
   * **옛한글 추정 가이드 inline** — 14개 옛한글 매핑 표 (ㆄ=강한ㅍ, ㅸ=약한ㅂ 등)
