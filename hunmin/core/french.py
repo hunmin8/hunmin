@@ -663,7 +663,7 @@ def _to_jamo_seq(phonemes):
     return ''.join(out)
 
 
-def transcribe_fr(text, precise=True, mode='hangul'):
+def transcribe_fr(text, precise=True, mode='hangul', phonetic=False):
     """fr → Hangul. mode: 'hangul'/'jamo'/'spaced'."""
     parts = re.split(r'(\s+|[^\w])', text)
     out = []

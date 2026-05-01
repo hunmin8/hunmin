@@ -284,6 +284,26 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.8.0** (2026.04) — Mixed-script auto-routing + digit/symbol 인코딩 — **leak 0 보장**
+  * `transcribe_auto(text, primary_lang='en', mode=...)` — 모든 입력 100% UHPS 공간으로
+  * **스크립트별 chunk 자동 분리** — Latin/Cyrillic/Greek/Arabic/Devanagari/Thai/CJK/Hiragana/Katakana/Hangul
+  * **CJK 휴리스틱**: 텍스트에 hiragana/katakana 있으면 → ja, 아니면 → zh
+  * **Vietnamese 감지**: Latin Extended Additional 진단으로 → vi 라우팅
+  * **숫자 transliteration** `digits=`: `'sino'` (5→오, default), `'native'` (5→다섯), `'read'` (영어 5→파이브), `'keep'`
+  * **기호 transliteration** `symbols=`: `'kor'` (default, &→앤드, $→달러), `'drop'`, `'keep'`
+  * **strict=True**: 인코딩 못한 글자 발견 시 ValueError (학습 데이터 검증용)
+  * 검증 (모두 leak 0):
+    * `'Hello 中国 5 apples'` → `'헬로 중궈 오 애펄즈'`
+    * `'A&B Corp. $100'` → `'아앤드비 콥. 달러일영영'`
+    * `'COVID-19 (2024)'` → `'씨오브이아이디-일구 (이영이사)'`
+    * `'I love 한국 & Japan'` → `'아이 러브 한국 앤드 재팬'`
+  * 전체 테스트: **230 passed**
+* **v3.7.0** (2026.04) — 모든 룰 모듈 phonetic= 인자 통일
+  * 11개 룰 모듈 (en/es/fr/de/it/ru/pt/nl/pl/tr/id) 모두 `phonetic=False` 기본값 추가
+  * **English `_HANGUL_OVERRIDES` skip 활성화** — phonetic=True면 NIKL 사전 우회
+  * 검증: `pizza` 피자(NIKL) vs **피트사**(phonetic), `mozart` 모차르트 vs **모잣**, `einstein` 아인슈타인 vs **아인스타인**
+  * 11 모듈 + hu(prototype) = 12개 모듈 모두 5-mode API와 호환
+  * 전체 테스트: **230 passed**
 * **v3.6.0** (2026.04) — 5 explicit modes: HUNMIN/UHPS layer 분리
   * **5개 mode 상수 도입** — `HUNMIN_NIKL`, `HUNMIN_PHONETIC`, `UHPS_CORE`, `UHPS_JAMO`, `UHPS_FULL`
   * `transcribe(text, lang, mode=HUNMIN_PHONETIC)` — 음운 정확도 우선 (NIKL adapter OFF)

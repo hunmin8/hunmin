@@ -482,7 +482,7 @@ def _to_jamo_seq(phonemes):
 
 
 # === Public ===
-def transcribe_es(text, precise=True, mode='hangul'):
+def transcribe_es(text, precise=True, mode='hangul', phonetic=False):
     """Spanish → Hangul.
 
     mode:

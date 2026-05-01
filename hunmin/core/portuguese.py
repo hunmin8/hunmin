@@ -503,7 +503,7 @@ def _to_jamo_seq(phonemes):
     return ''.join(out)
 
 
-def transcribe_pt(text, precise=True, mode='hangul'):
+def transcribe_pt(text, precise=True, mode='hangul', phonetic=False):
     """pt → Hangul. mode: 'hangul'/'jamo'/'spaced'."""
     parts = re.split(r'(\s+|[^\w])', text)
     out = []

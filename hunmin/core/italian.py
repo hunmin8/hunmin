@@ -514,7 +514,7 @@ def _to_jamo_seq(phonemes):
 
 
 # === Public ===
-def transcribe_it(text, precise=True, mode='hangul'):
+def transcribe_it(text, precise=True, mode='hangul', phonetic=False):
     """Italian → Hangul. mode: 'hangul'/'jamo'/'spaced'."""
     parts = re.split(r'(\s+|[^\w])', text)
     out = []

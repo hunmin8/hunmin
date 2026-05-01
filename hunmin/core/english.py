@@ -1696,9 +1696,12 @@ def _to_jamo_seq(phonemes):
     return ''.join(out)
 
 
-def transcribe_en(text, precise=True, mode='hangul'):
+def transcribe_en(text, precise=True, mode='hangul', phonetic=False):
     """English → Hangul. CMU phoneme based.
 
+    Args:
+      phonetic: bool — True면 NIKL 단어별 사전 (_HANGUL_OVERRIDES) skip,
+                       음운 룰만으로 변환 (학습/언어학용).
     Returns:
       hangul: 음절 합성 (사람 읽기)
       jamo:   UHPS jamo sequence (ML)
@@ -1711,8 +1714,9 @@ def transcribe_en(text, precise=True, mode='hangul'):
         if not re.match(r"^[A-Za-z']+$", part):
             out.append(part); continue
         # 0a. Hangul direct override (NIKL conventions; level 1/2 only — precise=False)
-        # L3/L4 (precise=True)는 룰 거쳐서 옛한글/jamo 생성
-        if mode == 'hangul' and not precise and part.lower() in _HANGUL_OVERRIDES:
+        # v3.7: phonetic=True면 NIKL adapter OFF (override skip)
+        if (mode == 'hangul' and not precise and not phonetic
+                and part.lower() in _HANGUL_OVERRIDES):
             out.append(_HANGUL_OVERRIDES[part.lower()])
             continue
         # 0b. acronym 감지 (letter-by-letter, 각 letter 독립 변환)

@@ -451,7 +451,7 @@ def _to_jamo_seq(phonemes):
 def _intervocalic_l_post(phonemes):
     return phonemes  # Polish: no intervocalic doubling
 
-def transcribe_pl(text, precise=True, mode='hangul'):
+def transcribe_pl(text, precise=True, mode='hangul', phonetic=False):
     """pl → Hangul. mode: 'hangul'/'jamo'/'spaced'."""
     parts = re.split(r'(\s+|[^\w])', text)
     out = []
