@@ -284,6 +284,15 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.13.0** (2026.05) — Croatian/Bosnian rule + Polish ły fix
+  * `hunmin/core/croatian.py` — letter-by-letter NIKL 크로아티아어 룰 (Bosnian 공유)
+  * 핵심: š/ž/č/ć→sibilants, lj/nj→palatal, đ/dj→ㅈ
+  * **EE_GOLD bs**: 9.7% → **35.5%** (+25.8pt 최대 점프)
+  * **EE_GOLD hr**: 12.1% → **19.0%** (+6.9pt)
+  * Polish: ły → 위 (NIKL fix, 일부 영향)
+  * `_PRECISE` 17 hardcoded langs (hr/bs 추가, bs는 hr 룰 공유)
+  * **EE_GOLD 전체: 17.6% → 18.5%** (총 9.7% → 18.5%, v3.1 → v3.13)
+  * 전체 테스트: **342 passed**
 * **v3.12.0** (2026.05) — Romanian rule module
   * `hunmin/core/romanian.py` — letter-by-letter NIKL 루마니아어 룰
   * 핵심: ă→ㅓ, â/î→ㅡ, ș→ㅅ, **ț→ㅊ** (ts), c+e/i→ㅊ vs c→ㅋ, g+e/i→ㅈ vs g→ㄱ, ch/gh silent-h

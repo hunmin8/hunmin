@@ -229,7 +229,7 @@ def _phonemize(word, precise):
             out.append(('C', 'ㄹ', 'l')); i += 1; continue
         if c == 'ł':
             # ł = /w/ → ㅇ + W-vowel
-            wmap = {'a':'ㅘ','e':'ㅞ','i':'ㅟ','o':'ㅝ','u':'ㅜ','ó':'ㅜ','y':'ㅣ'}
+            wmap = {'a':'ㅘ','e':'ㅞ','i':'ㅟ','o':'ㅝ','u':'ㅜ','ó':'ㅜ','y':'ㅟ'}  # ły → 위 NIKL
             wnasal = {'ą':'ㅝ','ę':'ㅞ'}
             if nxt in wmap:
                 out.append(('C', 'ㅇ', 'ł'))
