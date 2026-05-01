@@ -47,6 +47,18 @@ def _detect_script(ch):
     # Georgian
     if 0x10A0 <= cp <= 0x10FF or 0x2D00 <= cp <= 0x2D2F:
         return 'Georgian'
+    # Tibetan
+    if 0x0F00 <= cp <= 0x0FFF:
+        return 'Tibetan'
+    # Khmer
+    if 0x1780 <= cp <= 0x17FF:
+        return 'Khmer'
+    # Lao
+    if 0x0E80 <= cp <= 0x0EFF:
+        return 'Lao'
+    # Burmese (Myanmar)
+    if 0x1000 <= cp <= 0x109F:
+        return 'Burmese'
     # Arabic
     if 0x0600 <= cp <= 0x06FF or 0xFB50 <= cp <= 0xFDFF:
         return 'Arabic'
@@ -375,6 +387,77 @@ def _persian_to_ipa(text):
     return ''.join(out)
 
 
+# === Tibetan → IPA (rough Lhasa) ===
+# Tibetan has complex syllable structure; this is letter-level only (rough)
+_TIBETAN_TO_IPA = {
+    'ཀ':'k','ཁ':'kʰ','ག':'g','ང':'ŋ',
+    'ཅ':'tɕ','ཆ':'tɕʰ','ཇ':'dʑ','ཉ':'ɲ',
+    'ཏ':'t','ཐ':'tʰ','ད':'d','ན':'n',
+    'པ':'p','ཕ':'pʰ','བ':'b','མ':'m',
+    'ཙ':'ts','ཚ':'tsʰ','ཛ':'dz','ཝ':'w',
+    'ཞ':'ʑ','ཟ':'z','འ':'','ཡ':'j',
+    'ར':'r','ལ':'l','ཤ':'ʃ','ས':'s',
+    'ཧ':'h','ཨ':'a',
+    # Vowel diacritics
+    'ི':'i','ུ':'u','ེ':'e','ོ':'o',
+}
+
+def _tibetan_to_ipa(text):
+    return ''.join(_TIBETAN_TO_IPA.get(c, c) for c in text)
+
+
+# === Khmer → IPA (rough Central Khmer) ===
+_KHMER_TO_IPA = {
+    'ក':'k','ខ':'kʰ','គ':'k','ឃ':'kʰ','ង':'ŋ',
+    'ច':'tɕ','ឆ':'tɕʰ','ជ':'tɕ','ឈ':'tɕʰ','ញ':'ɲ',
+    'ដ':'ɗ','ឋ':'tʰ','ឌ':'ɗ','ឍ':'tʰ','ណ':'n',
+    'ត':'t','ថ':'tʰ','ទ':'t','ធ':'tʰ','ន':'n',
+    'ប':'ɓ','ផ':'pʰ','ព':'p','ភ':'pʰ','ម':'m',
+    'យ':'j','រ':'r','ល':'l','វ':'w',
+    'ស':'s','ហ':'h','ឡ':'l','អ':'',
+    # Vowels
+    'ា':'aː','ិ':'i','ី':'iː','ុ':'u','ូ':'uː',
+    'េ':'e','ែ':'ɛ','ៃ':'aj','ោ':'oː','ៅ':'aw',
+    'ំ':'m','ះ':'h','់':'',
+}
+
+def _khmer_to_ipa(text):
+    return ''.join(_KHMER_TO_IPA.get(c, c) for c in text)
+
+
+# === Lao → IPA ===
+_LAO_TO_IPA = {
+    'ກ':'k','ຂ':'kʰ','ຄ':'kʰ','ງ':'ŋ',
+    'ຈ':'tɕ','ສ':'s','ຊ':'s','ຍ':'ɲ',
+    'ດ':'d','ຕ':'t','ຖ':'tʰ','ທ':'tʰ','ນ':'n',
+    'ບ':'b','ປ':'p','ຜ':'pʰ','ຝ':'f','ພ':'pʰ','ຟ':'f','ມ':'m',
+    'ຢ':'j','ຣ':'r','ລ':'l','ວ':'w',
+    'ຫ':'h','ອ':'','ຮ':'h',
+    # Vowels (combining)
+    'ະ':'a','າ':'aː','ິ':'i','ີ':'iː','ຸ':'u','ູ':'uː',
+    'ເ':'e','ແ':'ɛ','ໂ':'o','ໄ':'aj','ໃ':'aj',
+}
+
+def _lao_to_ipa(text):
+    return ''.join(_LAO_TO_IPA.get(c, c) for c in text)
+
+
+# === Burmese (Myanmar) → IPA ===
+_BURMESE_TO_IPA = {
+    'က':'k','ခ':'kʰ','ဂ':'g','ဃ':'g','င':'ŋ',
+    'စ':'s','ဆ':'sʰ','ဇ':'z','ဈ':'z','ဉ':'ɲ','ည':'ɲ',
+    'ဋ':'t','ဌ':'tʰ','ဍ':'d','ဎ':'d','ဏ':'n',
+    'တ':'t','ထ':'tʰ','ဒ':'d','ဓ':'d','န':'n',
+    'ပ':'p','ဖ':'pʰ','ဗ':'b','ဘ':'b','မ':'m',
+    'ယ':'j','ရ':'j','လ':'l','ဝ':'w','သ':'θ','ဟ':'h','ဠ':'l','အ':'',
+    # Vowel marks
+    'ာ':'a','ိ':'i','ီ':'iː','ု':'u','ူ':'uː','ေ':'e','ဲ':'ɛ','ော':'oː',
+}
+
+def _burmese_to_ipa(text):
+    return ''.join(_BURMESE_TO_IPA.get(c, c) for c in text)
+
+
 def _detect_cjk_lang(chunk, full_text):
     """CJK 한자 chunk — full_text에 hiragana/katakana 있으면 ja, 아니면 zh."""
     for ch in full_text:
@@ -484,6 +567,23 @@ def transcribe_auto(text, primary_lang='en', mode=None,
         # Georgian — manual IPA fallback
         if script == 'Georgian':
             ipa = _georgian_to_ipa(chunk)
+            try:
+                out.append(_tr(ipa, 'ipa', mode=mode))
+            except Exception:
+                if strict:
+                    leaked.extend(chunk)
+                else:
+                    out.append(chunk)
+            continue
+        # Tibetan/Khmer/Lao/Burmese — manual IPA fallback
+        if script in ('Tibetan', 'Khmer', 'Lao', 'Burmese'):
+            converters = {
+                'Tibetan': _tibetan_to_ipa,
+                'Khmer': _khmer_to_ipa,
+                'Lao': _lao_to_ipa,
+                'Burmese': _burmese_to_ipa,
+            }
+            ipa = converters[script](chunk)
             try:
                 out.append(_tr(ipa, 'ipa', mode=mode))
             except Exception:

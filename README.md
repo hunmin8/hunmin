@@ -327,6 +327,13 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.22.0** (2026.05) — Persian rule module
+  * `hunmin/core/persian.py` — 페르시아어 (Farsi) Arabic-script → Hangul
+  * Persian 추가 자모 (پ چ ژ گ) + 자음 사이 default vowel (schwa) 자동 삽입
+  * 핵심: ج→ㅈ, چ→ㅊ, خ→흐, ش→시, ق→ㄱ, پ→ㅍ
+  * 검증: شیراز 시라즈 ✓, چای 차이 ✓ (e/o 부분은 short vowel 제한 있음)
+  * `_PRECISE` 21 hardcoded langs (fa 추가)
+  * 전체 테스트: **379 passed**
 * **v3.21.0** (2026.05) — 외부 evaluation corpus (NIKL 의존 X)
   * `tests/gold/uhps_external.jsonl` — 35개 IPA-based UHPS-full 검증 케이스
   * `tests/test_external.py` — 자동 회귀 테스트 (37 tests)

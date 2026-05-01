@@ -98,7 +98,7 @@ def test_supported_langs():
     from hunmin import supported_languages
     expected = {'en', 'es', 'it', 'de', 'ru', 'fr', 'pt',
                 'nl', 'pl', 'tr', 'id', 'hu', 'sk', 'cs', 'ro',
-                'hr', 'bs', 'sr', 'mk', 'vi',
+                'hr', 'bs', 'sr', 'mk', 'vi', 'fa',
                 'ja', 'zh', 'ko'}
     # tier='hardcoded' returns sorted list
     h = supported_languages('hardcoded')

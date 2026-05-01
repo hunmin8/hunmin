@@ -13,7 +13,7 @@ from .core import (
     transcribe_fr, transcribe_pt, transcribe_nl, transcribe_pl,
     transcribe_tr, transcribe_id, transcribe_en, transcribe_hu,
     transcribe_sk, transcribe_cs, transcribe_ro, transcribe_hr,
-    transcribe_sr, transcribe_vi,
+    transcribe_sr, transcribe_vi, transcribe_fa,
     transcribe_cjk,
 )
 
@@ -84,6 +84,7 @@ _PRECISE = {
     'hr': transcribe_hr, 'bs': transcribe_hr,  # Bosnian uses Croatian rules
     'sr': transcribe_sr, 'mk': transcribe_sr,  # mk Cyrillic도 sr 룰 비슷
     'vi': transcribe_vi,
+    'fa': transcribe_fa,
 }
 # CJK uses v1 deterministic dict (requires pykakasi/pypinyin/hanja for ja/zh)
 _DICT_LANGS = {'ja', 'zh', 'ko'}
