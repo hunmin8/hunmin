@@ -200,6 +200,16 @@ def _detect_latin_lang(chunk):
     return None
 
 
+# Mongolian-specific Cyrillic letters (not in Russian)
+_MN_DIACRITICS = set('өүӨҮ')
+
+def _detect_cyrillic_lang(chunk):
+    """Cyrillic chunk → ru/mn 등 세분."""
+    if any(c in _MN_DIACRITICS for c in chunk):
+        return 'mn'
+    return None
+
+
 # === Manual letter → IPA mappings for scripts not supported by epitran ===
 # epitran 미지원 언어는 직접 IPA로 변환해서 lang='ipa' 경로로 전사.
 _GREEK_TO_IPA = {
@@ -306,6 +316,63 @@ _GEORGIAN_TO_IPA = {
 
 def _georgian_to_ipa(text):
     return ''.join(_GEORGIAN_TO_IPA.get(c, c) for c in text)
+
+
+# === Mongolian Cyrillic → IPA (Khalkha) ===
+# 35-letter Khalkha Mongolian Cyrillic alphabet
+_MONGOLIAN_TO_IPA = {
+    'а':'a','б':'b','в':'w','г':'g','д':'d','е':'je','ё':'jo',
+    'ж':'ʤ','з':'ʣ','и':'i','й':'j','к':'k','л':'ɮ','м':'m',
+    'н':'n','о':'o','ө':'ɵ','п':'pʰ','р':'r','с':'s','т':'tʰ',
+    'у':'ʊ','ү':'u','ф':'f','х':'x','ц':'ʦʰ','ч':'ʧʰ','ш':'ʃ',
+    'щ':'ʃʧʰ','ъ':'','ы':'i','ь':'','э':'e','ю':'ju','я':'ja',
+    # Uppercase mirror
+    'А':'a','Б':'b','В':'w','Г':'g','Д':'d','Е':'je','Ё':'jo',
+    'Ж':'ʤ','З':'ʣ','И':'i','Й':'j','К':'k','Л':'ɮ','М':'m',
+    'Н':'n','О':'o','Ө':'ɵ','П':'pʰ','Р':'r','С':'s','Т':'tʰ',
+    'У':'ʊ','Ү':'u','Ф':'f','Х':'x','Ц':'ʦʰ','Ч':'ʧʰ','Ш':'ʃ',
+    'Щ':'ʃʧʰ','Ъ':'','Ы':'i','Ь':'','Э':'e','Ю':'ju','Я':'ja',
+}
+
+def _mongolian_to_ipa(text):
+    return ''.join(_MONGOLIAN_TO_IPA.get(c, c) for c in text)
+
+
+# === Persian (Farsi) Arabic-script → IPA (rough) ===
+# Persian uses Arabic script with extra letters (پ چ ژ گ).
+# Short vowels are unwritten — we insert 'a' between consonants for readability.
+_PERSIAN_TO_IPA = {
+    'ا':'ɒ','ب':'b','پ':'p','ت':'t','ث':'s','ج':'ʤ','چ':'ʧ',
+    'ح':'h','خ':'x','د':'d','ذ':'z','ر':'r','ز':'z','ژ':'ʒ',
+    'س':'s','ش':'ʃ','ص':'s','ض':'z','ط':'t','ظ':'z','ع':'',
+    'غ':'ɣ','ف':'f','ق':'ɣ','ک':'k','گ':'g','ل':'l','م':'m',
+    'ن':'n','و':'v','ه':'h','ی':'i','ي':'i','ك':'k',
+    # Vowel diacritics (rare in text)
+    'َ':'a','ِ':'e','ُ':'o',
+    'ء':'',  # hamza
+    # Common digraphs
+    'آ':'ɒ',  # alef madda
+}
+
+def _persian_to_ipa(text):
+    """Persian Arabic-script → IPA. 자음 사이에 schwa 삽입 (short vowel 없으면)."""
+    out = []
+    prev_vowel = False
+    for c in text:
+        ipa = _PERSIAN_TO_IPA.get(c, '')
+        if not ipa:
+            continue
+        if ipa in 'aeiouɒəɛɔɪʊ':
+            out.append(ipa)
+            prev_vowel = True
+        else:
+            # 자음 — 앞이 자음이면 'a' 삽입
+            if not prev_vowel and out:
+                out.append('a')
+            out.append(ipa)
+            prev_vowel = False
+    # 끝이 자음이면 default vowel 추가 안 함 (한국어 ㅡ-syll로 자동 처리)
+    return ''.join(out)
 
 
 def _detect_cjk_lang(chunk, full_text):
@@ -426,6 +493,17 @@ def transcribe_auto(text, primary_lang='en', mode=None,
                     out.append(chunk)
             continue
 
+        # Arabic script with Persian-specific letters → use Persian IPA mapping
+        # (Persian/Urdu/Pashto 모두 Arabic + 추가 글자 사용)
+        if script == 'Arabic' and any(c in 'پچژگ' for c in chunk):
+            ipa = _persian_to_ipa(chunk)
+            try:
+                out.append(_tr(ipa, 'ipa', mode=mode))
+            except Exception:
+                if strict: leaked.extend(chunk)
+                else: out.append(chunk)
+            continue
+
         # Letter scripts
         target_lang = _SCRIPT_TO_LANG.get(script)
         if target_lang is None:
@@ -435,6 +513,18 @@ def transcribe_auto(text, primary_lang='en', mode=None,
             sub = _detect_latin_lang(chunk)
             if sub:
                 target_lang = sub
+        # Cyrillic sub-detection: Mongolian
+        if script == 'Cyrillic':
+            sub = _detect_cyrillic_lang(chunk)
+            if sub == 'mn':
+                # Use manual Mongolian → IPA fallback (epitran 'mon-Cyrl-bab' 사용 가능하지만 우리 매핑이 더 정확)
+                ipa = _mongolian_to_ipa(chunk)
+                try:
+                    out.append(_tr(ipa, 'ipa', mode=mode))
+                except Exception:
+                    if strict: leaked.extend(chunk)
+                    else: out.append(chunk)
+                continue
         # CJK sub-detection: Japanese vs Chinese
         if script == 'CJK':
             target_lang = _detect_cjk_lang(chunk, text)

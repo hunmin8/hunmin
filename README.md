@@ -327,6 +327,13 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.18.0** (2026.05) — Mongolian/Persian + CJK audit
+  * **Mongolian Cyrillic** letter→IPA — 35자 매핑 (Ulaanbaatar→울라안바아타르 등)
+    * Cyrillic chunk 자동 sub-detection: ө/ү 발견 시 → mn 라우팅 (vs ru)
+  * **Persian Arabic-script** letter→IPA — پ چ ژ گ 등 페르시아 특화 글자 + 자음 사이 schwa 자동 삽입
+    * Arabic chunk + پ/چ/ژ/گ 발견 시 → Persian 매핑 (vs 일반 Arabic epitran)
+  * **CJK ja audit** — ja_gold 86.8% (92/106), 갭은 compound joining + 음운 변동 (k→g 모음 사이)
+  * 전체 테스트: **342 passed**
 * **v3.17.0** (2026.05) — Vietnamese rule + 2차 강세
   * `hunmin/core/vietnamese.py` — letter-by-letter NIKL 베트남어 룰
   * 핵심: ph→ㅍ, đ→ㄷ, ch→ㅉ, tr→ㅉ, x→ㅅ palatal, qu→ㄲ, ngh/ng→응(어말 받침 ㅇ), 6성 NIKL 무시 (NFD strip)
