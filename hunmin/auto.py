@@ -38,6 +38,9 @@ def _detect_script(ch):
     # Greek
     if 0x0370 <= cp <= 0x03FF:
         return 'Greek'
+    # Hebrew
+    if 0x0590 <= cp <= 0x05FF:
+        return 'Hebrew'
     # Arabic
     if 0x0600 <= cp <= 0x06FF or 0xFB50 <= cp <= 0xFDFF:
         return 'Arabic'
@@ -208,6 +211,53 @@ def _greek_to_ipa(text):
     return ''.join(_GREEK_TO_IPA.get(c, c) for c in s)
 
 
+# === Hebrew (modern Israeli) → IPA ===
+# epitran 미지원 → letter→IPA 매핑으로 lang='ipa' 경로
+_HEBREW_TO_IPA = {
+    # Consonants
+    'א': '',    # silent (or glottal stop carrier — drop)
+    'ב': 'v',   # vet (default; bet ב is /b/, but we lack dagesh detection)
+    'ג': 'g',   # gimel
+    'ד': 'd',   # dalet
+    'ה': 'h',   # he
+    'ו': 'v',   # vav (consonant) — also used as vowel marker
+    'ז': 'z',
+    'ח': 'x',   # khet
+    'ט': 't',
+    'י': 'j',   # yod
+    'כ': 'x',   # kaf (without dagesh = /x/)
+    'ך': 'x',   # final kaf
+    'ל': 'l',
+    'מ': 'm',
+    'ם': 'm',   # final mem
+    'נ': 'n',
+    'ן': 'n',   # final nun
+    'ס': 's',
+    'ע': '',    # ayin (modern silent or glottal)
+    'פ': 'f',   # pe (without dagesh)
+    'ף': 'f',   # final pe
+    'צ': 'ʦ',   # tsadi
+    'ץ': 'ʦ',
+    'ק': 'k',
+    'ר': 'ʁ',   # resh (uvular in Israeli Hebrew)
+    'ש': 'ʃ',   # shin (default; sin ש = /s/, lack diacritic)
+    'ת': 't',
+    # Common vowel diacritics (niqqud) — usually omitted; map if present
+    'ַ': 'a',   # patah
+    'ָ': 'a',   # qamatz
+    'ֵ': 'e',   # tsere
+    'ֶ': 'e',   # segol
+    'ִ': 'i',   # hiriq
+    'ֹ': 'o',   # holam
+    'ֻ': 'u',   # qubuts
+    'ְ': '',    # sheva (silent in modern)
+}
+
+def _hebrew_to_ipa(text):
+    """Modern Hebrew → IPA (rough). niqqud 없는 경우는 자음 sequence."""
+    return ''.join(_HEBREW_TO_IPA.get(c, c) for c in text)
+
+
 def _detect_cjk_lang(chunk, full_text):
     """CJK 한자 chunk — full_text에 hiragana/katakana 있으면 ja, 아니면 zh."""
     for ch in full_text:
@@ -273,10 +323,25 @@ def transcribe_auto(text, primary_lang='en', mode=None,
                 leaked.extend(chunk)
             else:
                 out.append(piece)
+                # leak detection: char가 SYMBOL_TO_KOR에 없으면 인코딩 안 됨
+                for c in chunk:
+                    if c not in SYMBOL_TO_KOR:
+                        leaked.append(c)
             continue
         # Greek — manual IPA fallback (epitran 미지원)
         if script == 'Greek':
             ipa = _greek_to_ipa(chunk)
+            try:
+                out.append(_tr(ipa, 'ipa', mode=mode))
+            except Exception:
+                if strict:
+                    leaked.extend(chunk)
+                else:
+                    out.append(chunk)
+            continue
+        # Hebrew — manual IPA fallback
+        if script == 'Hebrew':
+            ipa = _hebrew_to_ipa(chunk)
             try:
                 out.append(_tr(ipa, 'ipa', mode=mode))
             except Exception:

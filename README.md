@@ -284,6 +284,14 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.9.0** (2026.04) — `transcribe_auto` 정착: tests + Hebrew + CLI + HF tab
+  * **`tests/test_auto.py`** — 34 regression tests (script routing, mixed, leak, digits, symbols, strict, mode, determinism)
+  * **Hebrew letter→IPA** — `שלום`, `תודה`, `ירושלים` 등 epitran 없이 인코딩
+  * **Audit ar/hi/th**: Arabic short vowel 손실 (마르하바→믈바, epitran 한계), Hindi 70%, Thai 85% 정확도 기록
+  * **CLI `--auto`** — `hunmin --auto --text "Hello 中国 5"` 으로 mixed-script 처리
+  * **CLI `--digits/--symbols/--strict`** flags
+  * **HF Space**: 4 tabs (Auto / Multi-view / Levels / Tokens). Auto 탭에 mode, digits, symbols 옵션
+  * 전체 테스트: **264 passed** (이전 230 → +34)
 * **v3.8.1** (2026.04) — Greek IPA fallback (epitran 없는 언어 지원 패턴)
   * Greek (`Καλημέρα`) — letter→IPA 매핑 후 `lang='ipa'` 경로로 전사
   * **패턴 정립**: epitran 매핑 없는 언어 = letter→IPA 헬퍼만 작성하면 무한 확장

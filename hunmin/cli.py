@@ -30,6 +30,14 @@ Supported languages:
                     help='Output multi-view dict (text/ipa/uhps_core/uhps_full/hunmin/meaning). '
                          'See UHPS_SPEC §1.0.')
     ap.add_argument('--meaning', help='Optional meaning anchor (used with --views)')
+    ap.add_argument('--auto', action='store_true',
+                    help='Auto-routing transcribe (mixed-script, digits, symbols → 100% UHPS).')
+    ap.add_argument('--digits', choices=['sino', 'native', 'read', 'keep'],
+                    default='sino', help='--auto: 5→오/다섯/파이브/5')
+    ap.add_argument('--symbols', choices=['kor', 'drop', 'keep'],
+                    default='kor', help='--auto: $→달러/(omit)/$')
+    ap.add_argument('--strict', action='store_true',
+                    help='--auto: fail on unencoded char (vs pass-through)')
     ap.add_argument('--format', choices=['text', 'json', 'jsonl'], default='text',
                     help='Output format (default text). json/jsonl works with --tokens or --views.')
     ap.add_argument('--demo', action='store_true', help='Run text demo with 14 languages')
@@ -51,7 +59,8 @@ Supported languages:
         run_demo()
         return
 
-    if not args.text or not args.lang:
+    # --auto는 --lang 없어도 OK (primary_lang default='en')
+    if not args.text or (not args.lang and not args.auto):
         ap.print_help()
         return
 
@@ -69,6 +78,14 @@ Supported languages:
         else:
             for t in toks:
                 print('\t'.join(str(x) for x in t))
+        return
+
+    if args.auto:
+        from . import transcribe_auto
+        out = transcribe_auto(args.text, primary_lang=args.lang or 'en',
+                                digits=args.digits, symbols=args.symbols,
+                                strict=args.strict)
+        print(out)
         return
 
     if args.views:
