@@ -97,7 +97,8 @@ def test_cjk(word, lang, expected):
 def test_supported_langs():
     from hunmin import supported_languages
     expected = {'en', 'es', 'it', 'de', 'ru', 'fr', 'pt',
-                'nl', 'pl', 'tr', 'id', 'hu', 'sk', 'ja', 'zh', 'ko'}
+                'nl', 'pl', 'tr', 'id', 'hu', 'sk', 'cs',
+                'ja', 'zh', 'ko'}
     # tier='hardcoded' returns sorted list
     h = supported_languages('hardcoded')
     assert set(h) == expected, f'Mismatch: {set(h) ^ expected}'

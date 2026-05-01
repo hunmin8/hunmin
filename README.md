@@ -284,6 +284,12 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.11.0** (2026.05) — Czech rule module
+  * `hunmin/core/czech.py` — letter-by-letter NIKL 체코어 룰
+  * 핵심: ch→흐, š→ㅅ, ž→주, č→ㅊ, **ř→ㅈ** (Czech 고유음), ť/ď/ň→palatal, ě→ㅖ
+  * **EE_GOLD cs**: 8.7% → **15.7%** (+7.0pt)
+  * `_PRECISE` 14 hardcoded langs (cs 추가)
+  * 전체 테스트: **344 passed**
 * **v3.10.0** (2026.05) — Slovak 룰 + Armenian/Georgian IPA + multilingual stress test
   * **`hunmin/core/slovak.py`** — letter-by-letter Slovak NIKL 룰 모듈
     * EE_GOLD sk: 4.3% → **13.0%** (+8.7pt)
