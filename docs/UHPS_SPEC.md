@@ -1,8 +1,9 @@
 # UHPS Specification — Universal Hangul Phoneme Set
 
-**Version**: 3.1  
-**Status**: Frozen (2026-04-30)  
+**Version**: 3.32 (extended with showcase §9.4)
+**Status**: Frozen core (v3.0) + ongoing nasal/palatalization refinements
 **Reference implementation**: `hunmin/core/universal.py`
+**Regression lock-in**: `tests/gold/uhps_external.jsonl` (143) + `tests/gold/uhps_showcase.jsonl` (40)
 
 ---
 
@@ -382,11 +383,84 @@ UHPS spec은 SemVer를 따른다.
 | 你好 | ni˨˩˦ xau˨˩˦ | 니하오 | 니 ㆅ아우 | 니〯 ㆅ아우〯 |
 | 中国 | ʈʂʊŋ˥ kwo˧˥ | 중궈 | ㅊ우ㆁ ㄱ워 | ㅊ우ㆁ〮 ㄱ워〯 |
 
+### 9.4 Hand-curated showcase (v3.31, tone_style='middledot')
+
+각 entry는 `tests/gold/uhps_showcase.jsonl` + `tests/test_uhps_showcase.py`에서 회귀 lock-in.
+
+#### 9.4.1 옛한글 음소 (13종)
+
+| ID | Feature | IPA | UHPS-full | Note |
+|----|---------|-----|-----------|------|
+| S01 | /f/ → ㆄ | `fɪʃ` | `ㆄ이ᄾ` | NIKL은 ㅍ |
+| S02 | /v/ → ㅸ | `ˈvɛri` | `ㅸ에·리` | NIKL은 ㅂ |
+| S03 | /θ/ → ㅼ | `θɪŋk` | `ㅼ잉크` | think; /ŋ/=ㆁ받침 |
+| S04 | /ð/ → ㅽ | `ðɪs` | `ㅽ잇` | this; /s/ → ㅅ받침 |
+| S05 | /z/ → ㅿ | `ziːroʊ` | `ㅿ이ː로우` | NIKL은 ㅈ |
+| S06 | /ʒ/ → ᄶ | `ʒɑːnrə` | `ᄶㆍː느러` | /ɑː/=ㆍ |
+| S07 | /ʃ/ → ᄾ | `ʃoʊ` | `ᄾ오우` | NIKL은 시오 |
+| S08 | /x/ → ㆅ | `bax` | `바ㆅ` | German Bach |
+| S09 | /ʁ/ → ᄛ | `paʁi` | `파ᄛ이` | French Paris |
+| S10 | /ɲ/ → ㅥ | `maˈɲana` | `마ㅥ야·나` | Spanish mañana |
+| S11 | /ɔ/ → ㆎ | `kɔːt` | `ㅋㆎː트` | caught |
+| S12 | /ɑ/ → ㆍ | `ˈfɑːðər` | `ㆄㆍ·ːㅽ얼` | father (master case) |
+| S13 | /ŋ/ → ㆁ받침 | `sɪŋ` | `싱` | NFC collapses to ㅇ받침 |
+
+#### 9.4.2 Prosody (운율)
+
+| ID | Feature | IPA | UHPS-full |
+|----|---------|-----|-----------|
+| S14 | Length /ː/ | `siː` | `시ː` |
+| S15 | Primary stress ˈ → · | `ˈrɛkərd` | `레·컬드` |
+| S16 | Secondary stress ˌ → ˗ | `ˌɪnfərˈmeɪʃən` | `이˗느ㆄ얼메·이ᄾ언` |
+| S17 | Mandarin tone1 (high) | `ma˥` | `마¯` (arrow) |
+| S18 | Mandarin tone2 (rising) | `ma˧˥` | `마↗` |
+| S19 | Mandarin tone3 (dipping) | `ma˨˩˦` | `마↘↗` |
+| S20 | Mandarin tone4 (falling) | `ma˥˩` | `마↘` |
+
+#### 9.4.3 Diphthongs · Clusters · Affricates
+
+| ID | Feature | IPA | UHPS-full |
+|----|---------|-----|-----------|
+| S21 | /aɪ/ | `haɪ` | `하이` |
+| S22 | /eɪ/ | `deɪ` | `데이` |
+| S23 | /oʊ/ | `ɡoʊ` | `고우` |
+| S24 | /aʊ/ | `haʊ` | `하우` |
+| S25 | /ɔɪ/ | `bɔɪ` | `ㅂㆎ이` |
+| S27 | Cluster /θr/ | `θriː` | `ㅼ리ː` |
+| S28 | Cluster /str/ | `striːt` | `슽리ː트` |
+| S33 | /ts/ affricate | `tsuˈnami` | `추나·미` |
+| S34 | /dʒ/ affricate | `ˈdʒɑːz` | `ㅈㆍ·ːㅿ` |
+| S35 | /tʃ/ affricate | `tʃiːz` | `치ːㅿ` |
+
+#### 9.4.4 Schwa · Rhotic · Nasals
+
+| ID | Feature | IPA | UHPS-full | Note |
+|----|---------|-----|-----------|------|
+| S29 | Schwa /ə/ | `əˈbʌv` | `어버·ㅸ` | |
+| S30 | Rhotic /ɚ/ | `ˈfɑːðɚ` | `ㆄㆍ·ːㅽ어` | /ɚ/ ≅ /ə/ in UHPS-full |
+| S31 | French /ɛ̃/ | `vɛ̃` | `ㅸ엥` | v3.32 fix; ㆁ→ㅇ NFC |
+| S32 | French /ɑ̃/ | `blɑ̃` | `브ㄹㆍ` | KNOWN GAP: OLD vowel + nasal |
+| S40 | Russian /tʲ/ | `ʐɨtʲ` | `ᄶ읕` | KNOWN GAP: palatalization vs ㄷ |
+
+#### 9.4.5 Multi-feature 케이스
+
+| ID | Feature | IPA | UHPS-full |
+|----|---------|-----|-----------|
+| S26 | /f/ + /v/ + /z/ + 강세 + /ʃ/ | `ˈfɪzəkəl ˈvɛrɪfɪˌkeɪʃən` | `ㆄ이·ㅿ어컬 ㅸ에·리ㆄ이˗케·이ᄾ언` |
+| S37 | breathe (cluster + length + /ð/) | `briːð` | `브리ːㅽ` |
+| S38 | garage (schwa + /ɑː/ + /ʒ/) | `ɡəˈrɑːʒ` | `거ㄹㆍ·ːᄶ` |
+| S39 | Greek θεός | `θeˈos` | `ㅼ에오·스` |
+
 ---
 
 ## 10. 변경 이력
 
-- **v3.0** (2026-04-30) — Spec freeze. 매핑 v2.4.4 기준 동결. Token layer 정의. Tone v3.1 deferred.
+- **v3.32** (2026-05) — `_compose_with_jong` ㆁ→ㅇ remap. French nasals (vɛ̃ → ㅸ엥, œ̃ → 왱).
+- **v3.31** (2026-05) — Hand-curated UHPS-full showcase 40 entries (§9.4) — primary product spec lock-in.
+- **v3.27** (2026-05) — UHPS-full external eval 35→143 entries.
+- **v3.16** (2026-05) — Assembler cleanup: ㅇㆍ literal 제거, ㆁ→ㅇ받침 자동, 어말 OLD 마찰음 ㅡ-syll.
+- **v3.1** (2026-04) — Tone renderer 5-way (H/R/D/F/L), Mandarin 4성 distinct, arrow/numeric/panjeom styles.
+- **v3.0** (2026-04-30) — Spec freeze. 매핑 v2.4.4 기준 동결. Token layer 정의.
 - v2.x (2026-04-29~30) — 코드 진화기 (이 문서 이전 — 코드가 사실상 spec)
 
 ---

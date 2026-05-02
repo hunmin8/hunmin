@@ -341,6 +341,16 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.34.0** (2026.05) — HF Feature Gallery + S32 OLD-vowel nasal fix
+  * **HF Space**: 새 탭 `🎁 Feature Gallery (UHPS-full)` — 40 showcase entries 시연 + IPA 직접 입력
+  * **S32 fix**: French /ɑ̃/ blɑ̃ → **브ㄹㆍㆁ** (이전 브ㄹㆍ, ㆁ 분리 추가)
+    * Bonjour bɔ̃ʒuʁ → **ㅂㆎㆁᄶ우ᄛ** (비음 marker 보존)
+  * 39/40 showcase 정상 (1 known-gap: S40 Russian /tʲ/)
+* **v3.33.0** (2026.05) — UHPS_SPEC.md codify (showcase entries 통합)
+  * `docs/UHPS_SPEC.md` §9.4 신설 — 40 hand-curated showcase 모두 spec doc 안에 박음
+    * §9.4.1 옛한글 13종, §9.4.2 Prosody, §9.4.3 Diphthongs/Clusters/Affricates
+    * §9.4.4 Schwa/Rhotic/Nasals (known gaps 명시), §9.4.5 Multi-feature
+  * 변경이력 v3.0 → v3.32 baked. Spec doc이 외부 검증 가능한 reference로 굳음.
 * **v3.32.0** (2026.05) — UHPS-full nasal preservation fix
   * `_compose_with_jong` 옛한글 ㆁ → ㅇ remap (받침 자리 호환)
   * **French nasals**: `vɛ̃` → **ㅸ엥** (이전 ㅸ에), `œ̃` → **왱**

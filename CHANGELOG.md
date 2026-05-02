@@ -2,6 +2,36 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.34.0] — 2026-05-01 — HF Feature Gallery + S32 OLD-vowel nasal fix
+
+### Added (Track C)
+- **HF Space**: 새 탭 `🎁 Feature Gallery (UHPS-full)`
+  - 40 showcase entries 마크다운 표 + 직접 IPA 입력 시연 영역
+  - 옛한글 13종 + Prosody + Diphthongs + Clusters + Multi-feature 카테고리화
+
+### Fixed (Track D)
+- **S32 OLD vowel + nasal** (blɑ̃ → 브ㄹㆍㆁ): C+V_NASAL 브랜치에서 OLD vowel(ㆍ ㆎ ㅙ)일 때 ㆁ 분리 추가 (한글 완성형 결합 불가 fallback)
+- 영향: Bonjour `bɔ̃ʒuʁ` → **ㅂㆎㆁᄶ우ᄛ** (이전 ㅂㆎᄶ우ᄛ, 비음 marker 추가)
+- S32 KNOWN_GAP → 정상 case 승격 (이제 38/40 + 2 known-gap에서 39/40 + 1 known-gap)
+
+### Tests
+- 551 passed (전부 유지, 4 expected updated)
+
+## [3.33.0] — 2026-05-01 — UHPS_SPEC.md codify (showcase entries baked in)
+
+### Documented (Track B docs)
+- `docs/UHPS_SPEC.md` §9.4 추가 — 40 hand-curated showcase entries 모두 spec doc 안에 codify
+  - §9.4.1 옛한글 음소 13종 표 (S01-S13)
+  - §9.4.2 Prosody 7개 (S14-S20: length, primary/secondary stress, Mandarin tones 4)
+  - §9.4.3 Diphthongs/Clusters/Affricates 10개 (S21-S25, S27, S28, S33-S35)
+  - §9.4.4 Schwa/Rhotic/Nasals 5개 (S29-S32, S40 — known gaps 명시)
+  - §9.4.5 Multi-feature 4개 (S26, S37-S39)
+- Spec doc 헤더 업데이트 — version/status/regression lock-in 명시
+- 변경이력 v3.0 → v3.32 흐름 박음
+
+### Tests
+- 551 passed (변경 없음 — doc-only)
+
 ## [3.32.0] — 2026-05-01 — UHPS-full nasal preservation fix
 
 ### Fixed (Track B continued)

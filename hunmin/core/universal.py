@@ -613,7 +613,16 @@ def _assemble(tokens, precise=True):
             nasal_jong = 'ㆁ' if precise else 'ㅇ'
             syll = _compose('ㅇ', jung)
             attached = _compose_with_jong(syll, nasal_jong)
-            syllables.append(attached if attached else syll)
+            if attached:
+                syllables.append(attached)
+            else:
+                # OLD vowel (ㆍ ㆎ) → 단독 + ㆁ 분리 (한글 완성형 한계)
+                # 'ㅇㆍ' literal 출력 시 ㅇ 제거 후 ㆍ + ㆁ
+                if jung in _OLD_VOWELS and jung not in VOWELS:
+                    syllables.append(jung)
+                    syllables.append(nasal_jong)
+                else:
+                    syllables.append(syll)
             i += 1; continue
 
         # V_R (r-colored vowel: butter, fur)
@@ -675,7 +684,15 @@ def _assemble(tokens, precise=True):
                     syll = cho + _compose('ㅇ', target_v)
                 if nxt[0] == 'V_NASAL':
                     nasal_jong = 'ㆁ' if precise else 'ㅇ'
-                    syll = _compose_with_jong(syll, nasal_jong) or syll
+                    attached = _compose_with_jong(syll, nasal_jong)
+                    if attached:
+                        syll = attached
+                    else:
+                        # OLD vowel (ㆍ ㆎ) syll에 받침 못 붙임 → ㆁ 분리 추가
+                        if target_v in _OLD_VOWELS and target_v not in VOWELS:
+                            syllables.append(syll)
+                            syllables.append(nasal_jong)
+                            i += 2; continue
                 syllables.append(syll)
                 i += 2; continue
             # 자음 단독: 받침 시도 또는 으-syll

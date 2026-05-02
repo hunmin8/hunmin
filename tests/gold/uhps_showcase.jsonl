@@ -28,7 +28,7 @@
 {"id": "S29", "feature": "Schwa /ə/", "ipa": "əˈbʌv", "uhps_full_expected": "어버·ㅸ", "rationale": "Schwa /ə/ → 어. /v/=ㅸ at end. Stress on second syllable."}
 {"id": "S30", "feature": "Rhotic /ɚ/", "ipa": "ˈfɑːðɚ", "uhps_full_expected": "ㆄㆍ·ːㅽ어", "rationale": "Rhotic schwa /ɚ/ → 어 (same as plain schwa in UHPS-full). Compare with /ə/ case S29."}
 {"id": "S31", "feature": "Nasal /ɛ̃/ French", "ipa": "vɛ̃", "uhps_full_expected": "ㅸ엥", "rationale": "French nasal /ɛ̃/ → ㅔ + ㆁ받침 (collapses to ㅇ받침 in NFC). /v/=ㅸ. v3.32 fix: _compose_with_jong now accepts ㆁ via ㅇ remap."}
-{"id": "S32_KNOWN_GAP", "feature": "Nasal /ɑ̃/ French (engine drops)", "ipa": "blɑ̃", "uhps_full_expected": "브ㄹㆍ", "rationale": "KNOWN GAP: French /ɑ̃/ should preserve nasal. Engine: 브ㄹㆍ (no nasal). v3.x todo."}
+{"id": "S32", "feature": "Nasal /ɑ̃/ French (OLD vowel + ㆁ separated)", "ipa": "blɑ̃", "uhps_full_expected": "브ㄹㆍㆁ", "rationale": "French /ɑ̃/ → ㆍ + ㆁ separate (한글 완성형 ㆍ에 받침 결합 불가). v3.34 fix: C+V_NASAL OLD vowel branch에서 ㆁ 분리 추가."}
 {"id": "S33", "feature": "/ts/ affricate (NIKL contraction)", "ipa": "tsuˈnami", "uhps_full_expected": "추나·미", "rationale": "/tsu/ → 추 (Japanese loanword convention). NIKL: 츠우 separated; UHPS-full: contracted to 추."}
 {"id": "S34", "feature": "/dʒ/ affricate", "ipa": "ˈdʒɑːz", "uhps_full_expected": "ㅈㆍ·ːㅿ", "rationale": "/dʒ/ → ㅈ. /ɑː/=ㆍ. Word-final /z/=ㅿ."}
 {"id": "S35", "feature": "/tʃ/ affricate", "ipa": "tʃiːz", "uhps_full_expected": "치ːㅿ", "rationale": "/tʃ/ → ㅊ. /iː/. /z/=ㅿ at end."}
