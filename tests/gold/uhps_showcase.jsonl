@@ -35,4 +35,4 @@
 {"id": "S37", "feature": "Multi-feature word: 'breathe'", "ipa": "briːð", "uhps_full_expected": "브리ːㅽ", "rationale": "Initial cluster /br/, length, final /ð/=ㅽ."}
 {"id": "S38", "feature": "Word-final /ʒ/", "ipa": "ɡəˈrɑːʒ", "uhps_full_expected": "거ㄹㆍ·ːᄶ", "rationale": "garage: schwa, stress, /ɑː/=ㆍ length, final /ʒ/=ᄶ."}
 {"id": "S39", "feature": "Greek /θ/", "ipa": "θeˈos", "uhps_full_expected": "ㅼ에오·스", "rationale": "Greek θεός: /θ/=ㅼ. Stress on second syllable."}
-{"id": "S40_KNOWN_GAP", "feature": "Russian /ʐ/ (palatalization to 받침)", "ipa": "ʐɨtʲ", "uhps_full_expected": "ᄶ읕", "rationale": "Russian жить: engine produces 'ᄶ읕' (with ㅌ받침). Spec: palatalized /tʲ/ should be ㄷ받침. v3.x todo."}
+{"id": "S40", "feature": "Russian /ʐ/ + /tʲ/ (palatalized stop)", "ipa": "ʐɨtʲ", "uhps_full_expected": "ᄶ읃", "rationale": "Russian жить: /ʐ/=ᄶ + /ɨ/=ㅡ + /tʲ/=ㄷ받침 (palatalized voiceless stop softens to ㄷ in NIKL). v3.35 fix: tʲ pre-process maps to soft d before diacritic strip."}

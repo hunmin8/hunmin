@@ -341,6 +341,10 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.35.0** (2026.05) — S40 Russian palatalized /tʲ/ /dʲ/ fix
+  * `_normalize_ipa` 'tʲ'/'dʲ' pre-process — soft consonant ㄷ로 매핑
+  * S40 `ʐɨtʲ` → **ᄶ읃** (이전 ᄶ읕)
+  * **40/40 showcase entry 모두 정상 case** — known-gap 0 ✓
 * **v3.34.0** (2026.05) — HF Feature Gallery + S32 OLD-vowel nasal fix
   * **HF Space**: 새 탭 `🎁 Feature Gallery (UHPS-full)` — 40 showcase entries 시연 + IPA 직접 입력
   * **S32 fix**: French /ɑ̃/ blɑ̃ → **브ㄹㆍㆁ** (이전 브ㄹㆍ, ㆁ 분리 추가)

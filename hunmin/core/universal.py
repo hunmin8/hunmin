@@ -223,6 +223,9 @@ def _normalize_ipa(ipa, uhps='basic'):
         s = unicodedata.normalize('NFD', s)
     else:
         s = unicodedata.normalize('NFC', s)
+    # NIKL palatalized stops (Russian /tʲ/ /dʲ/) → soft consonant ㄷ
+    # 'ʲ' is otherwise stripped by REMOVE_DIACRITICS, so handle explicitly first.
+    s = s.replace('tʲ', 'd̥').replace('dʲ', 'd')
     for src, dst in _IPA_DIGRAPHS:
         s = s.replace(src, dst)
     if uhps == 'basic':

@@ -2,6 +2,17 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.35.0] — 2026-05-01 — S40 Russian palatalized /tʲ/ /dʲ/ fix
+
+### Fixed (Track D 마무리)
+- **`_normalize_ipa` palatalization pre-process**: 'tʲ' → soft d (ㄷ), 'dʲ' → d (ㄷ)
+  - 'ʲ' diacritic이 strip되기 전 매핑되도록 처리
+- **S40 Russian /tʲ/**: `ʐɨtʲ` → **ᄶ읃** (이전 ᄶ읕)
+- **40/40 showcase 모두 정상 case** — known-gap 0 ✓
+
+### Tests
+- 551 passed (전부 유지, 1 expected updated)
+
 ## [3.34.0] — 2026-05-01 — HF Feature Gallery + S32 OLD-vowel nasal fix
 
 ### Added (Track C)
