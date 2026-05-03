@@ -2,6 +2,22 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.36.0] — 2026-05-01 — Bug fix: `mode=UHPS_FULL` 라우팅 정정
+
+### 정밀 audit 결과 발견된 진짜 버그
+- **버그**: `transcribe(word, lang, mode=UHPS_FULL)` 이 NIKL과 같은 결과 반환 (룰 모듈 통과, IPA 경로 우회)
+- **원인**: `_hangul_inner`에서 `lang in _PRECISE` 체크가 `uhps='full'` 무시하고 룰 모듈로 라우팅
+- **fix**: uhps in ('full', 'core') AND lang not in ('en','ipa') 시 universal IPA 경로 강제
+- **영향**:
+  - Bonjour fr: '봉주르' → **'ㅂㆎㆁㅈ우ㄹ'** (옛한글 보존)
+  - Mozart de: '모차르트' → **'모ː차ː앝'** (length 보존)
+  - familia es: '파밀리아' → **'ㆄ아미랴'** (/f/=ㆄ)
+- **변경 안 됨**: en (CMU dict 경로), ja/zh/ko (hardcoded dict)
+- 이전 `views()` 함수만 정상 작동하던 게 이제 `transcribe()`도 정상
+
+### Tests
+- 551 passed (전부 유지)
+
 ## [3.35.0] — 2026-05-01 — S40 Russian palatalized /tʲ/ /dʲ/ fix
 
 ### Fixed (Track D 마무리)

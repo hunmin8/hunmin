@@ -1402,7 +1402,11 @@ def _yod_insert(phs, aligned, word):
 _VOWEL_PHS = {'AA','AE','AH','AO','AW','AY','EH','ER','EY','IH','IY','OW','OY','UH','UW'}
 
 
-def _drop_postvocalic_r(phs, aligned):
+def _drop_postvocalic_r(phs, aligned=None):
+    """Postvocalic /r/ drop. aligned 미제공 시 phonemes만 반환."""
+    no_align = aligned is None
+    if no_align:
+        aligned = ['' for _ in phs]
     out_phs, out_aln = [], []
     i = 0
     n = len(phs)
@@ -1415,6 +1419,8 @@ def _drop_postvocalic_r(phs, aligned):
             continue
         out_phs.append(p); out_aln.append(aligned[i])
         i += 1
+    if no_align:
+        return out_phs
     return out_phs, out_aln
 
 

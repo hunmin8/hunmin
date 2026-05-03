@@ -513,6 +513,17 @@ class Hunmin:
         if lang in _DICT_LANGS:
             return transcribe_cjk(text, lang, mode='hangul')
 
+        # v3.36: UHPS-full/core 요청 시 룰 모듈 우회하고 universal IPA 경로 강제
+        # (룰 모듈은 NIKL-focused, 옛한글/방점/장음 보존 안 함).
+        # CJK는 위에서 처리됨, 영어는 IPA 매핑 없으니 룰 모듈 그대로.
+        if uhps in ('full', 'core') and lang not in ('en', 'ipa'):
+            try:
+                from .core.universal import transcribe_universal
+                return transcribe_universal(text, lang, mode='hangul',
+                                             precise=precise, uhps=uhps)
+            except (ImportError, ValueError):
+                pass  # epitran 없거나 lang 미지원 → 룰 모듈 fallback
+
         # v3.6: phonetic=True면 _LANG_OVERRIDES 사전 skip (NIKL adapter OFF)
         if not precise and not phonetic and lang in _LANG_OVERRIDES:
             key = text.lower().strip()

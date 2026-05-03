@@ -341,6 +341,11 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.36.0** (2026.05) — Bug fix: `mode=UHPS_FULL` 라우팅 정정 ⚠️
+  * **진짜 버그**: `transcribe(word, lang, mode=UHPS_FULL)` 이 룰 모듈 통과해서 NIKL 결과 반환했음
+  * `_hangul_inner`에서 uhps='full'/'core' 시 universal IPA 경로 강제로 변경
+  * Bonjour fr: '봉주르' → **'ㅂㆎㆁㅈ우ㄹ'**, Mozart de: '모차르트' → **'모ː차ː앝'**, familia es: '파밀리아' → **'ㆄ아미랴'**
+  * en/CJK는 영향 없음 (CMU dict / hardcoded dict 경로 유지)
 * **v3.35.0** (2026.05) — S40 Russian palatalized /tʲ/ /dʲ/ fix
   * `_normalize_ipa` 'tʲ'/'dʲ' pre-process — soft consonant ㄷ로 매핑
   * S40 `ʐɨtʲ` → **ᄶ읃** (이전 ᄶ읕)
