@@ -2,6 +2,18 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.37.0] — 2026-05-01 — Bug fix: en acronym + UHPS_JAMO 경로 TypeError
+
+### Critical bug (PyPI v3.35.0 사용자 영향)
+- **버그**: `transcribe('NASA', 'en', mode=UHPS_JAMO)` → `TypeError: _drop_postvocalic_r() missing 1 required positional argument: 'aligned'`
+- **원인**: `english.py:1734` (acronym path)에서 `_drop_postvocalic_r(lphs)` 1-arg 호출, 함수는 (phs, aligned) 2-arg 요구
+- **fix**: `aligned=None`로 optional 처리; 미제공 시 phonemes만 반환
+- **영향 받은 입력**: 영어 약어/대문자 (NASA/FBI/IBM/CIA/NYC/USA 등) + UHPS_JAMO 또는 'spaced' 모드
+- **검증**: NASA→ㅔㄴㅔㅣㅔㅅㅔㅣ, FBI→ㅔㆄㅂㅣㅏㅣ, IBM→ㅏㅣㅂㅣㅔㅁ 모두 정상
+
+### Tests
+- 551 passed (전부 유지, regression 0)
+
 ## [3.36.0] — 2026-05-01 — Bug fix: `mode=UHPS_FULL` 라우팅 정정
 
 ### 정밀 audit 결과 발견된 진짜 버그

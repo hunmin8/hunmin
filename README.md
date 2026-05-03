@@ -341,6 +341,10 @@ UHPS-full(level=5)에서 강세 마크는 **점 직전 음절이 강세**:
 
 ## 📈 변경 이력 (CHANGELOG)
 
+* **v3.37.0** (2026.05) — 🐛 Critical bug fix: en acronym + UHPS_JAMO TypeError
+  * `transcribe('NASA', 'en', mode=UHPS_JAMO)` 이전 TypeError → 이제 정상 'ㅔㄴㅔㅣㅔㅅㅔㅣ'
+  * `_drop_postvocalic_r(phs, aligned=None)` optional aligned 처리
+  * PyPI v3.35.0 사용자 영향 — 영어 약어 jamo 모드
 * **v3.36.0** (2026.05) — Bug fix: `mode=UHPS_FULL` 라우팅 정정 ⚠️
   * **진짜 버그**: `transcribe(word, lang, mode=UHPS_FULL)` 이 룰 모듈 통과해서 NIKL 결과 반환했음
   * `_hangul_inner`에서 uhps='full'/'core' 시 universal IPA 경로 강제로 변경
