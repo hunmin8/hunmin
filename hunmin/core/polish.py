@@ -333,6 +333,20 @@ def _assemble(phonemes, precise):
             syllables.append(_compose('ㅇ', ph[1], 'ㅇ')); i += 1; continue
         if kind == 'LIT':
             syllables.append(ph[1]); i += 1; continue
+        # v3.38: RR handler (intervocalic L doubling + Cl cluster)
+        if kind == 'RR':
+            _add_jong_to_last(syllables, 'ㄹ')
+            if _next_is_vowel(phonemes, i):
+                v = phonemes[i+1][1]
+                if phonemes[i+1][0] == 'NV':
+                    syllables.append(_compose('ㄹ', v, 'ㅇ'))
+                else:
+                    syllables.append(_compose('ㄹ', v))
+                i += 2
+            else:
+                syllables.append(_compose('ㄹ', 'ㅡ'))
+                i += 1
+            continue
         if kind == 'X':
             if syllables and not _has_jong(syllables[-1]):
                 _add_jong_to_last(syllables, 'ㄱ')
@@ -382,6 +396,9 @@ def _assemble(phonemes, precise):
                         i += 1; continue
                 syllables.append(_compose(cho, 'ㅡ')); i += 1; continue
             if src in ('c','k','q') and cho == 'ㅋ':
+                # v3.38: 어말 k → 크 separate (NIKL Polish: rynek 리네크, park 파르크, żurek 주레크)
+                if i+1 >= n:
+                    syllables.append(_compose('ㅋ', 'ㅡ')); i += 1; continue
                 # 으-syllable에 받침 추가 안 함 (스+크 패턴 보존)
                 if syllables and not _has_jong(syllables[-1]) and not _is_eu_syll(syllables[-1]):
                     if _add_jong_to_last(syllables, 'ㄱ'):
@@ -392,6 +409,12 @@ def _assemble(phonemes, precise):
                     if _add_jong_to_last(syllables, 'ㅂ'):
                         i += 1; continue
                 syllables.append(_compose('ㅍ', 'ㅡ')); i += 1; continue
+            # v3.38: 어말 devoicing — b/w → 프 (chleb 흘레프, Kraków 크라쿠프, Wrocław 브로츠와프)
+            if i+1 >= n:
+                if src == 'b' and cho == 'ㅂ':
+                    syllables.append(_compose('ㅍ', 'ㅡ')); i += 1; continue
+                if src == 'w' and cho == 'ㅂ':
+                    syllables.append(_compose('ㅍ', 'ㅡ')); i += 1; continue
             syllables.append(_compose(cho, 'ㅡ')); i += 1; continue
         i += 1
     return ''.join(syllables)
@@ -454,7 +477,8 @@ def _intervocalic_l_post(phonemes):
     ulica 우리차 → 울리차 (intervocalic l → 받침-ㄹ + ㄹV)
     chleb 흐레브 → 흘레프 (Cl cluster, 흘+레)
     """
-    CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄷ', 'ㅌ', 'ㅎ', 'ㆄ'}
+    # v3.38: 'ㅁ' added (mleko 므레코→믈레코)
+    CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄷ', 'ㅌ', 'ㅎ', 'ㆄ', 'ㅁ'}
     out2 = []
     for k, ph in enumerate(phonemes):
         if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
@@ -481,7 +505,9 @@ def transcribe_pl(text, precise=True, mode='hangul', phonetic=False):
             out.append(part); continue
         phs_raw = _phonemize(part, precise)
         if mode == 'hangul':
-            out.append(_assemble(phs_raw, precise))
+            # v3.38: Enable Cl-cluster + intervocalic l post-pass (was dead code)
+            phs = _intervocalic_l_post(phs_raw)
+            out.append(_assemble(phs, precise))
         elif mode == 'jamo':
             out.append(_to_jamo_seq(phs_raw))
         elif mode == 'spaced':

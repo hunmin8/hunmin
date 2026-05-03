@@ -1,7 +1,37 @@
-# Hunmin v3.37 — 세션 인계 문서
+# Hunmin v3.38 — 세션 인계 문서
 
-**날짜**: 2026-05-01
-**현재 버전**: v3.37.0 (sandbox built, host에서 PyPI publish 대기)
+**날짜**: 2026-05-04
+**현재 버전**: v3.38.0 (sandbox patched, build/publish 대기)
+
+---
+
+## v3.38 세션 결과 (2026-05-04, NIKL polish E 트랙)
+
+### 핵심 정확도 점프
+
+| 언어 | v3.37 | v3.38 | 변화 |
+|------|-------|-------|------|
+| ro | 70.3% | **97.3%** | **+27.0pt** |
+| hu | 73.3% | **90.0%** | **+16.7pt** |
+| pl | 66.7% | **83.3%** | **+16.6pt** |
+
+전체 (held-out 1015): 65.9% → **68.2%** (+2.3pt). 회귀 0건.
+
+### 적용 패턴 (3 언어 공통)
+1. **Cl-cluster**: C + l + V → Cㅡㄹ받침 + ㄹV (es/de에서 검증된 NIKL 표준 패턴)
+2. **Intervocalic l doubling**: V + l + V → V받침ㄹ + ㄹV
+3. **언어별 컨벤션**: 어말 s→시 (hu), ș 위치별 (ro), 어말 k→크 separate (pl), 어말 b/w→프 devoicing (pl)
+
+### 미해결 (gold 모순 / 구조적 한계)
+- hu: gulyás (ly intervocalic이 folyó와 충돌), iskola (s+k는 Miskolc 슈 vs iskola 스), család (a→ㅓ outlier)
+- ro: Cluj-Napoca (dash 처리 한계, 1건)
+- pl: słońce/kościół/Łódź/ogień 등 9건 — 복잡한 nasal/palatal 처리 필요
+
+### Czech (cs) — 보류 상태
+- v3.38 패치 (67.5% → 97.5%, +30pt) 작성 완료 후 revert됨
+- 백업: `docs/v3.38_drafts/czech_v3.38_patch.py`
+- 패치 내용: ě→ㅔ, Cl 클러스터, intervocalic l, š 어말→시, 어말 devoicing
+- 다음 세션에서 재적용 검토 필요 (테스트 검증 완료, 회귀 0건이었음)
 
 ---
 

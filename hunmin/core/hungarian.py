@@ -193,7 +193,43 @@ def _phonemize(word, precise=False, phonetic=False):
                 v = VOWEL_J[nxt]
                 out.append(_compose('ㅅ', v_map.get(v, v)))
                 i += 2; continue
+            # v3.38: 어말 s → 시 (NIKL Hungarian: város → 바로시, lángos → 란고시)
+            # 자음앞 s → 슈 (Miskolc → 미슈콜츠 패턴 보존)
+            if i+1 >= n:
+                out.append('시'); i += 1; continue
             out.append('슈'); i += 1; continue
+
+        # v3.38: Cl-cluster — C + l + V → Cㅡㄹ + ㄹV (templom → 템플롬)
+        nxt2 = s[i+2] if i+2 < n else ''
+        _CL_CHO = {'b':'ㅂ','p':'ㅍ','k':'ㅋ','g':'ㄱ','t':'ㅌ','d':'ㄷ','f':'ㅍ'}
+        if (c in _CL_CHO and nxt == 'l' and nxt2 in VOWEL_LETTERS):
+            cho_jamo = _CL_CHO[c]
+            syll = chr(HANGUL_BASE
+                       + INITIALS.index(cho_jamo)*588
+                       + VOWELS_J.index('ㅡ')*28
+                       + FINALS.index('ㄹ'))
+            out.append(syll)
+            out.append(_compose('ㄹ', VOWEL_J[nxt2]))
+            i += 3
+            continue
+
+        # v3.38: Intervocalic l — V + l + V → V받침ㄹ + ㄹV (falu → 펄루)
+        if (c == 'l' and _is_vowel(nxt)
+                and i > 0 and s[i-1] in VOWEL_LETTERS
+                and out):
+            last = out[-1]
+            if len(last) == 1 and 0xAC00 <= ord(last) <= 0xD7A3:
+                base = ord(last) - HANGUL_BASE
+                cho_idx = base // 588
+                jung_idx = (base % 588) // 28
+                jong_idx = base % 28
+                if jong_idx == 0:
+                    out[-1] = chr(HANGUL_BASE + cho_idx*588
+                                  + jung_idx*28
+                                  + FINALS.index('ㄹ'))
+                    out.append(_compose('ㄹ', VOWEL_J[nxt]))
+                    i += 2
+                    continue
 
         # Generic consonants
         if c in 'bdfgjklmnprtvz':

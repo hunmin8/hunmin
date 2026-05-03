@@ -2,6 +2,46 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.38.0] — 2026-05-04 — NIKL polish E 트랙: hu / ro / pl 대형 정확도 개선
+
+### 정확도 결과 (held-out 1015 entries)
+
+| 언어 | 이전 | v3.38 | 변화 |
+|------|------|-------|------|
+| ro | 70.3% | **97.3%** | **+27.0pt** |
+| hu | 73.3% | **90.0%** | **+16.7pt** |
+| pl | 66.7% | **83.3%** | **+16.6pt** |
+
+다른 18 언어 회귀 0건. 전체 65.9% → 68.2% (+2.3pt).
+
+### Hungarian (hu) — `hunmin/core/hungarian.py`
+- **어말 s → 시** (이전 슈): NIKL Hungarian 컨벤션 (város→바로시, lángos→란고시, paprikás→퍼프리카시). 자음앞 s는 슈 유지 (Miskolc 보존).
+- **Cl-cluster** (C+l+V → Cㅡㄹ + ㄹV): templom→템플롬
+- **Intervocalic l doubling** (V+l+V → V받침ㄹ + ㄹV): falu→펄루
+- 한계: gulyás/iskola/család은 gold 모순 (ly intervocalic이 folyó와 충돌, s+k는 Miskolc 슈 vs iskola 스 충돌)
+
+### Romanian (ro) — `hunmin/core/romanian.py`
+- **ș 위치별 처리**: 어말 → 시 (oraș), 어두 자음앞 → 시 (școală), 어중 자음앞 → 슈 (București)
+- **Cl-cluster** (early-check, c 분기 전): Cluj→클루
+- **Intervocalic l doubling**: familie, sarmale, mămăligă, insulă
+- **어말 v → 프 devoicing**: Brașov→브라쇼프
+- **어말 j → 지**: Cluj-Napoca의 j 처리 (1건만 dash 처리 한계로 잔여)
+- **Word-initial i+V → semivowel**: Iași→야시, iubire→유비레
+
+### Polish (pl) — `hunmin/core/polish.py`
+- **`_intervocalic_l_post` enable**: 데드 코드였던 함수를 transcribe_pl에서 호출하도록 연결
+- **RR phoneme handler 추가**: _assemble에 RR (intervocalic L + Cl cluster) 핸들러 신설
+- **CLUSTER_C에 ㅁ 추가**: mleko→믈레코 (이전 므레코)
+- **어말 k → 크 separate** (이전 ㄱ받침): rynek→리네크, park→파르크, żurek→주레크
+- **어말 b/w → 프 devoicing**: chleb→흘레프, Kraków→크라쿠프, Wrocław→브로츠와프
+
+### 기존 알려진 한계 (변경 없음)
+- fa: 21.1% (Persian short vowel 구조적 한계)
+- en: 60.7% (CMU phoneme 천장)
+- hr: 67.6% (모듈 구조 재작성 필요)
+
+### Tests — regression 0건
+
 ## [3.37.0] — 2026-05-01 — Bug fix: en acronym + UHPS_JAMO 경로 TypeError
 
 ### Critical bug (PyPI v3.35.0 사용자 영향)

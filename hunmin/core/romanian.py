@@ -84,6 +84,18 @@ def _phonemize(word, precise=False):
                 i += 2; continue
             out.append('그'); i += 1; continue
 
+        # v3.38: Cl-cluster early-check — must precede 'c' block (Cluj → 클루)
+        nxt2_early = s[i+2] if i+2 < n else ''
+        if c == 'c' and nxt == 'l' and nxt2_early in VOWEL_LETTERS:
+            syll = chr(HANGUL_BASE
+                       + INITIALS.index('ㅋ')*588
+                       + VOWELS_J.index('ㅡ')*28
+                       + FINALS.index('ㄹ'))
+            out.append(syll)
+            out.append(_compose('ㄹ', VOWEL_J[nxt2_early]))
+            i += 3
+            continue
+
         # c + e/i → ㅊ; c + 그 외 → ㅋ
         if c == 'c':
             if nxt in FRONT_VOWELS:
@@ -111,6 +123,10 @@ def _phonemize(word, precise=False):
                 v = VOWEL_J[nxt]
                 out.append(_compose('ㅅ', Y_V.get(v, v)))
                 i += 2; continue
+            # v3.38: NIKL ș 어말 → 시 (oraș), 어두 자음앞 → 시 (școală),
+            # 어중 자음앞 → 슈 (București)
+            if i+1 >= n or i == 0:
+                out.append('시'); i += 1; continue
             out.append('슈'); i += 1; continue
         if c == 'ț':  # /ts/
             if _is_vowel(nxt):
@@ -133,6 +149,38 @@ def _phonemize(word, precise=False):
                 i += 2; continue
             out.append('흐'); i += 1; continue
 
+        # v3.38: Cl-cluster — C + l + V → Cㅡㄹ + ㄹV (Cluj → 클루)
+        nxt2 = s[i+2] if i+2 < n else ''
+        _CL_CHO = {'b':'ㅂ','p':'ㅍ','k':'ㅋ','g':'ㄱ','t':'ㅌ','d':'ㄷ','f':'ㅍ','c':'ㅋ'}
+        if (c in _CL_CHO and nxt == 'l' and nxt2 in VOWEL_LETTERS):
+            cho_jamo = _CL_CHO[c]
+            syll = chr(HANGUL_BASE
+                       + INITIALS.index(cho_jamo)*588
+                       + VOWELS_J.index('ㅡ')*28
+                       + FINALS.index('ㄹ'))
+            out.append(syll)
+            out.append(_compose('ㄹ', VOWEL_J[nxt2]))
+            i += 3
+            continue
+
+        # v3.38: Intervocalic l — V + l + V → V받침ㄹ + ㄹV (familie → 파밀리에)
+        if (c == 'l' and _is_vowel(nxt)
+                and i > 0 and s[i-1] in VOWEL_LETTERS
+                and out):
+            last = out[-1]
+            if len(last) == 1 and 0xAC00 <= ord(last) <= 0xD7A3:
+                base = ord(last) - HANGUL_BASE
+                cho_idx = base // 588
+                jung_idx = (base % 588) // 28
+                jong_idx = base % 28
+                if jong_idx == 0:
+                    out[-1] = chr(HANGUL_BASE + cho_idx*588
+                                  + jung_idx*28
+                                  + FINALS.index('ㄹ'))
+                    out.append(_compose('ㄹ', VOWEL_J[nxt]))
+                    i += 2
+                    continue
+
         # Generic consonants
         if c in 'bdfjklmnprstvwz':
             cons_map = {'b':'ㅂ','d':'ㄷ','f':F,'j':'ㅈ','k':'ㅋ','l':'ㄹ',
@@ -142,10 +190,23 @@ def _phonemize(word, precise=False):
             if _is_vowel(nxt):
                 out.append(_compose(cho, VOWEL_J[nxt]))
                 i += 2; continue
+            # v3.38: 어말 v → 프 (devoicing) (Brașov → 브라쇼프)
+            if i+1 >= n and c == 'v':
+                out.append('프'); i += 1; continue
+            # v3.38: 어말 j → 지 (Cluj → 클루지)
+            if i+1 >= n and c == 'j':
+                out.append('지'); i += 1; continue
             mute_map = {'b':'브','d':'드','f':'프','j':'주','k':'크',
                          'l':'ㄹ','m':'ㅁ','n':'ㄴ','p':'프','r':'르',
                          's':'스','t':'트','v':'브','w':'우','z':'즈'}
             out.append(mute_map[c]); i += 1; continue
+
+        # v3.38: Word-initial i + vowel → semivowel (Iași → 야시, iubire → 유비레)
+        if (c == 'i' and i == 0 and nxt in ('a','e','o','u','ă','â','î')):
+            Y_V = {'ㅏ':'ㅑ','ㅓ':'ㅕ','ㅔ':'ㅖ','ㅗ':'ㅛ','ㅜ':'ㅠ','ㅡ':'ㅡ'}
+            v = VOWEL_J[nxt]
+            out.append(_compose('ㅇ', Y_V.get(v, v)))
+            i += 2; continue
 
         # Vowel alone
         if c in VOWEL_J:
