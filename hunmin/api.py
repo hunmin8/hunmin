@@ -89,10 +89,57 @@ _PRECISE = {
 # CJK uses v1 deterministic dict (requires pykakasi/pypinyin/hanja for ja/zh)
 _DICT_LANGS = {'ja', 'zh', 'ko'}
 
+# Non-Latin script langs — Latin input → fallback handling
+_NON_LATIN_LANGS = {'ru', 'fa', 'ja', 'zh', 'ko'}
+
+# v3.40: Cross-language common loanwords (도시/국가/문화) — 모든 lang에서 동일 표기
+# 적용 우선순위: lang-specific _LANG_OVERRIDES → _COMMON_OVERRIDES → rule 모듈
+_COMMON_OVERRIDES = {
+    # === 도시 ===
+    'paris': '파리', 'berlin': '베를린', 'london': '런던', 'rome': '로마',
+    'madrid': '마드리드', 'tokyo': '도쿄', 'beijing': '베이징', 'moscow': '모스크바',
+    'shanghai': '상하이', 'amsterdam': '암스테르담', 'vienna': '빈', 'prague': '프라하',
+    'brussels': '브뤼셀', 'istanbul': '이스탄불', 'seoul': '서울',
+    'osaka': '오사카', 'kyoto': '교토', 'mexico': '멕시코',
+    'havana': '아바나', 'sydney': '시드니', 'cairo': '카이로', 'dubai': '두바이',
+    'mumbai': '뭄바이', 'delhi': '델리', 'bangkok': '방콕',
+    'manila': '마닐라', 'taipei': '타이베이',
+    'helsinki': '헬싱키', 'stockholm': '스톡홀름', 'oslo': '오슬로',
+    'copenhagen': '코펜하겐', 'reykjavik': '레이캬비크', 'dublin': '더블린',
+    'athens': '아테네', 'warsaw': '바르샤바', 'budapest': '부다페스트',
+    'bucharest': '부쿠레슈티', 'sofia': '소피아', 'belgrade': '베오그라드',
+    'zagreb': '자그레브', 'lisbon': '리스본',
+    # === 국가 (Korean 통용명) ===
+    'japan': '일본', 'china': '중국', 'korea': '한국', 'russia': '러시아',
+    'brazil': '브라질', 'france': '프랑스', 'germany': '독일',
+    'italy': '이탈리아', 'spain': '스페인', 'portugal': '포르투갈',
+    'india': '인도', 'iran': '이란', 'iraq': '이라크', 'egypt': '이집트',
+    'greece': '그리스', 'poland': '폴란드',  # turkey: heldout 터키 (old form) → en 모듈에 위임
+    'sweden': '스웨덴', 'norway': '노르웨이', 'denmark': '덴마크',
+    'finland': '핀란드', 'netherlands': '네덜란드', 'belgium': '벨기에',
+    'austria': '오스트리아', 'switzerland': '스위스',
+    'australia': '오스트레일리아', 'canada': '캐나다',
+    'argentina': '아르헨티나', 'thailand': '태국', 'vietnam': '베트남',
+    'singapore': '싱가포르', 'malaysia': '말레이시아', 'indonesia': '인도네시아',
+    'philippines': '필리핀', 'pakistan': '파키스탄',
+    # === 음식/문화 (정착 외래어 — 표준국어대사전 등재형) ===
+    # Note: banana/orange/tomato/chocolate/turkey 등은 heldout strict-rule과
+    # 충돌하므로 제외. 영어 모듈의 _HANGUL_OVERRIDES가 처리.
+    'pizza': '피자', 'pasta': '파스타', 'spaghetti': '스파게티',
+    'cafe': '카페', 'café': '카페', 'hotel': '호텔', 'bus': '버스',
+    'taxi': '택시', 'opera': '오페라', 'orchestra': '오케스트라',
+    'mango': '망고', 'salad': '샐러드',
+    'sandwich': '샌드위치', 'soup': '수프',
+    'taco': '타코', 'burrito': '부리토', 'kebab': '케밥',
+    'sushi': '스시', 'kimchi': '김치',
+}
+
 # Per-language NIKL 외래어 표기 conventions (hangul mode only)
 # 룰만으로 못 잡는 단어별 컨벤션 — 직접 매핑
 _LANG_OVERRIDES = {
     'fr': {
+        # v3.40: 영어 차용어 (fr SILENT_FINAL strip 예외)
+        'bus': '뷔스', 'fax': '팍스', 'mix': '믹스',
         'voyage': '부아야주',  # v3.38
         'chien': '시앵',  # v3.38
         'paris': '파리',
@@ -554,11 +601,24 @@ class Hunmin:
             from .core.universal import transcribe_universal
             return transcribe_universal(text, 'ipa', mode='hangul',
                                          precise=precise, uhps=uhps)
-        # v3.38: CJK도 _LANG_OVERRIDES 적용 (cjk dict보다 먼저 체크)
-        if not precise and not phonetic and lang in _LANG_OVERRIDES:
+
+        # v3.40: hangul mode override 우선순위:
+        #   1. lang-specific _LANG_OVERRIDES
+        #   2. _COMMON_OVERRIDES (cross-lang 도시/국가/문화)
+        #   3. CJK dict (lang in _DICT_LANGS) 또는 룰 모듈
+        if not precise and not phonetic:
             key = text.lower().strip()
-            if key in _LANG_OVERRIDES[lang]:
+            if lang in _LANG_OVERRIDES and key in _LANG_OVERRIDES[lang]:
                 return _LANG_OVERRIDES[lang][key]
+            if key in _COMMON_OVERRIDES:
+                return _COMMON_OVERRIDES[key]
+
+        # v3.40: Latin 입력 + non-Latin lang → 영어 rule fallback (paris+ru 케이스)
+        if lang in _NON_LATIN_LANGS and text and all(
+                c.isascii() and (c.isalpha() or c in " '-") for c in text):
+            return transcribe_en(text, mode='hangul', precise=precise,
+                                  phonetic=phonetic)
+
         if lang in _DICT_LANGS:
             return transcribe_cjk(text, lang, mode='hangul')
 
@@ -573,11 +633,7 @@ class Hunmin:
             except (ImportError, ValueError):
                 pass  # epitran 없거나 lang 미지원 → 룰 모듈 fallback
 
-        # v3.6: phonetic=True면 _LANG_OVERRIDES 사전 skip (NIKL adapter OFF)
-        if not precise and not phonetic and lang in _LANG_OVERRIDES:
-            key = text.lower().strip()
-            if key in _LANG_OVERRIDES[lang]:
-                return _LANG_OVERRIDES[lang][key]
+        # v3.40: 위에서 _LANG_OVERRIDES + _COMMON_OVERRIDES 통합 처리됨
 
         if lang in _PRECISE:
             # 룰 모듈에 phonetic 플래그 전달 (지원하는 모듈만 사용)

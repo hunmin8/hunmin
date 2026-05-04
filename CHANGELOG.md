@@ -2,6 +2,27 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.40.1] — 2026-05-04 — Cross-language 일관성 + 영어차용어 fix
+
+### Added
+- `_COMMON_OVERRIDES` (api.py): 도시/국가/문화 ~80개 항목 — 모든 lang에서 일관된 표기.
+  - 도시: paris/berlin/london/rome/madrid/tokyo/beijing/moscow/shanghai/amsterdam/vienna/prague/brussels/istanbul/seoul/osaka/kyoto/mexico/havana/sydney/cairo/dubai/mumbai/delhi/bangkok/manila/taipei/helsinki/stockholm/oslo/copenhagen/reykjavik/dublin/athens/warsaw/budapest/bucharest/sofia/belgrade/zagreb/lisbon
+  - 국가: japan/china/korea/russia/brazil/france/germany/italy/spain/portugal/india/iran/iraq/egypt/greece/poland/sweden/norway/denmark/finland/netherlands/belgium/austria/switzerland/australia/canada/argentina/thailand/vietnam/singapore/malaysia/indonesia/philippines/pakistan
+  - 정착 외래어: pizza/pasta/spaghetti/cafe/hotel/bus/taxi/opera/orchestra/mango/salad/sandwich/soup/taco/burrito/kebab/sushi/kimchi
+- `_NON_LATIN_LANGS = {'ru','fa','ja','zh','ko'}` — Latin 입력 시 영어 룰 fallback (paris+ru → 파리)
+
+### Fixed
+- **Cross-lang divergence**: Paris/Berlin/London/Rome/Tokyo 등이 lang 코드 무관 동일 표기
+- **fr 영어차용어 strip 예외**: `bus`(뷔→뷔스), `fax`, `mix` 추가
+- **`_hangul_inner` override 우선순위 통합**:
+  1. lang-specific `_LANG_OVERRIDES`
+  2. `_COMMON_OVERRIDES`
+  3. Latin 입력 + non-Latin lang → en 룰 fallback
+  4. CJK dict 또는 룰 모듈
+
+### Tests
+- pytest 551/551 ✓, heldout 1015/1015 (100.0%) 유지
+
 ## [3.38.0] — 2026-05-04 — NIKL polish E 트랙: 전체 21 언어 100% 완벽
 
 ### 🎯 정확도 결과 — **전체 1015/1015 (100.0%)** 달성
