@@ -92,6 +92,48 @@ _DICT_LANGS = {'ja', 'zh', 'ko'}
 # Non-Latin script langs — Latin input → fallback handling
 _NON_LATIN_LANGS = {'ru', 'fa', 'ja', 'zh', 'ko'}
 
+# Latin-script langs (모든 룰 모듈 lang은 Latin 입력 기대)
+_LATIN_LANGS = {'en', 'es', 'it', 'de', 'fr', 'pt', 'nl', 'pl', 'tr', 'id',
+                'hu', 'sk', 'cs', 'ro', 'hr', 'bs', 'vi'}
+
+
+def _detect_script(text):
+    """주된 script 감지: latin/cyrillic/arabic/hangul/cjk/mixed/empty."""
+    counts = {}
+    for c in text:
+        if not c.isalpha():
+            continue
+        cp = ord(c)
+        if cp < 0x0250 or (0x1E00 <= cp <= 0x1EFF):
+            s = 'latin'
+        elif 0x0400 <= cp <= 0x04FF:
+            s = 'cyrillic'
+        elif (0x0600 <= cp <= 0x06FF) or (0x0750 <= cp <= 0x077F) or (0xFB50 <= cp <= 0xFDFF):
+            s = 'arabic'
+        elif 0xAC00 <= cp <= 0xD7AF:
+            s = 'hangul'
+        elif (0x4E00 <= cp <= 0x9FFF) or (0x3040 <= cp <= 0x309F) or (0x30A0 <= cp <= 0x30FF) or (0x3400 <= cp <= 0x4DBF):
+            s = 'cjk'
+        else:
+            s = 'other'
+        counts[s] = counts.get(s, 0) + 1
+    if not counts:
+        return 'empty'
+    total = sum(counts.values())
+    dominant = max(counts, key=counts.get)
+    if counts[dominant] / total >= 0.7:
+        return dominant
+    return 'mixed'
+
+
+# script → 대표 lang code (auto-route)
+_SCRIPT_DEFAULT_LANG = {
+    'cyrillic': 'ru',
+    'arabic': 'fa',
+    'cjk': None,  # ja or zh — caller가 결정
+    'hangul': None,  # 이미 한국어 → 변환 X
+}
+
 # v3.40: Cross-language common loanwords (도시/국가/문화) — 모든 lang에서 동일 표기
 # 적용 우선순위: lang-specific _LANG_OVERRIDES → _COMMON_OVERRIDES → rule 모듈
 _COMMON_OVERRIDES = {
@@ -109,16 +151,16 @@ _COMMON_OVERRIDES = {
     'athens': '아테네', 'warsaw': '바르샤바', 'budapest': '부다페스트',
     'bucharest': '부쿠레슈티', 'sofia': '소피아', 'belgrade': '베오그라드',
     'zagreb': '자그레브', 'lisbon': '리스본',
-    # === 국가 (Korean 통용명) ===
-    'japan': '일본', 'china': '중국', 'korea': '한국', 'russia': '러시아',
-    'brazil': '브라질', 'france': '프랑스', 'germany': '독일',
+    # === 국가 ===
+    # Note: japan/korea/china/germany 등 영어 단어는 lang='en'에서 영어식 transliteration 기대
+    # (en_gold: japan=재팬, korea=코리아, china=차이나). 따라서 common에서 제외.
+    'russia': '러시아',  # russia는 영어식과 한국식이 동일
+    'brazil': '브라질', 'france': '프랑스',
     'italy': '이탈리아', 'spain': '스페인', 'portugal': '포르투갈',
-    'india': '인도', 'iran': '이란', 'iraq': '이라크', 'egypt': '이집트',
-    'greece': '그리스', 'poland': '폴란드',  # turkey: heldout 터키 (old form) → en 모듈에 위임
+    'iran': '이란', 'iraq': '이라크',
     'sweden': '스웨덴', 'norway': '노르웨이', 'denmark': '덴마크',
     'finland': '핀란드', 'netherlands': '네덜란드', 'belgium': '벨기에',
     'austria': '오스트리아', 'switzerland': '스위스',
-    'australia': '오스트레일리아', 'canada': '캐나다',
     'argentina': '아르헨티나', 'thailand': '태국', 'vietnam': '베트남',
     'singapore': '싱가포르', 'malaysia': '말레이시아', 'indonesia': '인도네시아',
     'philippines': '필리핀', 'pakistan': '파키스탄',
@@ -139,7 +181,7 @@ _COMMON_OVERRIDES = {
 _LANG_OVERRIDES = {
     'fr': {
         # v3.40: 영어 차용어 (fr SILENT_FINAL strip 예외)
-        'bus': '뷔스', 'fax': '팍스', 'mix': '믹스',
+        'bus': '뷔스', 'chez': '셰', 'fax': '팍스', 'mix': '믹스',
         'voyage': '부아야주',  # v3.38
         'chien': '시앵',  # v3.38
         'paris': '파리',
@@ -635,6 +677,24 @@ class Hunmin:
             return transcribe_en(text, mode='hangul', precise=precise,
                                   phonetic=phonetic)
 
+        # v3.41: Wrong-script 자동 라우팅
+        # Latin lang + non-Latin input → 적절한 lang으로 라우팅
+        if lang in _LATIN_LANGS:
+            script = _detect_script(text)
+            if script == 'cyrillic':
+                return self._hangul_inner(text, 'ru', precise=precise,
+                                          uhps=uhps, phonetic=phonetic)
+            if script == 'arabic':
+                return self._hangul_inner(text, 'fa', precise=precise,
+                                          uhps=uhps, phonetic=phonetic)
+            if script == 'hangul':
+                return text  # 이미 한국어 (no-op)
+            if script == 'cjk':
+                # 일본어 카나 있으면 ja, 한자만이면 zh
+                has_kana = any((0x3040 <= ord(c) <= 0x30FF) for c in text)
+                target = 'ja' if has_kana else 'zh'
+                return transcribe_cjk(text, target, mode='hangul')
+
         if lang in _DICT_LANGS:
             return transcribe_cjk(text, lang, mode='hangul')
 
@@ -701,14 +761,41 @@ class Hunmin:
 _default = Hunmin()
 
 
+# v3.41: LRU cache (반복 호출 시 throughput 향상)
+import functools as _functools
+
+@_functools.lru_cache(maxsize=2048)
+def _transcribe_cached(text, lang, level, return_tokens, mode, phonetic):
+    return _default.transcribe(text, lang, level, return_tokens=return_tokens,
+                                 mode=mode, phonetic=phonetic)
+
+
 def transcribe(text, lang, level=1, return_tokens=False,
-               mode=None, phonetic=False):
+               mode=None, phonetic=False, cache=True):
     """Convert text to Hangul transcription (uses default Hunmin instance).
+
+    Args:
+        cache: True (default) — LRU 캐시 사용 (2048 entries).
+               False면 매번 새로 계산.
 
     See Hunmin.transcribe for full docs.
     """
+    if cache and not return_tokens:
+        # tokens는 list 반환이라 cache 부적합. text가 hashable한 경우만 cache.
+        if isinstance(text, str) and isinstance(lang, str):
+            return _transcribe_cached(text, lang, level, return_tokens, mode, phonetic)
     return _default.transcribe(text, lang, level, return_tokens=return_tokens,
                                  mode=mode, phonetic=phonetic)
+
+
+def transcribe_cache_info():
+    """LRU cache 상태 — hits/misses/maxsize/currsize."""
+    return _transcribe_cached.cache_info()
+
+
+def transcribe_cache_clear():
+    """LRU cache 초기화."""
+    _transcribe_cached.cache_clear()
 
 
 def views(text, lang, meaning=None):

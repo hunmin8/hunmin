@@ -24,11 +24,12 @@ Supported languages (14):
     ja, zh, ko
 """
 
-__version__ = '3.40.2'
+__version__ = '3.41.0'
 __author__ = 'Hunmin Project'
 
 from .api import (
     Hunmin, transcribe, views, supported_languages,
+    transcribe_cache_info, transcribe_cache_clear,
     HUNMIN_NIKL, HUNMIN_PHONETIC, UHPS_CORE, UHPS_JAMO, UHPS_FULL,
 )
 from .auto import transcribe_auto
@@ -36,5 +37,6 @@ from .auto import transcribe_auto
 __all__ = [
     'Hunmin', 'transcribe', 'transcribe_auto', 'views',
     'supported_languages', '__version__',
+    'transcribe_cache_info', 'transcribe_cache_clear',
     'HUNMIN_NIKL', 'HUNMIN_PHONETIC', 'UHPS_CORE', 'UHPS_JAMO', 'UHPS_FULL',
 ]

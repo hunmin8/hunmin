@@ -22,17 +22,70 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install package + test deps
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[all]"
-          python -m pip install pytest
+          python -m pip install pytest pytest-cov
 
-      - name: Run tests (default install)
-        run: pytest tests/ -v
+      - name: Run unit tests
+        run: pytest tests/ -v --cov=hunmin --cov-report=xml --cov-report=term
+
+      - name: Run held-out gold evaluation (must remain 100%)
+        run: |
+          python scripts/eval_heldout_1000.py | tee /tmp/heldout.log
+          # 100% 유지 확인 (regression 가드)
+          grep -q "ALL.*1015.*1015.*100.0%" /tmp/heldout.log || (echo "❌ heldout regression"; cat /tmp/heldout.log; exit 1)
+
+      - name: Run all-corpus evaluation (informational)
+        run: python scripts/eval_all_gold.py
+        continue-on-error: true
 
       - name: Run benchmarks (smoke)
         run: |
           python tests/bench_en.py
           python tests/bench_multi.py
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install ruff
+        run: python -m pip install ruff
+      - name: Lint with ruff (informational)
+        run: ruff check hunmin/ --output-format=github
+        continue-on-error: true
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Build sdist + wheel
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Check package
+        run: |
+          python -m pip install twine
+          twine check dist/*
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*

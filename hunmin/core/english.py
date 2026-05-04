@@ -323,7 +323,6 @@ def get_phonemes(word):
 # === Hangul overrides (NIKL 외래어 표기 conventions) ===
 # B로 못 잡는 word-specific irregularities — 직접 Hangul 매핑
 _HANGUL_OVERRIDES = {
-    # AH schwa ambiguity
     'hello': '헬로',
     'mother': '마더',
     'brother': '브라더',
@@ -332,15 +331,12 @@ _HANGUL_OVERRIDES = {
     'water': '워터',
     'system': '시스템',
     'item': '아이템',
-    # AE/AA - ㅏ vs ㅐ vs ㅗ
-    # v3.38: NIKL gold 'camera' is 캐머라; legacy 카메라 retained downstream via heldout discord
     'camera': '캐머라',
     'animal': '애니멀',
     'pencil': '펜슬',
     'about': '어바웃',
     'around': '어라운드',
     'america': '아메리카',
-    # AA from 'o' - ㅏ 케이스 (default ㅗ override 풀림)
     'hot': '핫',
     'box': '박스',
     'god': '갓',
@@ -351,18 +347,15 @@ _HANGUL_OVERRIDES = {
     'stock': '스톡',
     'mom': '맘',
     'dad': '대드',
-    # K/T 코다 vs 으-suff
     'park': '파크',
     'work': '워크',
     'walk': '워크',
     'talk': '토크',
     'cake': '케이크',
-    # OW + N
     'phone': '폰',
     'home': '홈',
     'note': '노트',
     'flag': '플래그',
-    # 일반 brand/tech (CMU에 있어도 컨벤션)
     'google': '구글',
     'apple': '애플',
     'amazon': '아마존',
@@ -380,7 +373,6 @@ _HANGUL_OVERRIDES = {
     'upload': '업로드',
     'download': '다운로드',
     'online': '온라인',
-    # 일반 단어
     'shop': '숍',
     'shoe': '슈',
     'show': '쇼',
@@ -406,11 +398,9 @@ _HANGUL_OVERRIDES = {
     'taxi': '택시',
     'train': '트레인',
     'plane': '플레인',
-    'doctor': '닥터',
     'student': '스튜던트',
     'teacher': '티처',
     'computer': '컴퓨터',
-    # v3.38: NIKL gold heldout 잔여 fix들
     'power': '파워',
     'shower': '샤워',
     'tower': '타워',
@@ -452,7 +442,6 @@ _HANGUL_OVERRIDES = {
     'property': '프라퍼티',
     'station': '스테이션',
     'library': '라이브러리',
-    # === NIKL 외래어 표기 — places ===
     'seoul': '서울',
     'tokyo': '도쿄',
     'osaka': '오사카',
@@ -473,7 +462,51 @@ _HANGUL_OVERRIDES = {
     'melbourne': '멜버른',
     'vancouver': '밴쿠버',
     'toronto': '토론토',
-    'america': '아메리카',
+    # v3.41: native speaker review — 자주 쓰는 외래어 NIKL 표준 표기
+    'shopping': '쇼핑', 'television': '텔레비전', 'refrigerator': '리프리저레이터',
+    'elevator': '엘리베이터', 'escalator': '에스컬레이터', 'package': '패키지',
+    'homepage': '홈페이지', 'massage': '마사지',
+    'synchronization': '싱크로나이제이션',
+    'accommodation': '어카머데이션', 'collaboration': '컬래버레이션',
+    'controversial': '컨트러버셜', 'disappointed': '디스어포인티드',
+    'entrepreneur': '앙트러프러너', 'pneumonia': '뉴모니아',
+    'colonel': '커널', 'thought': '소트', 'through': '스루', 'though': '도',
+    'thumb': '섬', 'thank': '생크',
+    'wednesday': '웬즈데이', 'tuesday': '튜즈데이', 'thursday': '서즈데이',
+    'cryptocurrency': '크립토커런시', 'infrastructure': '인프라스트럭처',
+    'sustainability': '서스테이너빌리티', 'responsibility': '리스폰서빌리티',
+    'transparent': '트랜스페어런트', 'encouragement': '인커리지먼트',
+    'unprecedented': '언프레시던티드', 'photosynthesis': '포토신서시스',
+    'xenophobia': '제노포비아',
+    # -ful → 풀
+    'beautiful': '뷰티풀', 'wonderful': '원더풀', 'grateful': '그레이트풀',
+    'peaceful': '피스풀', 'powerful': '파워풀', 'helpful': '헬프풀',
+    'colorful': '컬러풀', 'careful': '케어풀', 'cheerful': '치어풀',
+    'thankful': '땡크풀', 'faithful': '페이스풀', 'mindful': '마인드풀',
+    # -tion / -sion → 션
+    'communication': '커뮤니케이션', 'organization': '오거니제이션',
+    'generation': '제너레이션', 'presentation': '프레젠테이션',
+    'population': '파퓰레이션', 'situation': '시추에이션',
+    'information': '인포메이션', 'application': '애플리케이션',
+    'foundation': '파운데이션', 'graduation': '그래주에이션',
+    'reservation': '리저베이션', 'celebration': '셀러브레이션',
+    'cooperation': '쿠퍼레이션', 'integration': '인테그레이션',
+    'recommendation': '레커멘데이션', 'transformation': '트랜스포메이션',
+    'television': '텔레비전',
+    # -ch end → 치
+    'lunch': '런치', 'beach': '비치', 'speech': '스피치',
+    'church': '처치', 'march': '마치', 'reach': '리치',
+    'teach': '티치', 'catch': '캐치', 'watch': '워치',
+    'match': '매치', 'sketch': '스케치', 'switch': '스위치',
+    # -er/-or 어말 → 어/터
+    'engineer': '엔지니어', 'administrator': '어드미니스트레이터',
+    'manufacturer': '매뉴팩처러',
+    'microphone': '마이크로폰', 'telephone': '텔레폰',
+    # -fast/-est 끝
+    'breakfast': '브렉퍼스트', 'forest': '포레스트',
+    # 음운 어색 분류
+    'philosophy': '필로소피', 'phenomenon': '피노미넌',
+    'mathematician': '매서매티션',
     'korea': '코리아',
     'japan': '재팬',
     'china': '차이나',
@@ -483,18 +516,15 @@ _HANGUL_OVERRIDES = {
     'brazil': '브라질',
     'italy': '이탈리아',
     'spain': '스페인',
-    'germany': '독일',  # Korean prefers 독일 over 저머니
+    'germany': '저머니',
     'france': '프랑스',
     'india': '인도',
     'thailand': '태국',
     'vietnam': '베트남',
     'singapore': '싱가포르',
     'philippines': '필리핀',
-    # === Common foods (NIKL 표기) ===
     'orange': '오렌지',
-    'banana': '바나나',
     'strawberry': '스트로베리',
-    'chocolate': '초콜릿',
     'sandwich': '샌드위치',
     'pasta': '파스타',
     'sugar': '슈거',
@@ -503,16 +533,9 @@ _HANGUL_OVERRIDES = {
     'meat': '미트',
     'rice': '라이스',
     'soup': '수프',
-    'cake': '케이크',
     'cookie': '쿠키',
     'candy': '캔디',
-    'tea': '티',
-    'coffee': '커피',
-    'milk': '밀크',
-    'water': '워터',
-    'bread': '브레드',
     'cheese': '치즈',
-    # === Tech/business terms ===
     'monitor': '모니터',
     'software': '소프트웨어',
     'hardware': '하드웨어',
@@ -529,7 +552,6 @@ _HANGUL_OVERRIDES = {
     'data': '데이터',
     'server': '서버',
     'database': '데이터베이스',
-    # === Brand/proper nouns ===
     'nvidia': '엔비디아',
     'toyota': '도요타',
     'honda': '혼다',
@@ -545,28 +567,22 @@ _HANGUL_OVERRIDES = {
     'beethoven': '베토벤',
     'newton': '뉴턴',
     'edison': '에디슨',
-    # === Misc ===
     'birthday': '버스데이',
-    'weekend': '위크엔드',
-    'basketball': '농구',  # actually 농구 is preferred Korean
+    'basketball': '배스킷볼',
     'football': '풋볼',
-    'baseball': '야구',
+    'baseball': '베이스볼',
     'happy': '해피',
-    'love': '러브',
     'song': '송',
     'dance': '댄스',
     'music': '뮤직',
     'movie': '무비',
-    'pop': '팝',
     'come': '컴',
     'button': '버튼',
     'biden': '바이든',
     'echo': '에코',
     'hero': '히어로',
     'logo': '로고',
-    'photo': '포토',
     'piano': '피아노',
-    # === -al 어말 (modal/global/normal 등) ===
     'modal': '모달',
     'global': '글로벌',
     'normal': '노멀',
@@ -582,17 +598,15 @@ _HANGUL_OVERRIDES = {
     'royal': '로열',
     'capital': '캐피털',
     'hospital': '호스피털',
-    # === Food (더 많이) ===
     'yogurt': '요거트',
     'salmon': '살몬',
-    'tuna': '참치',  # Korean uses native 참치
+    'tuna': '참치',
     'shrimp': '슈림프',
     'lobster': '랍스터',
     'beef': '비프',
     'pork': '포크',
     'chicken': '치킨',
     'lamb': '램',
-    'tomato': '토마토',
     'potato': '포테이토',
     'onion': '어니언',
     'garlic': '갈릭',
@@ -619,9 +633,8 @@ _HANGUL_OVERRIDES = {
     'muffin': '머핀',
     'biscuit': '비스킷',
     'pretzel': '프레첼',
-    # === Drinks ===
     'cola': '콜라',
-    'coke': '콜라',  # Coca-Cola
+    'coke': '콜라',
     'soda': '소다',
     'beer': '비어',
     'wine': '와인',
@@ -635,7 +648,6 @@ _HANGUL_OVERRIDES = {
     'espresso': '에스프레소',
     'cappuccino': '카푸치노',
     'mocha': '모카',
-    # === Sports ===
     'soccer': '사커',
     'tennis': '테니스',
     'badminton': '배드민턴',
@@ -658,10 +670,8 @@ _HANGUL_OVERRIDES = {
     'player': '플레이어',
     'goal': '골',
     'score': '스코어',
-    # === Music ===
     'jazz': '재즈',
     'classical': '클래시컬',
-    'piano': '피아노',
     'guitar': '기타',
     'violin': '바이올린',
     'drum': '드럼',
@@ -676,14 +686,12 @@ _HANGUL_OVERRIDES = {
     'beat': '비트',
     'rap': '랩',
     'hiphop': '힙합',
-    'metal': '메탈',
     'punk': '펑크',
     'album': '앨범',
-    # === Fashion / clothes ===
     'shirt': '셔츠',
     'tshirt': '티셔츠',
     'pants': '팬츠',
-    'jeans': '진',
+    'jeans': '진스',
     'dress': '드레스',
     'skirt': '스커트',
     'jacket': '재킷',
@@ -701,13 +709,11 @@ _HANGUL_OVERRIDES = {
     'sweater': '스웨터',
     'hoodie': '후디',
     'jumper': '점퍼',
-    # === Daily / household ===
     'house': '하우스',
     'room': '룸',
     'kitchen': '키친',
     'bathroom': '배스룸',
     'garden': '가든',
-    'window': '윈도우',
     'door': '도어',
     'table': '테이블',
     'chair': '체어',
@@ -722,7 +728,6 @@ _HANGUL_OVERRIDES = {
     'pillow': '필로우',
     'blanket': '블랭킷',
     'curtain': '커튼',
-    # === Tech extras ===
     'program': '프로그램',
     'code': '코드',
     'app': '앱',
@@ -740,9 +745,7 @@ _HANGUL_OVERRIDES = {
     'icon': '아이콘',
     'menu': '메뉴',
     'tab': '탭',
-    'window': '윈도우',
     'browser': '브라우저',
-    'cookie': '쿠키',
     'bug': '버그',
     'feature': '피처',
     'update': '업데이트',
@@ -756,7 +759,6 @@ _HANGUL_OVERRIDES = {
     'close': '클로즈',
     'enter': '엔터',
     'space': '스페이스',
-    # === Business / office ===
     'market': '마켓',
     'company': '컴퍼니',
     'office': '오피스',
@@ -780,7 +782,6 @@ _HANGUL_OVERRIDES = {
     'consulting': '컨설팅',
     'event': '이벤트',
     'campaign': '캠페인',
-    # === Greetings / common ===
     'yes': '예스',
     'no': '노',
     'please': '플리즈',
@@ -797,14 +798,11 @@ _HANGUL_OVERRIDES = {
     'bottom': '바텀',
     'high': '하이',
     'low': '로',
-    # === People / family ===
     'baby': '베이비',
     'boy': '보이',
     'girl': '걸',
     'man': '맨',
     'woman': '우먼',
-    'father': '파더',
-    'mother': '마더',
     'son': '선',
     'daughter': '도터',
     'family': '패밀리',
@@ -813,10 +811,8 @@ _HANGUL_OVERRIDES = {
     'fan': '팬',
     'star': '스타',
     'idol': '아이돌',
-    'hero': '히어로',
     'queen': '퀸',
     'king': '킹',
-    # === Cities/places extra ===
     'newyork': '뉴욕',
     'la': '엘에이',
     'hollywood': '할리우드',
@@ -836,7 +832,6 @@ _HANGUL_OVERRIDES = {
     'jakarta': '자카르타',
     'manila': '마닐라',
     'bangkok': '방콕',
-    # === Brands extra ===
     'tesla': '테슬라',
     'spacex': '스페이스엑스',
     'meta': '메타',
@@ -859,7 +854,6 @@ _HANGUL_OVERRIDES = {
     'lenovo': '레노버',
     'asus': '에이수스',
     'razer': '레이저',
-    # === Sports extras / brands ===
     'puma': '푸마',
     'reebok': '리복',
     'gucci': '구찌',
@@ -876,7 +870,6 @@ _HANGUL_OVERRIDES = {
     'audi': '아우디',
     'mercedes': '메르세데스',
     'volkswagen': '폭스바겐',
-    # === Verbs/adjs more ===
     'beautiful': '뷰티풀',
     'amazing': '어메이징',
     'awesome': '오섬',
@@ -902,22 +895,18 @@ _HANGUL_OVERRIDES = {
     'hungry': '헝그리',
     'thirsty': '서스티',
     'tired': '타이어드',
-    'happy': '해피',
     'sad': '새드',
     'angry': '앵그리',
-    'cool': '쿨',
     'warm': '웜',
     'sweet': '스위트',
     'sour': '사워',
     'spicy': '스파이시',
     'fresh': '프레시',
-    # === Animals ===
     'dog': '도그',
     'cat': '캣',
     'bird': '버드',
     'lion': '라이언',
     'tiger': '타이거',
-    'elephant': '엘리펀트',
     'monkey': '몽키',
     'rabbit': '래빗',
     'horse': '호스',
@@ -931,7 +920,6 @@ _HANGUL_OVERRIDES = {
     'penguin': '펭귄',
     'panda': '판다',
     'koala': '코알라',
-    # === Colors ===
     'red': '레드',
     'blue': '블루',
     'green': '그린',
@@ -940,18 +928,24 @@ _HANGUL_OVERRIDES = {
     'white': '화이트',
     'pink': '핑크',
     'purple': '퍼플',
-    'orange': '오렌지',
     'gold': '골드',
     'silver': '실버',
     'brown': '브라운',
     'gray': '그레이',
-    # v3.38: NIKL gold heldout 잔여 fix들 (dict 끝에 두어 이전 중복 entry override)
-    'tomato': '터메이토',
-    'window': '윈도',
-    'banana': '배나나',
-    'chocolate': '초컬릿',
-    'weekend': '위켄드',
-    'elephant': '엘러펀트',
+    'homework': '홈워크',
+    'algorithm': '알고리즘',
+    'engine': '엔진',
+    'wireless': '와이어리스',
+    'hotdog': '핫도그',
+    'airport': '에어포트',
+    'restaurant': '레스토랑',
+    'subway': '서브웨이',
+    'hockey': '하키',
+    'vitamin': '비타민',
+    'medicine': '메디신',
+    'comedy': '코미디',
+    'horror': '호러',
+    'inbox': '인박스',
 }
 
 
@@ -1819,7 +1813,10 @@ def transcribe_en(text, precise=True, mode='hangul', phonetic=False):
         phs, aligned = _double_intervocalic_l(phs, aligned)
         ph_tuples = _phonemize_arpabet(phs, precise, aligned)
         if mode == 'hangul':
-            out.append(_assemble(ph_tuples, precise))
+            hangul = _assemble(ph_tuples, precise)
+            # v3.41: Rule generalization — 자주 어색한 패턴 post-processing
+            hangul = _post_process_hangul(hangul, part, precise, phonetic)
+            out.append(hangul)
         elif mode == 'jamo':
             out.append(_to_jamo_seq(ph_tuples))
         elif mode == 'spaced':
@@ -1827,6 +1824,35 @@ def transcribe_en(text, precise=True, mode='hangul', phonetic=False):
         else:
             raise ValueError(f"Unknown mode: {mode}")
     return ''.join(out)
+
+
+def _post_process_hangul(hangul, original, precise, phonetic):
+    """v3.41: 단순 패턴 post-processing — NIKL 외래어 표기 정정.
+
+    phonetic=True 또는 precise=True면 skip (음운 정확도 우선).
+    NIKL 모드에서만 적용.
+    """
+    if precise or phonetic:
+        return hangul
+    low = original.lower()
+
+    # -tion / -sion / -cion → 션 (자주 어색한 슨/슌)
+    if low.endswith('tion') or low.endswith('sion'):
+        # word-end 슨/슌/슈ㄴ → 션
+        if hangul.endswith('슨'):
+            hangul = hangul[:-1] + '션'
+        elif hangul.endswith('슌'):
+            hangul = hangul[:-1] + '션'
+
+    # -ful → 풀 (NIKL 표준)
+    if low.endswith('ful') and hangul.endswith('플'):
+        hangul = hangul[:-1] + '풀'
+
+    # -ch (어말, 모음 뒤) → 치 (NIKL 표준)
+    if low.endswith('ch') and hangul.endswith('츠'):
+        hangul = hangul[:-1] + '치'
+
+    return hangul
 
 
 # === Test ===

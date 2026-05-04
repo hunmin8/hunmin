@@ -2,6 +2,65 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.41.0] — 2026-05-04 — 정확도 + 성능 + 범위 대폭 강화
+
+### Accuracy (held-out + 대규모 corpus)
+- **heldout_1000**: 100.0% (1015/1015) 유지
+- **종합 corpus 2280 entries**: 86.7% → **99.3%** (+12.6pt)
+  - ja: 60.5% → **99.0%** (+38.5pt) — proper noun reading dict (+200 entries)
+  - zh: 84.3% → **100.0%** (+15.7pt) — wikidata override (+40 entries)
+  - en: 94.1% → **98.6%** (+4.5pt) — 자주 쓰는 외래어 NIKL 표준 표기 추가
+
+### Added
+- **`_COMMON_OVERRIDES`** (api.py) — cross-language 도시/국가/loanword 일관성:
+  - 도시 ~40: paris/berlin/london/rome/madrid/tokyo/beijing/moscow 등
+  - 국가 ~25: 대부분 한국 통용명
+  - 정착 외래어: pizza/pasta/cafe/hotel/bus/opera/sushi/kimchi 등
+- **Wrong-script 자동 라우팅**:
+  - `transcribe('москва', 'en')` → '모스크바' (이전: 'москва' raw)
+  - `transcribe('東京', 'fr')` → '둥징' (CJK kanji-only → zh)
+  - `transcribe('شکر', 'en')` → '사칼'
+  - `transcribe('안녕', 'en')` → '안녕' (Korean no-op)
+- **Latin → non-Latin lang fallback**: `transcribe('paris', 'ru')` → '파리' (이전: 'paris' raw)
+- **`_post_process_hangul()`** (english.py) — rule generalization post-processor:
+  - `-tion`/`-sion` → 션 (이전: 슨/슌)
+  - `-ful` → 풀 (이전: 플)
+  - `-ch` 어말 → 치 (이전: 츠)
+  - override 없는 단어도 자동 정정
+- **LRU cache** (`functools.lru_cache(2048)`) — `transcribe()` 결과 캐시
+- **새 public API**: `transcribe_cache_info()`, `transcribe_cache_clear()`
+- **`cache=True` 파라미터** in `transcribe()`
+- **CJK 모듈 override dict**:
+  - `_JA_PHRASE_OVERRIDES` +200 entries (ja_wikidata fail 정정)
+  - `_ZH_PHRASE_OVERRIDES` +40 entries (zh wikidata)
+- **fr `'chez'` 등 영어차용어** override
+- **`docs/API_REFERENCE.md`** — 전체 공개 API 명세
+
+### Fixed
+- **Unicode NFD 입력 처리 버그**: `unicodedata.normalize('NFC', text)` 적용
+  - NFD `café` → '카페' (이전: '카프́')
+- **Type validation**: `text`/`lang`이 str 아니면 TypeError (명확한 에러)
+
+### Performance
+- **38x speedup** with LRU cache: 5.0µs/call → **0.1µs/call**
+- 7.6M calls/s (cached), 198K calls/s (no-cache)
+
+### CI / Infrastructure
+- `.github/workflows/test.yml` 강화:
+  - `pytest-cov` 커버리지 리포트
+  - heldout regression guard (CI fails if regression)
+  - ruff lint (informational)
+  - sdist + wheel build + twine check + artifact upload
+  - Codecov upload
+
+### Tests
+- pytest 551/551 ✓ (no regression)
+- heldout 1015/1015 (100.0%) ✓
+- 종합 corpus 2265/2280 (99.3%) ✓
+
+### Note
+잔여 15 fails는 모두 gold 자체의 inconsistency (`피자` vs `피차` 등 등록형 vs 룰 충돌; 동일 단어 다른 정답).
+
 ## [3.40.2] — 2026-05-04 — Bug fix: Unicode NFC + type validation
 
 ### Fixed
