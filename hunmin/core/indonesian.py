@@ -361,6 +361,9 @@ def transcribe_id(text, precise=True, mode='hangul', phonetic=False):
     out = []
     for part in parts:
         if not part: continue
+        # v3.38: NIKL Indonesian — drop hyphens in compound words (gado-gado → 가도가도)
+        if part == '-':
+            continue
         if not re.match(r'^[A-Za-z]+$', part):
             out.append(part); continue
         phs_raw = _phonemize(part, precise)

@@ -96,6 +96,9 @@ def _phonemize(word, precise):
 
     s = word.lower()
     # 어말 묵음 자음 cluster 전처리: 어말 ptdsxzg... 등 strip (단, 비음 m/n은 유지)
+    # v3.38: '-et' (poulet, ballet) 패턴은 'e' 발음 보존 — 'et' → 'é' 치환
+    if len(s) >= 3 and s[-2:] == 'et' and s[-3] not in VOWEL_LETTERS:
+        s = s[:-2] + 'é'  # 't' silent, 'e' /ɛ/ → é
     SILENT_FINAL = set('ptdsxzg')
     while len(s) > 1 and s[-1] in SILENT_FINAL:
         s = s[:-1]
@@ -113,13 +116,10 @@ def _phonemize(word, precise):
         nxt3 = s[i+3] if i+3 < n else ''
 
         # === 어말 mute e (마지막 글자가 e면 drop) ===
-        if c == 'e' and i == n-1 and i > 0 and s[i-1] not in VOWEL_LETTERS:
-            # 단, 단음절 (le, je 등)은 drop 안 함
-            if i > 0:  # word 길이 > 1
-                # 어말 e silence (e.g., belle → 벨, France → 프랑스)
-                # 단, 어말 -ie, -ue 등은 다른 처리 (이미 위 디지그래프에서)
-                i += 1
-                continue
+        # v3.38: 어말 'e' ALWAYS drop (모음 뒤도; musée 뮈제, joie 주아)
+        if c == 'e' and i == n-1 and i > 0:
+            i += 1
+            continue
 
         # === Trigraphs / vowel patterns first ===
 
@@ -147,6 +147,19 @@ def _phonemize(word, precise):
 
         # === 모음 디그래프 ===
         di = c + nxt
+        # v3.38: -ail / -aill 어말 → 아이유 (palatal /aj/): travail 트라바이유
+        if c == 'a' and nxt == 'i' and nxt2 == 'l' and (i+3 >= n or s[i+3] == 'l'):
+            out.append(('V', 'ㅏ'))
+            out.append(('V', 'ㅣ'))
+            out.append(('V', 'ㅠ'))
+            # consume 'ail' or 'aill'(+ optional 'e')
+            consumed = 3
+            if i+3 < n and s[i+3] == 'l':
+                consumed = 4
+                if i+4 < n and s[i+4] == 'e':
+                    consumed = 5
+            i += consumed
+            continue
         # ai/aî/ay → ㅔ
         if di in ('ai', 'aî', 'aï', 'ay'):
             out.append(('V', 'ㅔ'))
@@ -247,6 +260,28 @@ def _phonemize(word, precise):
             i += 1
             continue
 
+        # v3.38: ille (after consonant, often word-end) → 이유 palatal
+        # famille 파미유, Marseille 마르세유. 단, monosyllabic (Lille 릴) 제외.
+        if c == 'i' and nxt == 'l' and nxt2 == 'l':
+            has_prev_vowel = any(ch in VOWEL_LETTERS for ch in s[:i])
+            after = s[i+3] if i+3 < n else ''
+            if has_prev_vowel and (after == 'e' and (i+4 >= n or s[i+4] not in VOWEL_LETTERS)):
+                out.append(('V', 'ㅣ'))
+                out.append(('V', 'ㅠ'))
+                i += 4
+                continue
+            if has_prev_vowel and (i+3 >= n or after not in VOWEL_LETTERS):
+                out.append(('V', 'ㅣ'))
+                out.append(('V', 'ㅠ'))
+                i += 3
+                continue
+
+        # v3.38: 어말 '-et' → /ɛ/ pronounced, t silent (poulet 풀레, ballet 발레)
+        if c == 'e' and nxt == 't' and i+2 >= n and i > 0:
+            out.append(('V', 'ㅔ'))
+            i += 2
+            continue
+
         # === 단일 모음 ===
         single_v = {
             'a':'ㅏ', 'à':'ㅏ', 'â':'ㅏ', 'ä':'ㅏ',
@@ -265,7 +300,8 @@ def _phonemize(word, precise):
         # === Digraphs (consonant) ===
         # ch + V → 샤/셰/시/쇼/슈. ch + V + n/m + 자음/end → 비음화 (Champs → 샹)
         if c == 'c' and nxt == 'h':
-            sh_map = {'a':'ㅑ','e':'ㅖ','é':'ㅖ','è':'ㅖ','ê':'ㅖ',
+            # v3.38: 'â' added (château 샤토), 'e'(schwa) → ㅠ (cheval 슈발)
+            sh_map = {'a':'ㅑ','â':'ㅑ','e':'ㅠ','é':'ㅖ','è':'ㅖ','ê':'ㅖ',
                       'i':'ㅣ','î':'ㅣ','o':'ㅛ','ô':'ㅛ','u':'ㅠ','y':'ㅣ'}
             sh_nasal_map = {'a':'ㅑ','e':'ㅑ','i':'ㅒ','o':'ㅛ','u':'ㅠ'}
             if nxt2 in sh_map:
@@ -287,6 +323,29 @@ def _phonemize(word, precise):
         # gn + V → 냐/녜/...
         if c == 'g' and nxt == 'n':
             ymap = {'a':'ㅑ','e':'ㅖ','é':'ㅖ','i':'ㅣ','o':'ㅛ','u':'ㅠ'}
+            nxt3 = s[i+3] if i+3 < n else ''
+            nxt4 = s[i+4] if i+4 < n else ''
+            # v3.38: gn+eau (triphthong) → ㄴ + ㅛ (agneau 아뇨)
+            if nxt2 == 'e' and nxt3 == 'a' and nxt4 == 'u':
+                out.append(('C', 'ㄴ', 'gn'))
+                out.append(('SV', 'ㅛ'))
+                i += 5
+                continue
+            # v3.38: gn + e at word-end → 뉴 (montagne 몽타뉴)
+            if nxt2 == 'e' and i+3 >= n:
+                out.append(('C', 'ㄴ', 'gn'))
+                out.append(('SV', 'ㅠ'))
+                i += 3
+                continue
+            # v3.38: gn + V + n/m at end → 뇽/뉑 (Avignon 아비뇽)
+            if (nxt2 in ymap and nxt3 in ('n','m')
+                    and (i+4 >= n or s[i+4] not in VOWEL_LETTERS)):
+                # palatal n + nasal V (NV-like)
+                out.append(('C', 'ㄴ', 'gn'))
+                out.append(('SV', ymap[nxt2]))
+                out.append(('GEM', 'ㅇ'))  # ㅇ받침
+                i += 4
+                continue
             if nxt2 in ymap:
                 out.append(('C', 'ㄴ', 'gn'))
                 out.append(('SV', ymap[nxt2]))
@@ -294,6 +353,18 @@ def _phonemize(word, precise):
                 continue
             out.append(('C', 'ㄴ', 'gn'))
             out.append(('V', 'ㅣ'))
+            i += 2
+            continue
+        # v3.38: gu + e/i → ㄱ + V (silent u; baguette 바게트, guitare 기타르)
+        if c == 'g' and nxt == 'u' and nxt2 in ('e','é','è','ê','i','î'):
+            gu_v = {'e':'ㅔ','é':'ㅔ','è':'ㅔ','ê':'ㅔ','i':'ㅣ','î':'ㅣ'}
+            out.append(('C', 'ㄱ', 'g'))
+            out.append(('V', gu_v[nxt2]))
+            i += 3
+            continue
+        # v3.38: 'ss' → ㅅ (not voiced; poisson 푸아송, pâtisserie 파티스리)
+        if c == 's' and nxt == 's':
+            out.append(('C', 'ㅅ', 'ss'))
             i += 2
             continue
         # ph → ㆄ/ㅍ
@@ -373,6 +444,13 @@ def _phonemize(word, precise):
         if c == 'g':
             # 어말 -ge (e mute) → -주 (g + ㅜ)
             if nxt == 'e' and i+2 >= n:
+                out.append(('C', 'ㅈ', 'g'))
+                out.append(('V', 'ㅜ'))
+                i += 2
+                continue
+            # v3.38: 'ger' before vowel → 주ㄹ (boulangerie 불랑주리, légèrement)
+            if (nxt == 'e' and i+2 < n and s[i+2] == 'r'
+                    and i+3 < n and s[i+3] in VOWEL_LETTERS):
                 out.append(('C', 'ㅈ', 'g'))
                 out.append(('V', 'ㅜ'))
                 i += 2
@@ -466,22 +544,24 @@ def _phonemize(word, precise):
 def _intervocalic_l_post(phonemes):
     """Hangul mode only: intervocalic L doubling + Cl cluster.
 
+    v3.38: NV (nasal vowel)도 V로 취급 (boulangerie 불랑주리 — l between V ㅜ and NV ㅏ)
     NIKL French: Cl 클러스터 → 받침-ㄹ + ㄹV (glace 글라스, plage 플라주, fleur 플뢰르, plaisir 플레지르)
     """
     CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄷ', 'ㅌ', 'ㆄ'}
+    VOWEL_LIKE = ('V', 'SV', 'NV')
     out2 = []
     for k, ph in enumerate(phonemes):
         # Existing intervocalic L
         if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
-                and k > 0 and phonemes[k-1][0] in ('V', 'SV')
-                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+                and k > 0 and phonemes[k-1][0] in VOWEL_LIKE
+                and k+1 < len(phonemes) and phonemes[k+1][0] in VOWEL_LIKE):
             out2.append(('RR', 'ㄹ', 'l_double'))
             continue
         # Cl cluster (consonant + 'l' + V) → 받침-ㄹ + ㄹV
         if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
                 and k > 0 and phonemes[k-1][0] in ('C', 'OLD')
                 and len(phonemes[k-1]) >= 2 and phonemes[k-1][1] in CLUSTER_C
-                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+                and k+1 < len(phonemes) and phonemes[k+1][0] in VOWEL_LIKE):
             out2.append(('RR', 'ㄹ', 'l_cluster'))
             continue
         out2.append(ph)
@@ -521,6 +601,10 @@ def _assemble(phonemes, precise):
             i += 1
             continue
 
+        if kind == 'GEM':
+            _add_jong_to_last(syllables, ph[1])
+            i += 1
+            continue
         if kind == 'LIT':
             syllables.append(ph[1])
             i += 1

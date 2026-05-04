@@ -107,14 +107,12 @@ def _phonemize(word, precise):
             i += 1
             continue
 
-        # === 비음화 (am/em/im/om/um + 자음/어말). 단, 'nh' 디그래프면 NOT. ===
+        # === 비음화 (am/em/im/om/um + 어말만). 단, 'nh' 디그래프면 NOT. ===
+        # v3.38: NIKL pt — mid-word V+m/n+cons는 자음을 그대로 받침으로 흡수
+        # (montanha 몬타냐, Coimbra 코임브라, samba 삼바). 어말 -m/-n만 비음 모음.
         def _is_nasal_context(after_idx):
-            """n/m 뒤에 자음 또는 어말. 단, 'h' (nh digraph)면 False."""
-            after = s[after_idx] if after_idx < n else ''
-            if not after: return True
-            if after == 'h': return False  # nh digraph
-            if after in VOWEL_LETTERS: return False
-            return True
+            """V+m/n at word-end → nasal vowel (NV)."""
+            return after_idx >= n
 
         if c in ('a','á','â','à') and nxt in ('m','n') and _is_nasal_context(i+2):
             out.append(('NV', 'ㅏ'))
@@ -183,16 +181,18 @@ def _phonemize(word, precise):
             out.append(('V', 'ㅣ'))
             i += 2
             continue
-        # lh + V → 리아/리에 (palatal l)
+        # v3.38: lh + V → ㄹ받침 to prev + ㄹ + V (intervocalic l doubling pattern)
+        # bacalhau 바칼라우, trabalho 트라발류 (어말 lho → ㄹ+ㅠ palatal)
         if c == 'l' and nxt == 'h':
             if nxt2 in single_v:
-                # lh + a → 리아 (separate: 리 + 아)
-                out.append(('C', 'ㄹ', 'lh'))
-                out.append(('V', 'ㅣ'))
-                out.append(('V', single_v[nxt2]))
+                out.append(('RR', 'ㄹ', 'lh'))
+                if nxt2 == 'o' and i + 3 == n:
+                    out.append(('SV', 'ㅠ'))  # 어말 -lho → 류
+                else:
+                    out.append(('V', single_v[nxt2]))
                 i += 3
                 continue
-            out.append(('C', 'ㄹ', 'lh'))
+            out.append(('RR', 'ㄹ', 'lh'))
             out.append(('V', 'ㅣ'))
             i += 2
             continue
@@ -214,6 +214,30 @@ def _phonemize(word, precise):
             out.append(('V', single_v[nxt2]))
             i += 3
             continue
+
+        # v3.38: 어말 'de'/'ve' → d/v + ㅡ (reduced 'e'; cidade 시다드, Algarve 알가르브, saudade 사우다드)
+        if c == 'd' and nxt == 'e' and i + 2 == n:
+            out.append(('C', 'ㄷ', 'd'))
+            out.append(('V', 'ㅡ'))
+            i += 2; continue
+        if c == 'v' and nxt == 'e' and i + 2 == n:
+            if precise:
+                out.append(('OLD', V_OLD))
+            else:
+                out.append(('C', V_OLD, 'v'))
+            out.append(('V', 'ㅡ'))
+            i += 2; continue
+
+        # v3.38: ti → ㅊ + ㅣ (Brazilian palatal; Curitiba 쿠리치바)
+        if c == 't' and nxt == 'i':
+            out.append(('C', 'ㅊ', 'ti'))
+            out.append(('V', 'ㅣ'))
+            i += 2; continue
+
+        # v3.38: 어말 z → 스 (devoicing; arroz 아호스)
+        if c == 'z' and i + 1 == n:
+            out.append(('C', 'ㅅ', 'z'))
+            i += 1; continue
 
         # === Doubled consonants ===
         if c == nxt and c in 'bcdfgklmnprstvz':

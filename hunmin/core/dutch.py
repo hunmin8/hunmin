@@ -89,6 +89,50 @@ def _phonemize(word, precise):
                 i += 2
                 continue
 
+        # v3.38: -er before consonant or end → 어 (schwa). water 바터, poffertjes 포퍼-
+        if (c == 'e' and nxt == 'r'
+                and (i+2 >= n or s[i+2] not in VOWEL_LETTERS)):
+            other_vowels = sum(1 for ch in word.lower()[:i] if ch in VOWEL_LETTERS)
+            if other_vowels >= 1:
+                out.append(('V', 'ㅓ'))
+                i += 2
+                continue
+
+        # v3.38: -ngen at word-end → ng→ㅇ받침 + en-schwa (Groningen 흐로닝언)
+        if (c == 'n' and nxt == 'g' and nxt2 == 'e'
+                and i+3 < n and s[i+3] == 'n' and i+4 >= n):
+            out.append(('NG_ASSIM',))
+            i += 2  # consume 'ng', let en-rule handle 'en'
+            continue
+
+        # v3.38: tj + V → 'ch'-style. Dutch -tje diminutive 'tje' → 체 (NIKL)
+        # poffertjes 포퍼체스, beetje 베체. NB: 'e' here is NIKL ㅔ, not palatal ㅖ.
+        if c == 't' and nxt == 'j' and nxt2 in ('a','e','i','o','u'):
+            pmap = {'a':'ㅏ','e':'ㅔ','i':'ㅣ','o':'ㅗ','u':'ㅜ'}
+            out.append(('C', 'ㅊ', 'tj'))
+            out.append(('V', pmap[nxt2]))
+            i += 3
+            continue
+
+        # v3.38: 어중 unstressed 'e' before l/n/r + consonant → schwa ㅓ
+        # stroopwafel 스트로프바펄, ziekenhuis 지컨하위스, hagelslag 하헐슬라흐
+        if (c == 'e' and nxt in ('l','n','r')
+                and (i+2 >= n or s[i+2] not in VOWEL_LETTERS)):
+            other_vowels = sum(1 for ch in word.lower()[:i] if ch in VOWEL_LETTERS)
+            if other_vowels >= 1:
+                out.append(('V', 'ㅓ'))
+                i += 1
+                continue
+
+        # v3.38: 어말 단독 -e → 어 (schwa). liefde 리프더, aarde 아르더
+        # 단, monosyllabic word는 제외 (zee 제 같은 경우 ee 디그래프가 먼저 처리됨)
+        if c == 'e' and i+1 >= n:
+            other_vowels = sum(1 for ch in word.lower()[:i] if ch in VOWEL_LETTERS)
+            if other_vowels >= 1:
+                out.append(('V', 'ㅓ'))
+                i += 1
+                continue
+
         # === Vowel digraphs ===
         di = c + nxt
         if di == 'ij':
@@ -109,11 +153,13 @@ def _phonemize(word, precise):
         if di in ('ou', 'au'):
             out.append(('V', 'ㅏ')); out.append(('V', 'ㅜ'))
             i += 2; continue
-        # NIKL Dutch: long vowels (aa/ee/oo/uu) → 두 음절로 분리
-        # maan 마안, zee 제, kooi 코위, muur 뮈르
-        # (단, 'ee'/'oo' before single consonant final → single Korean vowel)
+        # v3.38: NIKL Dutch 'aa' — 컨텍스트 분기
+        # 어말 'aan' (monosyllabic-style) → 두 음절 분리 (maan 마안)
+        # 그 외 → 단일 ㅏ (aarde 아르더, Haag 하흐)
         if di == 'aa':
-            out.append(('V', 'ㅏ')); out.append(('V', 'ㅏ')); i += 2; continue
+            if nxt2 == 'n' and i+3 >= n:
+                out.append(('V', 'ㅏ')); out.append(('V', 'ㅏ')); i += 2; continue
+            out.append(('V', 'ㅏ')); i += 2; continue
         if di == 'ee':
             out.append(('V', 'ㅔ')); i += 2; continue
         if di == 'oo':
@@ -151,6 +197,10 @@ def _phonemize(word, precise):
         # ch → ㅎ (post-vocalic /x/)
         if c == 'c' and nxt == 'h':
             out.append(('C', 'ㅎ', 'ch'))
+            i += 2; continue
+        # v3.38: th → ㅌ (silent h, t sound — bibliotheek 비블리오테크)
+        if c == 't' and nxt == 'h':
+            out.append(('C', 'ㅌ', 't'))
             i += 2; continue
         # ng (어말 또는 자음 앞) → ㅇ받침
         if c == 'n' and nxt == 'g' and (i+2 >= n or s[i+2] not in VOWEL_LETTERS):
@@ -241,15 +291,26 @@ def _phonemize(word, precise):
 
 
 def _intervocalic_l_post(phonemes):
-    """Hangul mode only: intervocalic L doubling."""
+    """Hangul mode only: intervocalic L doubling + Cl cluster.
+
+    v3.38: Cl 클러스터 추가 (bibliotheek 비블리오테크의 'bl', hagelslag 하헐슬라흐의 'sl' 등)
+    """
+    CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄷ', 'ㅌ', 'ㅎ', 'ㆄ', 'ㅁ', 'ㅅ'}
     out2 = []
     for k, ph in enumerate(phonemes):
         if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
                 and k > 0 and phonemes[k-1][0] in ('V', 'SV')
                 and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
             out2.append(('RR', 'ㄹ', 'l_double'))
-        else:
-            out2.append(ph)
+            continue
+        # Cl cluster: C(consonant) + l + V → C으ㄹ + ㄹV
+        if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
+                and k > 0 and phonemes[k-1][0] in ('C', 'OLD')
+                and len(phonemes[k-1]) >= 2 and phonemes[k-1][1] in CLUSTER_C
+                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+            out2.append(('RR', 'ㄹ', 'l_cluster'))
+            continue
+        out2.append(ph)
     return out2
 
 

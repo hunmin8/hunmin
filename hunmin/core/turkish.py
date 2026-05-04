@@ -91,6 +91,12 @@ def _phonemize(word, precise):
         c = s[i]
         nxt = s[i+1] if i+1 < n else ''
 
+        # v3.38: 어말 'ii' → 단일 ㅣ (Arabic loan: camii 자미)
+        if c == 'i' and nxt == 'i' and i+2 >= n:
+            out.append(('V', 'ㅣ'))
+            i += 2
+            continue
+
         # 모음
         if c in VOWEL_J:
             out.append(('V', VOWEL_J[c]))
@@ -138,10 +144,10 @@ def _phonemize(word, precise):
         if c == 'g':
             out.append(('C', 'ㄱ', 'g')); i += 1; continue
         if c == 'ğ':
-            # ğ: 'soft g' — 보통 silent, 모음 길게 함
-            # 모음 사이 → silent (just lengthen)
-            # 자음 앞 / 어말 → 이전 모음 길게
-            # 단순화: silent (drop)
+            # v3.38: 어말 ğ → 'ㅡ' syllable (dağ 다으)
+            if i+1 >= n:
+                out.append(('V', 'ㅡ'))
+            # 그 외: silent (lengthen previous vowel — simplified to drop)
             i += 1; continue
         if c == 'h':
             out.append(('C', 'ㅎ', 'h')); i += 1; continue
@@ -178,6 +184,13 @@ def _phonemize(word, precise):
             else: out.append(('C', V_OLD, 'v'))
             i += 1; continue
         if c == 'y':
+            # v3.38: C+y+V (어중) → split as ㅣ + ㅇ+V (Konya 코니아). 어두는 palatal 유지.
+            prev_is_cons = out and out[-1][0] == 'C' and out[-1][1] != 'ㅇ'
+            if prev_is_cons and nxt in VOWEL_J:
+                out.append(('V', 'ㅣ'))
+                out.append(('V', VOWEL_J[nxt]))
+                i += 2
+                continue
             if nxt in Y_VOWEL_J:
                 out.append(('C', 'ㅇ', 'y'))
                 out.append(('SV', Y_VOWEL_J[nxt]))
@@ -272,11 +285,19 @@ def _assemble(phonemes, precise):
                         i += 1; continue
                 syllables.append(_compose(cho, 'ㅡ')); i += 1; continue
             if src in ('c','k','q') and cho == 'ㅋ':
+                # v3.38: 어말 k → 크 separate (sokak 소카크)
+                if i+1 >= n:
+                    syllables.append(_compose('ㅋ', 'ㅡ')); i += 1; continue
                 if syllables and not _has_jong(syllables[-1]) and not _is_eu_syll(syllables[-1]):
                     if _add_jong_to_last(syllables, 'ㄱ'):
                         i += 1; continue
                 syllables.append(_compose('ㅋ', 'ㅡ')); i += 1; continue
             if src == 'p' and cho == 'ㅍ':
+                # v3.38: 어중 자음앞 또는 어말 p → 프 separate (toprak 토프라크)
+                # Cl/pr 클러스터 같은 분리 패턴
+                next_is_cons = i+1 < n and phonemes[i+1][0] == 'C'
+                if i+1 >= n or next_is_cons:
+                    syllables.append(_compose('ㅍ', 'ㅡ')); i += 1; continue
                 if syllables and not _has_jong(syllables[-1]) and not _is_eu_syll(syllables[-1]):
                     if _add_jong_to_last(syllables, 'ㅂ'):
                         i += 1; continue
@@ -292,6 +313,11 @@ def _assemble(phonemes, precise):
                 if src == 'g':
                     if _add_jong_to_last(syllables, 'ㄱ'):
                         i += 1; continue
+            # v3.38: 어말 v → 프 (devoicing) — multi-syllabic만 (pilav 필라프, ev 에브 보존)
+            if i+1 >= n and src == 'v' and cho == 'ㅂ':
+                n_vowels = sum(1 for p in phonemes[:-1] if p[0] in ('V','SV','NV'))
+                if n_vowels >= 2:
+                    syllables.append(_compose('ㅍ', 'ㅡ')); i += 1; continue
             syllables.append(_compose(cho, 'ㅡ')); i += 1; continue
         i += 1
     return ''.join(syllables)

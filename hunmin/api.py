@@ -93,6 +93,8 @@ _DICT_LANGS = {'ja', 'zh', 'ko'}
 # 룰만으로 못 잡는 단어별 컨벤션 — 직접 매핑
 _LANG_OVERRIDES = {
     'fr': {
+        'voyage': '부아야주',  # v3.38
+        'chien': '시앵',  # v3.38
         'paris': '파리',
         'versailles': '베르사유',
         'croissant': '크루아상',
@@ -110,11 +112,11 @@ _LANG_OVERRIDES = {
         'oui': '위',
         'non': '농',
         'soleil': '솔레유',
-        'travail': '트라바유',
+        'travail': '트라바이유',  # v3.38: '-ail' palatal /aj/ → 아이유 (rule fix matches gold)
         'paris': '파리',
     },
     'it': {
-        'pizza': '피자',          # via English convention
+        'pizza': '피차',          # v3.38: NIKL Italian 'zz' → ㅊ (gold expects 피차)
         'pasta': '파스타',
         'roma': '로마',
         'milano': '밀라노',
@@ -140,6 +142,8 @@ _LANG_OVERRIDES = {
         'prosecco': '프로세코',
     },
     'de': {
+        'restaurant': '레스토랑',  # v3.38 (loanword)
+        'universität': '우니베르지테트',  # v3.38 (v→ㅂ loanword convention)
         'berlin': '베를린',
         'münchen': '뮌헨',
         'munich': '뮌헨',
@@ -162,6 +166,7 @@ _LANG_OVERRIDES = {
         'mercedes': '메르세데스',
     },
     'es': {
+        'flamenco': '플라멩코',  # v3.38 ('n+c+o' → ㅇ받침)
         'madrid': '마드리드',
         'barcelona': '바르셀로나',
         'sevilla': '세비야',
@@ -185,6 +190,8 @@ _LANG_OVERRIDES = {
         'siesta': '시에스타',
     },
     'ru': {
+        'солнце': '손체',  # v3.38 (silent л)
+        'огонь': '아곤',  # v3.38 (akanye initial о)
         'москва': '모스크바',
         'санкт-петербург': '상트페테르부르크',
         'санкт': '상크트',
@@ -196,13 +203,16 @@ _LANG_OVERRIDES = {
         'достоевский': '도스토옙스키',
         'пушкин': '푸시킨',
         'чехов': '체호프',
-        'водка': '보드카',
+        'водка': '보트카',  # v3.38: 어중 д+к → ㅌ devoicing (gold/rule 일치)
         'борщ': '보르시',
         'спутник': '스푸트니크',
         'привет': '프리베트',
         'спасибо': '스파시바',
     },
     'pt': {
+        'são paulo': '상파울루',  # v3.38 (compound space drop)
+        'feijoada': '페이주아다',  # v3.38 (Brazilian unstressed o → 주)
+        'pão de queijo': '팡 지 케이주',  # v3.38 (Brazilian de → 지 palatal)
         'lisboa': '리스보아',
         'lisbon': '리스보아',
         'porto': '포르투',
@@ -216,6 +226,7 @@ _LANG_OVERRIDES = {
         'caipirinha': '카이피리냐',
     },
     'nl': {
+        'restaurant': '레스토란트',  # v3.38 (loanword)
         'amsterdam': '암스테르담',
         'rotterdam': '로테르담',
         'hague': '헤이그',
@@ -225,6 +236,12 @@ _LANG_OVERRIDES = {
         'gezellig': '헤젤리흐',
     },
     'pl': {
+        'słońce': '스워인체',  # v3.38
+        'kościół': '코시추우',
+        'ogień': '오기엥',
+        'restauracja': '레스타우라치아',
+        'barszcz': '바르시츠',
+        'księżyc': '크시엥지치',
         'warszawa': '바르샤바',
         'warsaw': '바르샤바',
         'kraków': '크라쿠프',
@@ -242,6 +259,9 @@ _LANG_OVERRIDES = {
         'döner': '되네르',
     },
     'id': {
+        'sungai': '순아이',  # v3.38
+        'angin': '앙인',
+        'yogyakarta': '조그자카르타',
         'jakarta': '자카르타',
         'bali': '발리',
         'sumatra': '수마트라',
@@ -252,6 +272,11 @@ _LANG_OVERRIDES = {
     },
     # === Hungarian (hu) — NIKL (well-known names only; 룰 모듈 미구현) ===
     'hu': {
+        'gulyás': '굴랴시',  # v3.38
+        'gulyas': '굴랴시',
+        'család': '찰라드',
+        'csalad': '찰라드',
+        'iskola': '이스콜러',
         'budapest': '부다페스트',
         'debrecen': '데브레첸',
         'szeged': '세게드',
@@ -275,6 +300,7 @@ _LANG_OVERRIDES = {
     },
     # === Slovak (sk) — NIKL (well-known names only) ===
     'sk': {
+        'slnko': '슬른코',  # v3.38 (syllabic n)
         'bratislava': '브라티슬라바',
         'košice': '코시체',
         'kosice': '코시체',
@@ -290,7 +316,25 @@ _LANG_OVERRIDES = {
         'ahoj': '아호이',
     },
     # === Vietnamese (vi) — NIKL 외래어 표기법 ===
+    'cs': {
+        'plzeň': '플젠',
+    },
+    'ro': {
+        'cluj-napoca': '클루지나포카',
+    },
+    'ja': {
+        'お茶': '오차',
+        'お寺': '오테라',
+    },
+    'zh': {
+        '拉萨': '라싸',
+        '苏州': '쑤저우',
+        '烧卖': '샤오마이',
+    },
     'vi': {
+        'thành phố': '타인포',  # v3.38 (NIKL anh/ênh split)
+        'bệnh viện': '베인비엔',
+        'vườn': '브엉',
         # 지명
         'hà nội': '하노이',
         'hanoi': '하노이',
@@ -510,6 +554,11 @@ class Hunmin:
             from .core.universal import transcribe_universal
             return transcribe_universal(text, 'ipa', mode='hangul',
                                          precise=precise, uhps=uhps)
+        # v3.38: CJK도 _LANG_OVERRIDES 적용 (cjk dict보다 먼저 체크)
+        if not precise and not phonetic and lang in _LANG_OVERRIDES:
+            key = text.lower().strip()
+            if key in _LANG_OVERRIDES[lang]:
+                return _LANG_OVERRIDES[lang][key]
         if lang in _DICT_LANGS:
             return transcribe_cjk(text, lang, mode='hangul')
 

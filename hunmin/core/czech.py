@@ -36,7 +36,14 @@ VOWEL_J = {
     'i':'ㅣ', 'í':'ㅣ', 'y':'ㅣ', 'ý':'ㅣ',
     'o':'ㅗ', 'ó':'ㅗ',
     'u':'ㅜ', 'ú':'ㅜ', 'ů':'ㅜ',
-    'ě':'ㅖ',  # palatalizing e (별도 처리, default ㅖ)
+    'ě':'ㅔ',  # NIKL Czech: ě → ㅔ (palatalization absorbed by preceding cons orthography)
+}
+
+# v3.38: Cl-cluster cho mapping (C + l + V → Cㅡㄹ + ㄹV)
+# '\x02' = digraph placeholder for 'ch'
+_CL_CHO = {
+    'b':'ㅂ', 'p':'ㅍ', 'k':'ㅋ', 'g':'ㄱ',
+    't':'ㅌ', 'd':'ㄷ', 's':'ㅅ', '\x02':'ㅎ',
 }
 VOWEL_LETTERS = set(VOWEL_J.keys())
 
@@ -67,6 +74,16 @@ def _phonemize(word, precise=False):
 
         # Digraphs
         if c == '\x02':  # ch → 흐
+            # v3.38: Cl-cluster ch + l + V → 흘 + ㄹV (chleba → 흘레바)
+            nxt2 = s[i+2] if i+2 < n else ''
+            if nxt == 'l' and nxt2 in VOWEL_LETTERS:
+                syll = chr(HANGUL_BASE
+                           + INITIALS.index('ㅎ')*588
+                           + VOWELS_J.index('ㅡ')*28
+                           + FINALS.index('ㄹ'))
+                out.append(syll)
+                out.append(_compose('ㄹ', VOWEL_J[nxt2]))
+                i += 3; continue
             if _is_vowel(nxt):
                 out.append(_compose('ㅎ', VOWEL_J[nxt]))
                 i += 2; continue
@@ -79,7 +96,7 @@ def _phonemize(word, precise=False):
                 v = VOWEL_J[nxt]
                 out.append(_compose('ㅅ', Y_V.get(v, v)))
                 i += 2; continue
-            out.append('슈'); i += 1; continue
+            out.append('시'); i += 1; continue  # v3.38: NIKL š 어말/자음앞 → 시
         if c == 'ž':
             if _is_vowel(nxt):
                 out.append(_compose('ㅈ', VOWEL_J[nxt]))
@@ -114,10 +131,9 @@ def _phonemize(word, precise=False):
                 i += 2; continue
             out.append('니'); i += 1; continue
 
-        # ě — palatalize previous consonant + ㅖ
-        # (간단화: 단순히 ㅖ로 처리)
+        # ě — NIKL Czech: ě → 에 (단독 시작/모음 후), 자음+ě는 VOWEL_J 매핑이 처리
         if c == 'ě':
-            out.append(_compose('ㅇ', 'ㅖ'))
+            out.append(_compose('ㅇ', 'ㅔ'))
             i += 1; continue
 
         # 'c' = /ts/ — affricate
@@ -126,6 +142,42 @@ def _phonemize(word, precise=False):
                 out.append(_compose('ㅊ', VOWEL_J[nxt]))
                 i += 2; continue
             out.append('츠'); i += 1; continue
+
+        # v3.38: Cl-cluster — C + l + V → Cㅡㄹ + ㄹV
+        # (Klima → 클리마, slunce → 슬룬체, chleba → 흘레바, škola — handled via 시+kola path)
+        nxt2 = s[i+2] if i+2 < n else ''
+        if (c in _CL_CHO and nxt == 'l'
+                and nxt2 in VOWEL_LETTERS):
+            cho_jamo = _CL_CHO[c]
+            # C+ㅡ+ㄹ받침 syllable (e.g., 클, 슬, 흘)
+            syll = chr(HANGUL_BASE
+                       + INITIALS.index(cho_jamo)*588
+                       + VOWELS_J.index('ㅡ')*28
+                       + FINALS.index('ㄹ'))
+            out.append(syll)
+            # ㄹ + V syllable
+            out.append(_compose('ㄹ', VOWEL_J[nxt2]))
+            i += 3
+            continue
+
+        # v3.38: Intervocalic l — V + l + V → V받침ㄹ + ㄹV
+        # (ulice → 울리체, guláš → 굴라시)
+        if (c == 'l' and _is_vowel(nxt)
+                and i > 0 and s[i-1] in VOWEL_LETTERS
+                and out):
+            last = out[-1]
+            if len(last) == 1 and 0xAC00 <= ord(last) <= 0xD7A3:
+                base = ord(last) - HANGUL_BASE
+                cho_idx = base // 588
+                jung_idx = (base % 588) // 28
+                jong_idx = base % 28
+                if jong_idx == 0:
+                    out[-1] = chr(HANGUL_BASE + cho_idx*588
+                                  + jung_idx*28
+                                  + FINALS.index('ㄹ'))
+                    out.append(_compose('ㄹ', VOWEL_J[nxt]))
+                    i += 2
+                    continue
 
         # Generic consonants
         if c in 'bdfgjhklmnprstvxz':
@@ -140,6 +192,10 @@ def _phonemize(word, precise=False):
                 else:
                     out.append(_compose(cho, VOWEL_J[nxt]))
                 i += 2; continue
+            # v3.38: Word-final devoicing — 어말 b/d/g/v → 프/트/크/프 (ostrov → 오스트로프)
+            if i+1 >= n and c in 'bdgv':
+                devoice = {'b':'프','d':'트','g':'크','v':'프'}
+                out.append(devoice[c]); i += 1; continue
             mute_map = {'b':'브','d':'드','f':'프','g':'그','j':'이','h':'흐',
                          'k':'크','l':'ㄹ','m':'ㅁ','n':'ㄴ','p':'프',
                          'r':'르','s':'스','t':'트','v':'브','x':'크스','z':'즈'}

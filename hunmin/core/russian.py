@@ -156,6 +156,11 @@ def _phonemize(word, precise):
                 continue
             # 어말 ь after other consonants (т/д/в/с/з 등) → emit V ㅣ (palatalize)
             if c == 'ь' and (i+1 >= n) and out and out[-1][0] == 'C':
+                # v3.38: 어말 дь → 드 (devoicing+reduction; площадь 플로샤드)
+                if out[-1] == ('C', 'ㄷ', 'd'):
+                    out.append(('V', 'ㅡ'))
+                    i += 1
+                    continue
                 out.append(('V', 'ㅣ'))
                 i += 1
                 continue
@@ -190,10 +195,26 @@ def _phonemize(word, precise):
             out.append(('C', 'ㅂ', 'b'))
             i += 1; continue
         if c == 'в':
-            # в before 자음 → ㅂ받침 (Чайковский → 차이콥스키). 옛한글 ㅸ는 받침 불가.
+            # v3.38: 어말 вь → 피 (devoiced palatalized v): любовь 류보피, церковь 체르코피
+            if nxt == 'ь' and i+2 >= n:
+                out.append(('C', 'ㅍ', 'vь'))
+                out.append(('V', 'ㅣ'))
+                i += 2
+                continue
+            # v3.38: 어말 в → 프 (devoicing): остров 오스트로프
+            if i+1 >= n:
+                out.append(('C', 'ㅍ', 'v_devoice'))
+                i += 1
+                continue
+            # в before 자음 → 컨텍스트 분기
             if nxt and nxt not in CYRILLIC_VOWELS and nxt not in ('ь', 'ъ'):
-                # 자음 앞 → ㅂ받침
-                out.append(('C', 'ㅂ', 'v_coda'))  # 받침으로 갈 수 있는 ㅂ
+                # v3.38: в before sonorant (л/м/н/р) → 브 separate (deree вня → 데레브냐)
+                if nxt in 'лмнр':
+                    out.append(('C', 'ㅂ', 'v_separate'))
+                    i += 1
+                    continue
+                # 어중 voiceless cons 앞 → ㅂ받침 (Чайковский → 차이콥스키)
+                out.append(('C', 'ㅂ', 'v_coda'))
                 i += 1
                 continue
             if precise:
@@ -202,9 +223,17 @@ def _phonemize(word, precise):
                 out.append(('C', V_OLD, 'v'))
             i += 1; continue
         if c == 'г':
+            # v3.38: 어말 г → 크 (devoicing): Екатеринбург 예카테린부르크
+            if i+1 >= n:
+                out.append(('C', 'ㅋ', 'g_devoice'))
+                i += 1; continue
             out.append(('C', 'ㄱ', 'g'))
             i += 1; continue
         if c == 'д':
+            # v3.38: д before voiceless cons → ㅌ (devoicing): водка 보트카
+            if nxt in ('к','п','т','с','ф','ш','щ','ц','ч','х'):
+                out.append(('C', 'ㅌ', 'd_devoice'))
+                i += 1; continue
             out.append(('C', 'ㄷ', 'd'))
             i += 1; continue
         if c == 'ж':
@@ -239,6 +268,10 @@ def _phonemize(word, precise):
             out.append(('C', 'ㅅ', 's'))
             i += 1; continue
         if c == 'т':
+            # v3.38: тс → ㅊ (affricate at cluster, like ц): Иркутск 이르쿠츠크
+            if nxt == 'с':
+                out.append(('C', 'ㅊ', 'ts'))
+                i += 2; continue
             out.append(('C', 'ㅌ', 't'))
             i += 1; continue
         if c == 'ф':
@@ -289,15 +322,27 @@ def _phonemize(word, precise):
 
 
 def _intervocalic_l_post(phonemes):
-    """Hangul mode: Russian intervocalic L (Romance-like convention)."""
+    """Hangul mode: Russian intervocalic L + Cl cluster (v3.38).
+
+    хлеб → 흘레브, блины → 블리니, площадь → 플로샤드 (Cl 패턴)
+    """
+    CLUSTER_C = {'ㅂ', 'ㅍ', 'ㄱ', 'ㅋ', 'ㄷ', 'ㅌ', 'ㅎ', 'ㆄ'}
     out2 = []
     for k, ph in enumerate(phonemes):
+        # Intervocalic l doubling
         if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
                 and k > 0 and phonemes[k-1][0] in ('V', 'SV')
                 and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
             out2.append(('RR', 'ㄹ', 'l_double'))
-        else:
-            out2.append(ph)
+            continue
+        # v3.38: Cl cluster (consonant + l + V → C으ㄹ + ㄹV)
+        if (ph[0] == 'C' and len(ph) == 3 and ph[1] == 'ㄹ' and ph[2] == 'l'
+                and k > 0 and phonemes[k-1][0] in ('C', 'OLD')
+                and len(phonemes[k-1]) >= 2 and phonemes[k-1][1] in CLUSTER_C
+                and k+1 < len(phonemes) and phonemes[k+1][0] in ('V', 'SV')):
+            out2.append(('RR', 'ㄹ', 'l_cluster'))
+            continue
+        out2.append(ph)
     return out2
 
 

@@ -131,10 +131,12 @@ def _phonemize(word, precise):
             i += 4
             continue
 
-        # === sci + V → 시 + V (palatal /ʃ/) ===
+        # === sci + V → 샤/셰/시/쇼/슈 (palatal /ʃ/, prosciutto 프로슈토) ===
         if c == 's' and nxt == 'c' and nxt2 == 'i' and nxt3 in VOWEL_J:
+            sh_map = {'ㅏ':'ㅑ','ㅔ':'ㅖ','ㅗ':'ㅛ','ㅜ':'ㅠ','ㅣ':'ㅣ'}
+            v = VOWEL_J[nxt3]
             out.append(('C', 'ㅅ', 'sc'))
-            out.append(('V', VOWEL_J[nxt3]))
+            out.append(('SV', sh_map.get(v, v)))
             i += 4
             continue
         if c == 's' and nxt == 'c' and nxt2 in ('e','é','è'):
@@ -167,6 +169,14 @@ def _phonemize(word, precise):
                 continue
             out.append(('C', 'ㄱ', 'g'))
             i += 2
+            continue
+
+        # v3.38: cc + i + V (이중자음 + 묵음 i 패턴) → 치 + ㅇ+V (focaccia 포카치아)
+        if c == 'c' and nxt == 'c' and nxt2 == 'i' and nxt3 in ('a','o','u','à','ò','ù','e','é','è'):
+            out.append(('C', 'ㅊ', 'c'))
+            out.append(('V', 'ㅣ'))
+            out.append(('V', VOWEL_J[nxt3]))
+            i += 4
             continue
 
         # === ci/gi + a/o/u (silent i palatalization) ===

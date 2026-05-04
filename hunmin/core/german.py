@@ -118,8 +118,21 @@ def _phonemize(word, precise):
             i += 2
             continue
         if di == 'ie':
+            # v3.38: 어말 'ie' → i+e separate (Familie 파밀리에)
+            if i + 2 == n:
+                out.append(('V', 'ㅣ'))
+                out.append(('V', 'ㅔ'))
+                last_vowel_letter = 'e'
+                i += 2
+                continue
             out.append(('V', 'ㅣ'))
             last_vowel_letter = 'i'
+            i += 2
+            continue
+        # v3.38: 'ee' → 단일 ㅔ (See → 제)
+        if di == 'ee':
+            out.append(('V', 'ㅔ'))
+            last_vowel_letter = 'e'
             i += 2
             continue
 
@@ -127,6 +140,21 @@ def _phonemize(word, precise):
         if c == 'e' and nxt == 'r' and (i+2 >= n):
             out.append(('V', 'ㅓ'))
             last_vowel_letter = 'e'
+            i += 2
+            continue
+        # v3.38: Mid-word 'er' before 'k' (compound boundary) → 어 schwa (Sauerkraut 자우어크라우트)
+        # 다른 자음 (g/l 등) 앞에서는 e+r separate (Heidelberg 베르크 패턴 보존)
+        if (c == 'e' and nxt == 'r' and i+2 < n
+                and s[i+2].lower() == 'k'):
+            other_vowels = sum(1 for ch in s[:i] if ch in VOWEL_J)
+            if other_vowels >= 1:
+                out.append(('V', 'ㅓ'))
+                last_vowel_letter = 'e'
+                i += 2
+                continue
+        # v3.38: 어말 'dt' → 단일 ㅌ (Stadt 슈타트)
+        if c == 'd' and nxt == 't' and i+2 >= n:
+            out.append(('C', 'ㅌ', 't'))
             i += 2
             continue
 
@@ -305,6 +333,12 @@ def _phonemize(word, precise):
                 out.append(('C', F, 'f'))
             i += 1; continue
         if c == 'g':
+            # v3.38: 어말 -ig → 히 (NIKL German /ɪç/): Leipzig 라이프치히
+            if i+1 >= n and i > 0 and s[i-1] == 'i':
+                out.append(('C', 'ㅎ', 'g_ig'))
+                out.append(('V', 'ㅣ'))
+                i += 1
+                continue
             out.append(('C', 'ㄱ', 'g'))
             i += 1; continue
         if c == 'h':
@@ -582,18 +616,13 @@ def _assemble(phonemes, precise):
                 i += 1
                 continue
             if src in ('c', 'k', 'q') and cho == 'ㅋ':
-                if syllables and not _has_jong(syllables[-1]):
-                    if _add_jong_to_last(syllables, 'ㄱ'):
-                        i += 1
-                        continue
+                # v3.38: NIKL German 'k' 어말/자음앞 → 으-syll separate (NEVER 받침)
+                # Park 파르크, Markt 마르크트, Bibliothek 비블리오테크
                 syllables.append(_compose('ㅋ', 'ㅡ'))
                 i += 1
                 continue
             if src in ('p', 'pf', 'ph') and cho == 'ㅍ':
-                if syllables and not _has_jong(syllables[-1]):
-                    if _add_jong_to_last(syllables, 'ㅂ'):
-                        i += 1
-                        continue
+                # v3.38: NIKL German 'p' 어말/자음앞 → 으-syll separate
                 syllables.append(_compose('ㅍ', 'ㅡ'))
                 i += 1
                 continue

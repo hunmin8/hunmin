@@ -86,6 +86,11 @@ def _phonemize(word, precise=False):
     s = s.replace('gi',  '\x0B')   # gi  → ㅈ (북부)
     s = s.replace('qu',  '\x0C')   # qu  → 꾸
 
+    # v3.38: NIKL Vietnamese vowel diphthongs (a/ô → ơ when after u/ư)
+    s = s.replace('ưa', 'ươ')   # ưa → ㅡ+ㅓ (lửa 르어)
+    s = s.replace('uô', 'uơ')   # uô → ㅜ+ㅓ (cuốn 꾸언)
+    s = s.replace('ua', 'uơ')   # ua → ㅜ+ㅓ (chùa 쭈어)
+
     out = []
     i = 0
     n = len(s)
@@ -193,6 +198,11 @@ def _phonemize(word, precise=False):
                          'w':'으','x':'스','z':'즈'}
             out.append(mute_map[c]); i += 1; continue
 
+        # v3.38: y + ê → 예 (palatal y; tình yêu 띤예우)
+        if c == 'y' and nxt == 'ê':
+            out.append(_compose('ㅇ', 'ㅖ'))
+            i += 2; continue
+
         # Vowel alone
         if c in VOWEL_J:
             out.append(_compose('ㅇ', VOWEL_J[c]))
@@ -204,23 +214,28 @@ def _phonemize(word, precise=False):
 
 
 def _absorb_finals(syls):
-    """Combine 응 with previous syllable as 받침 ㅇ, similar for ㄴ/ㅁ/ㄹ."""
+    """Combine 응 with previous syllable as 받침 ㅇ, similar for ㄴ/ㅁ/ㄹ.
+
+    v3.38: ㄱ/ㅅ/ㅂ도 흡수 (Vietnamese 어말 stops): nước 느억, đất 덧, mặt 맛, học 혹.
+    v3.38: 응 흡수 예외 — 직전 으-syllable이면 keep separate (rừng 즈응).
+    """
+    EU_INDEX = VOWELS_J.index('ㅡ')
     result = []
     i = 0
     while i < len(syls):
         s = syls[i]
         nxt = syls[i+1] if i+1 < len(syls) else ''
-        # 응 → 직전 syllable에 ㅇ받침 흡수
+        # 응 → 직전 syllable에 ㅇ받침 흡수 (단, 으-syllable 제외)
         if (len(s) == 1 and 0xAC00 <= ord(s) <= 0xD7A3 and
                 nxt == '응'):
             base = ord(s) - HANGUL_BASE
             cho_idx, jung_idx, jong_idx = base // 588, (base % 588) // 28, base % 28
-            if jong_idx == 0:
+            if jong_idx == 0 and jung_idx != EU_INDEX:
                 new = chr(HANGUL_BASE + cho_idx*588 + jung_idx*28 + FINALS.index('ㅇ'))
                 result.append(new); i += 2; continue
-        # 단일 자음 받침 흡수
+        # 단일 자음 받침 흡수 (v3.38: ㄱ/ㅅ/ㅂ added for Vietnamese final stops)
         if (len(s) == 1 and 0xAC00 <= ord(s) <= 0xD7A3 and
-            nxt in ('ㄴ','ㅁ','ㄹ','ㅇ')):
+            nxt in ('ㄴ','ㅁ','ㄹ','ㅇ','ㄱ','ㅅ','ㅂ')):
             base = ord(s) - HANGUL_BASE
             cho_idx, jung_idx, jong_idx = base // 588, (base % 588) // 28, base % 28
             if jong_idx == 0 and nxt in FINALS:

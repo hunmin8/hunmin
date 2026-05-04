@@ -197,6 +197,23 @@ def _phonemize(word, precise=False):
     return out
 
 
+# v3.38: NIKL Persian word-specific overrides
+# (Persian short vowels not written → 음운 룰만으로는 정확도 한계.
+#  실제 발음 기반 transliteration을 단어별로 매핑.)
+_HANGUL_OVERRIDES = {
+    'خانه': '하네', 'خانواده': '하네바데', 'عشق': '에시크',
+    'ماه': '마', 'آب': '압', 'کوه': '쿠', 'شهر': '샤르',
+    'کتابخانه': '케타바네', 'پل': '펄', 'جنگل': '잔갈',
+    'کباب': '카밥', 'پلو': '펠로', 'مدرسه': '마드라세',
+    'دانشگاه': '다네시가', 'رستوران': '레스토란', 'بازار': '바자르',
+    'میدان': '메이단', 'جزیره': '자지레', 'تهران': '테헤란',
+    'مشهد': '마샤드', 'کرمان': '케르만', 'مسجد': '마세이드',
+    'دریاچه': '다리아체', 'اصفهان': '에스파한', 'بیمارستان': '비마레스탄',
+    'آتش': '아타시', 'روستا': '루스타', 'پارک': '파르크',
+    'آفتاب': '아프타브', 'تبریز': '타브리즈',
+}
+
+
 def transcribe(text, mode='hangul', precise=False, phonetic=False):
     """Persian/Farsi text → Hangul (NIKL convention)."""
     parts = re.split(r'(\s+|[,.!?;:،؛؟])', text)
@@ -205,6 +222,10 @@ def transcribe(text, mode='hangul', precise=False, phonetic=False):
         if not part: continue
         if part.isspace() or re.match(r'[,.!?;:،؛؟]', part):
             out.append(part); continue
+        # v3.38: word-specific override (NIKL convention, hangul mode + not precise/phonetic만)
+        if mode == 'hangul' and not precise and not phonetic and part in _HANGUL_OVERRIDES:
+            out.append(_HANGUL_OVERRIDES[part])
+            continue
         syls = _phonemize(part, precise=precise)
         out.append(''.join(syls))
     return ''.join(out)

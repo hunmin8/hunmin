@@ -149,14 +149,20 @@ def _phonemize(word, precise):
             i += 2
             continue
         if c == 'd' and nxt == 'ź':
-            # dź → ㅈ. 모음 앞 → 자/제/지/조/주. 어말 → 지 (palatal).
+            # dź → ㅈ. 모음 앞 → 자/제/지/조/주. 어말 → 치 (devoiced palatal).
             if nxt2 in single_v:
                 pmap = {'a':'ㅑ','e':'ㅖ','i':'ㅣ','o':'ㅛ','u':'ㅠ','y':'ㅣ'}
                 out.append(('C', 'ㅈ', 'dź'))
                 out.append(('SV', pmap.get(nxt2, single_v[nxt2])))
                 i += 3
                 continue
-            # 어말 또는 자음 앞: 지
+            # v3.38: 어말 dź → 치 (devoicing): Łódź 우치
+            if i+2 >= n:
+                out.append(('C', 'ㅊ', 'dź'))
+                out.append(('V', 'ㅣ'))
+                i += 2
+                continue
+            # 자음 앞: 지
             out.append(('C', 'ㅈ', 'dź'))
             out.append(('V', 'ㅣ'))
             i += 2
@@ -204,6 +210,9 @@ def _phonemize(word, precise):
             out.append(('V', 'ㅣ'))
             i += 1; continue
         if c == 'd':
+            # v3.38: d before voiceless cons → ㅌ (devoicing): wódka 부트카
+            if nxt in ('k','p','t','s','f','c'):
+                out.append(('C', 'ㅌ', 'd_devoice')); i += 1; continue
             out.append(('C', 'ㄷ', 'd')); i += 1; continue
         if c == 'f':
             if precise: out.append(('OLD', F))

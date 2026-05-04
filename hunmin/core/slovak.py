@@ -59,7 +59,7 @@ def _phonemize(word, precise=False):
     # Digraph placeholders (longer first)
     s = s.replace('dž', '\x01')   # dž → 주 (zh)
     s = s.replace('ch', '\x02')   # ch → 흐
-    s = s.replace('dz', '\x03')   # dz → ㅈ
+    # v3.38: 'dz' NOT digraphed — NIKL Slovak split as 드+자/즈 (bryndza 브린드자)
 
     out = []
     i = 0
@@ -82,12 +82,6 @@ def _phonemize(word, precise=False):
                 out.append(_compose('ㅈ', VOWEL_J[nxt]))
                 i += 2; continue
             out.append('주'); i += 1; continue
-        if c == '\x03':  # dz → ㅈ
-            if _is_vowel(nxt):
-                out.append(_compose('ㅈ', VOWEL_J[nxt]))
-                i += 2; continue
-            out.append('즈'); i += 1; continue
-
         # Special consonants
         if c == 'š':  # š → ㅅ + palatalize?
             if _is_vowel(nxt):
@@ -95,6 +89,11 @@ def _phonemize(word, precise=False):
                 v = VOWEL_J[nxt]
                 out.append(_compose('ㅅ', Y_V.get(v, v)))
                 i += 2; continue
+            # v3.38: NIKL š
+            # 어말 → 시 (oraš), 어두 자음앞 → 시 (škola), 어중 +k → 시 (halušky),
+            # 어중 다른 자음앞 → 슈 (reštaurácia)
+            if i+1 >= n or i == 0 or nxt == 'k':
+                out.append('시'); i += 1; continue
             out.append('슈'); i += 1; continue
         if c == 'ž':  # ž → 주
             if _is_vowel(nxt):
@@ -140,6 +139,35 @@ def _phonemize(word, precise=False):
                 i += 2; continue
             out.append('츠'); i += 1; continue
 
+        # v3.38: Cl-cluster (slivovica 슬리보비차, bratislava 브라티슬라바)
+        nxt2 = s[i+2] if i+2 < n else ''
+        _CL_CHO = {'b':'ㅂ','p':'ㅍ','k':'ㅋ','g':'ㄱ','t':'ㅌ','d':'ㄷ','s':'ㅅ','\x02':'ㅎ'}
+        if (c in _CL_CHO and nxt == 'l' and nxt2 in VOWEL_LETTERS):
+            cho_jamo = _CL_CHO[c]
+            syll = chr(HANGUL_BASE + INITIALS.index(cho_jamo)*588
+                       + VOWELS_J.index('ㅡ')*28 + FINALS.index('ㄹ'))
+            out.append(syll)
+            out.append(_compose('ㄹ', VOWEL_J[nxt2]))
+            i += 3
+            continue
+
+        # v3.38: Intervocalic l (ulica 울리차, halušky 할루)
+        if (c == 'l' and _is_vowel(nxt)
+                and i > 0 and s[i-1] in VOWEL_LETTERS
+                and out):
+            last = out[-1]
+            if len(last) == 1 and 0xAC00 <= ord(last) <= 0xD7A3:
+                base = ord(last) - HANGUL_BASE
+                cho_idx = base // 588
+                jung_idx = (base % 588) // 28
+                jong_idx = base % 28
+                if jong_idx == 0:
+                    out[-1] = chr(HANGUL_BASE + cho_idx*588
+                                  + jung_idx*28 + FINALS.index('ㄹ'))
+                    out.append(_compose('ㄹ', VOWEL_J[nxt]))
+                    i += 2
+                    continue
+
         # Generic consonants
         if c in 'bdfgjhklmnprstvz':
             cons_map = {'b':'ㅂ','d':'ㄷ','f':F,'g':'ㄱ','j':'ㅇ','h':'ㅎ',
@@ -153,6 +181,10 @@ def _phonemize(word, precise=False):
                 else:
                     out.append(_compose(cho, VOWEL_J[nxt]))
                 i += 2; continue
+            # v3.38: 어말 b/d/g/v devoicing → 프/트/크/프 (ostrov 오스트로프)
+            if i+1 >= n and c in 'bdgv':
+                devoice = {'b':'프','d':'트','g':'크','v':'프'}
+                out.append(devoice[c]); i += 1; continue
             mute_map = {'b':'브','d':'드','f':'프','g':'그','j':'이','h':'흐',
                          'k':'크','l':'ㄹ','m':'ㅁ','n':'ㄴ','p':'프',
                          'r':'르','s':'스','t':'트','v':'브','z':'즈'}
