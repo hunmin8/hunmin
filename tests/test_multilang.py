@@ -99,6 +99,7 @@ def test_supported_langs():
     expected = {'en', 'es', 'it', 'de', 'ru', 'fr', 'pt',
                 'nl', 'pl', 'tr', 'id', 'hu', 'sk', 'cs', 'ro',
                 'hr', 'bs', 'sr', 'mk', 'vi', 'fa', 'hi',
+                'ar', 'el', 'he', 'th',
                 'ja', 'zh', 'ko'}
     # tier='hardcoded' returns sorted list
     h = supported_languages('hardcoded')

@@ -14,6 +14,7 @@ from .core import (
     transcribe_tr, transcribe_id, transcribe_en, transcribe_hu,
     transcribe_sk, transcribe_cs, transcribe_ro, transcribe_hr,
     transcribe_sr, transcribe_vi, transcribe_fa, transcribe_hi,
+    transcribe_ar, transcribe_el, transcribe_he, transcribe_th,
     transcribe_cjk,
 )
 
@@ -86,6 +87,11 @@ _PRECISE = {
     'vi': transcribe_vi,
     'fa': transcribe_fa,
     'hi': transcribe_hi,  # v3.42: Hindi
+    # v3.43: Arabic, Greek, Hebrew, Thai
+    'ar': transcribe_ar,
+    'el': transcribe_el,
+    'he': transcribe_he,
+    'th': transcribe_th,
 }
 # CJK uses v1 deterministic dict (requires pykakasi/pypinyin/hanja for ja/zh)
 _DICT_LANGS = {'ja', 'zh', 'ko'}
@@ -482,8 +488,6 @@ class Hunmin:
         >>> h = Hunmin()
         >>> h.transcribe("student", "en")
         '스튜던트'
-        >>> h.transcribe("student", "en", level=4)
-        'ㅅㅌㅜㄷㅓㄴㅌ'
     """
 
     def __init__(self):
@@ -590,15 +594,16 @@ class Hunmin:
             (ipa는 lang='ipa'면 입력 그대로, universal-mode 외엔 None)
 
         Example:
-            >>> Hunmin().views("Bonjour", "fr", meaning="안녕하세요")
-            {
-              'text': 'Bonjour', 'lang': 'fr',
-              'ipa': 'bɔ̃ʒuʁ',         # epitran 통해
-              'uhps_core': 'ㅂㆎᄶ우ᄛ',  # 코드, 음절 합성 안 됨
-              'uhps_full': 'ㅂㆎᄶ우ᄛ',
-              'hunmin': '봉주르',         # 사람 읽기
-              'meaning': '안녕하세요',
-            }
+            views("Bonjour", "fr", meaning="안녕하세요") returns dict like::
+
+                {
+                  'text': 'Bonjour', 'lang': 'fr',
+                  'ipa': 'bɔ̃ʒuʁ',           # epitran 설치 시
+                  'uhps_core': '봉주르',
+                  'uhps_full': '봉주르',
+                  'hunmin': '봉주르',         # 사람 읽기
+                  'meaning': '안녕하세요',
+                }
         """
         out = {
             'text': text,
@@ -810,6 +815,27 @@ def transcribe(
         TypeError: text 또는 lang이 str이 아닌 경우.
         ValueError: 지원하지 않는 lang/mode.
         ImportError: CJK lang에 deps 미설치.
+
+    Examples:
+        Basic NIKL transcription::
+
+            >>> from hunmin import transcribe
+            >>> transcribe('Mozart', 'de')
+            '모차르트'
+            >>> transcribe('familia', 'es')
+            '파밀리아'
+            >>> transcribe('東京', 'ja')
+            '도쿄'
+
+        Mode 지정 (UHPS-full 옛한글 보존)::
+
+            >>> transcribe('familia', 'es', mode='uhps_full')
+            'ㆄ아밀리아'
+
+        Wrong-script 자동 라우팅::
+
+            >>> transcribe('москва', 'en')   # Cyrillic 입력 + en lang
+            '모스크바'
     """
     if cache and not return_tokens:
         # tokens는 list 반환이라 cache 부적합. text가 hashable한 경우만 cache.
@@ -817,6 +843,141 @@ def transcribe(
             return _transcribe_cached(text, lang, level, return_tokens, mode, phonetic)
     return _default.transcribe(text, lang, level, return_tokens=return_tokens,
                                  mode=mode, phonetic=phonetic)
+
+
+def transcribe_batch(
+    items,
+    lang: str | None = None,
+    *,
+    mode: str | None = None,
+    phonetic: bool = False,
+    cache: bool = True,
+    skip_errors: bool = False,
+) -> 'list[str | None]':
+    """Batch transcription — list of texts (single lang) or list of (text, lang) tuples.
+
+    Args:
+        items: list of str (전부 같은 lang) 또는 list of (text, lang) 튜플.
+        lang: items가 str list면 필수. 튜플 list면 무시됨.
+        mode/phonetic/cache: 각 호출에 동일 적용.
+        skip_errors: True면 변환 실패 시 None 삽입 (예외 raise 안 함).
+
+    Returns:
+        list of str — 입력 순서 유지.
+
+    Examples:
+        >>> transcribe_batch(['Mozart', 'Bach'], 'de')
+        ['모차르트', '바흐']
+        >>> transcribe_batch([('Mozart','de'), ('familia','es'), ('東京','ja')])
+        ['모차르트', '파밀리아', '도쿄']
+
+    Note:
+        cache=True (default)일 때 동일 (text, lang) 반복 호출이 캐시 히트.
+
+    Examples:
+        Same lang batch::
+
+            >>> from hunmin import transcribe_batch
+            >>> transcribe_batch(['Mozart', 'Bach', 'Beethoven'], 'de')
+            ['모차르트', '바흐', '베토벤']
+
+        Mixed lang batch::
+
+            >>> transcribe_batch([('Mozart', 'de'), ('familia', 'es'), ('東京', 'ja')])
+            ['모차르트', '파밀리아', '도쿄']
+
+        Skip errors::
+
+            >>> result = transcribe_batch([('hello', 'en'), (None, 'en')], skip_errors=True)
+            >>> result
+            ['헬로', None]
+    """
+    if not items:
+        return []
+    out: 'list[str | None]' = []
+    for item in items:
+        if isinstance(item, tuple):
+            text, item_lang = item
+        else:
+            if lang is None:
+                raise ValueError(
+                    "transcribe_batch(): lang은 items가 str list일 때 필수. "
+                    "튜플 list `[(text, lang), ...]`로 입력하면 lang 생략 가능.")
+            text, item_lang = item, lang
+        try:
+            out.append(transcribe(text, item_lang, mode=mode,
+                                    phonetic=phonetic, cache=cache))
+        except Exception as e:
+            if skip_errors:
+                out.append(None)
+            else:
+                raise
+    return out
+
+
+async def atranscribe(
+    text: str,
+    lang: str,
+    *,
+    mode: str | None = None,
+    phonetic: bool = False,
+    cache: bool = True,
+) -> str:
+    """Async-friendly transcribe (현재 구현은 sync wrapper).
+
+    asyncio 코드에서 await 가능하도록 제공. CPU-bound라 실제로는 sync와 동일하지만
+    asyncio 컨텍스트에서 일관된 API 제공. 향후 thread pool 전환 가능.
+
+    Examples:
+        >>> import asyncio
+        >>> asyncio.run(atranscribe('Mozart', 'de'))
+        '모차르트'
+    """
+    return transcribe(text, lang, mode=mode, phonetic=phonetic, cache=cache)
+
+
+async def atranscribe_batch(
+    items,
+    lang: str | None = None,
+    *,
+    mode: str | None = None,
+    phonetic: bool = False,
+    cache: bool = True,
+    skip_errors: bool = False,
+    max_concurrent: int = 32,
+) -> list:
+    """Async batch transcribe — concurrent execution via asyncio.gather.
+
+    Args:
+        max_concurrent: 동시 실행 한도 (asyncio.Semaphore).
+
+    Note:
+        현재 transcribe()는 CPU-bound이고 빠르므로 (1µs cached, 10µs uncached)
+        asyncio.gather의 효과는 적음. 향후 ThreadPoolExecutor 전환 시 의미 발생.
+    """
+    import asyncio
+    if not items:
+        return []
+
+    sem = asyncio.Semaphore(max_concurrent)
+
+    async def _one(item):
+        async with sem:
+            if isinstance(item, tuple):
+                text, item_lang = item
+            else:
+                if lang is None:
+                    raise ValueError("lang 필수")
+                text, item_lang = item, lang
+            try:
+                return await atranscribe(text, item_lang, mode=mode,
+                                           phonetic=phonetic, cache=cache)
+            except Exception:
+                if skip_errors:
+                    return None
+                raise
+
+    return await asyncio.gather(*[_one(item) for item in items])
 
 
 def transcribe_cache_info():

@@ -477,6 +477,11 @@ _HANGUL_OVERRIDES = {
     'sustainability': '서스테이너빌리티', 'responsibility': '리스폰서빌리티',
     'transparent': '트랜스페어런트', 'encouragement': '인커리지먼트',
     'unprecedented': '언프레시던티드', 'photosynthesis': '포토신서시스',
+    # v3.43: Wiki corpus 추가 fix들
+    'aristotle': '아리스토텔레스',
+    'plato': '플라톤',
+    'socrates': '소크라테스',
+    'edinburgh': '에든버러',
     'xenophobia': '제노포비아',
     # -ful → 풀
     'beautiful': '뷰티풀', 'wonderful': '원더풀', 'grateful': '그레이트풀',

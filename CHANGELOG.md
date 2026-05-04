@@ -2,6 +2,58 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.43.0] — 2026-05-04 — 새 언어 + REST API + VS Code + 도구
+
+### Added — API 강화 (Phase 1)
+- **`transcribe_batch(items, lang=None)`** — list of str (단일 lang) 또는 list of (text, lang) 튜플 처리. `skip_errors=True` 옵션.
+- **`atranscribe(text, lang)`** + **`atranscribe_batch(items)`** — asyncio 호환 (CPU-bound이라 sync와 비슷하지만 async 컨텍스트 일관성).
+- `.github/ISSUE_TEMPLATE/` (bug/feature/lang) + `PULL_REQUEST_TEMPLATE.md`.
+- `docs/API_STABILITY.md` — 3-tier 보증 (Stable / Internal-but-exposed / Internal).
+
+### Added — 검증 강화 (Phase 2)
+- **`scripts/build_wiki_corpus.py`** — Wikipedia langlinks API로 영-한 매핑 자동 수집.
+- **`tests/gold/wiki_50.tsv`** — 43 entries 추가 검증 (90.7%).
+- **`mypy.ini`** + 4 핵심 모듈 mypy 통과.
+- **17 doctests** in `transcribe()`, `transcribe_batch()` 등.
+
+### Added — 새 언어 (Phase 3) — 4개
+- **Arabic (ar)** — `hunmin/core/arabic.py`. Arabic-script 자모 매핑 + 30+ override.
+- **Greek (el)** — `hunmin/core/greek.py`. Modern Greek 발음 + 디그래프 (αι/ει/ου/αυ/ευ) + 30+ override.
+- **Hebrew (he)** — `hunmin/core/hebrew.py`. RTL + 18+ override.
+- **Thai (th)** — `hunmin/core/thai.py`. 19+ override (tone 무시).
+
+### Added — 응용 (Phase 4)
+- **VS Code extension** — `vscode-extension/` (package.json + TypeScript). 4 commands, 우클릭 메뉴, 키바인딩 (`Cmd+Alt+H`), REST API 연동.
+- **`hunmin/tts.py`** — TTS 통합. `save_mp3()`, `speak()`, `transcribe_and_speak()`. gTTS/edge-tts/pyttsx3 지원.
+- **`hunmin/quiz.py`** — Korean learning quiz 생성기. forward/reverse + 4지선다 + CLI.
+
+### Added — 성능 (Phase 5)
+- **`scripts/benchmark.py`** — 종합 throughput 측정 (cache hot/miss/disabled).
+- **`docs/PERFORMANCE.md`** — 측정 결과 + 사용 가이드 + 장기 로드맵.
+- **벤치 결과**: cache hot 9.6M calls/s, cache miss 400K calls/s.
+
+### Lang count
+- 이전: 25 codes (21 _PRECISE + 3 CJK + ipa)
+- 현재: **29 codes** (25 _PRECISE + 3 CJK + ipa)
+
+### Tests
+- pytest **562/562** ✓
+- heldout **1015/1015 = 100.0%** ✓
+- 종합 corpus 2280 entries **99.3%** 유지
+
+## [3.42.0] — 2026-05-04 — CLI/type hints/Hindi/reverse/REST/Docker/property tests
+
+### Added
+- CLI 현대화: `hunmin "Mozart" --lang de` (positional), stdin pipe, `--mode`, `python -m hunmin`
+- Type hints + `hunmin/py.typed` marker
+- **Hindi (hi)** 모듈 (Devanagari → 한글) — 17 word override
+- **역변환**: `to_romanization()`, `hangul_to_rr()`, `hangul_to_ipa()`
+- **FastAPI REST API** (`hunmin/server.py`): `/transcribe`, `/views`, `/reverse`, `/supported`, OpenAPI Swagger UI
+- **`Dockerfile`** (Python 3.11-slim 기반)
+- Hypothesis property tests (`tests/test_properties.py`, 11 tests)
+- `EXAMPLES.md` 신규
+- `CONTRIBUTING.md` v3.41+ 가이드 추가
+
 ## [3.41.0] — 2026-05-04 — 정확도 + 성능 + 범위 대폭 강화
 
 ### Accuracy (held-out + 대규모 corpus)

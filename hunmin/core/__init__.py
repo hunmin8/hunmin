@@ -19,6 +19,10 @@ from .serbian import transcribe as transcribe_sr
 from .vietnamese import transcribe as transcribe_vi
 from .persian import transcribe as transcribe_fa
 from .hindi import transcribe as transcribe_hi
+from .arabic import transcribe as transcribe_ar
+from .greek import transcribe as transcribe_el
+from .hebrew import transcribe as transcribe_he
+from .thai import transcribe as transcribe_th
 from .cjk import transcribe_cjk, transcribe_ja, transcribe_zh, transcribe_ko, hangul_to_jamo
 
 __all__ = [
@@ -27,6 +31,7 @@ __all__ = [
     'transcribe_tr', 'transcribe_id', 'transcribe_en', 'transcribe_hu',
     'transcribe_sk', 'transcribe_cs', 'transcribe_ro', 'transcribe_hr',
     'transcribe_sr', 'transcribe_vi', 'transcribe_fa', 'transcribe_hi',
+    'transcribe_ar', 'transcribe_el', 'transcribe_he', 'transcribe_th',
     'transcribe_ja', 'transcribe_zh', 'transcribe_ko', 'transcribe_cjk',
     'hangul_to_jamo',
 ]

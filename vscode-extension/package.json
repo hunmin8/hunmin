@@ -1,0 +1,75 @@
+{
+  "name": "hunmin-vscode",
+  "displayName": "Hunmin — Korean Phonetic Transcription",
+  "description": "Convert any language to Korean Hangul phonetic transcription. NIKL 외래어 표기.",
+  "version": "0.1.0",
+  "publisher": "meshpop",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other", "Education"],
+  "keywords": ["hangul", "korean", "transcription", "phonetic", "nikl"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "hunmin.transcribeSelection",
+        "title": "Hunmin: Transcribe selection to Hangul"
+      },
+      {
+        "command": "hunmin.transcribeSelectionUhpsFull",
+        "title": "Hunmin: Transcribe selection (UHPS-full, 옛한글)"
+      },
+      {
+        "command": "hunmin.reverseRomanize",
+        "title": "Hunmin: Romanize Hangul → English"
+      },
+      {
+        "command": "hunmin.showViews",
+        "title": "Hunmin: Show all transcription views"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        { "command": "hunmin.transcribeSelection", "when": "editorHasSelection", "group": "hunmin" },
+        { "command": "hunmin.transcribeSelectionUhpsFull", "when": "editorHasSelection", "group": "hunmin" },
+        { "command": "hunmin.reverseRomanize", "when": "editorHasSelection", "group": "hunmin" }
+      ]
+    },
+    "configuration": {
+      "title": "Hunmin",
+      "properties": {
+        "hunmin.defaultLang": {
+          "type": "string",
+          "default": "en",
+          "enum": ["en","es","it","de","ru","fr","pt","nl","pl","tr","id","hu","sk","cs","ro","hr","sr","mk","vi","fa","hi","ar","el","he","th","ja","zh","ko"],
+          "description": "Default language for transcription"
+        },
+        "hunmin.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "Hunmin REST API server URL (run: pip install hunmin[server] && uvicorn hunmin.server:app)"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "hunmin.transcribeSelection",
+        "key": "ctrl+alt+h",
+        "mac": "cmd+alt+h",
+        "when": "editorHasSelection"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}
