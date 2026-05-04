@@ -13,7 +13,7 @@ from .core import (
     transcribe_fr, transcribe_pt, transcribe_nl, transcribe_pl,
     transcribe_tr, transcribe_id, transcribe_en, transcribe_hu,
     transcribe_sk, transcribe_cs, transcribe_ro, transcribe_hr,
-    transcribe_sr, transcribe_vi, transcribe_fa,
+    transcribe_sr, transcribe_vi, transcribe_fa, transcribe_hi,
     transcribe_cjk,
 )
 
@@ -85,6 +85,7 @@ _PRECISE = {
     'sr': transcribe_sr, 'mk': transcribe_sr,  # mk Cyrillic도 sr 룰 비슷
     'vi': transcribe_vi,
     'fa': transcribe_fa,
+    'hi': transcribe_hi,  # v3.42: Hindi
 }
 # CJK uses v1 deterministic dict (requires pykakasi/pypinyin/hanja for ja/zh)
 _DICT_LANGS = {'ja', 'zh', 'ko'}
@@ -407,6 +408,18 @@ _LANG_OVERRIDES = {
     # === Vietnamese (vi) — NIKL 외래어 표기법 ===
     'cs': {
         'plzeň': '플젠',
+    },
+    'hi': {
+        # v3.42: 자주 쓰이는 힌디어 단어 (NIKL 표기)
+        'नमस्ते': '나마스테', 'नमस्कार': '나마스카르',
+        'धन्यवाद': '단야바드', 'भारत': '바라트',
+        'हिन्दी': '힌디', 'दिल्ली': '델리',
+        'मुंबई': '뭄바이', 'गांधी': '간디',
+        'योग': '요가', 'चाय': '차이',
+        'मसाला': '마살라', 'राम': '람',
+        'कृष्ण': '크리슈나', 'आगरा': '아그라',
+        'जयपुर': '자이푸르', 'गंगा': '강가',
+        'हिमालय': '히말라야',
     },
     'ro': {
         'cluj-napoca': '클루지나포카',
@@ -770,15 +783,33 @@ def _transcribe_cached(text, lang, level, return_tokens, mode, phonetic):
                                  mode=mode, phonetic=phonetic)
 
 
-def transcribe(text, lang, level=1, return_tokens=False,
-               mode=None, phonetic=False, cache=True):
+def transcribe(
+    text: str,
+    lang: str,
+    level: int = 1,
+    return_tokens: bool = False,
+    mode: str | None = None,
+    phonetic: bool = False,
+    cache: bool = True,
+) -> str:
     """Convert text to Hangul transcription (uses default Hunmin instance).
 
     Args:
+        text: 변환할 입력 텍스트. NFC 정규화됨 자동.
+        lang: 언어 코드 (en/es/de/fr/.../ja/zh/ko/ipa).
+        level: Legacy mode 지정 (1~5). `mode` 사용 권장.
+        return_tokens: True면 토큰 시퀀스 반환.
+        mode: 5개 explicit mode 중 하나 ('hunmin_nikl'/'uhps_full' 등).
+        phonetic: NIKL adapter OFF — 음운 룰만 적용.
         cache: True (default) — LRU 캐시 사용 (2048 entries).
-               False면 매번 새로 계산.
 
-    See Hunmin.transcribe for full docs.
+    Returns:
+        변환된 한글 문자열.
+
+    Raises:
+        TypeError: text 또는 lang이 str이 아닌 경우.
+        ValueError: 지원하지 않는 lang/mode.
+        ImportError: CJK lang에 deps 미설치.
     """
     if cache and not return_tokens:
         # tokens는 list 반환이라 cache 부적합. text가 hashable한 경우만 cache.
@@ -793,12 +824,12 @@ def transcribe_cache_info():
     return _transcribe_cached.cache_info()
 
 
-def transcribe_cache_clear():
+def transcribe_cache_clear() -> None:
     """LRU cache 초기화."""
     _transcribe_cached.cache_clear()
 
 
-def views(text, lang, meaning=None):
+def views(text: str, lang: str, meaning: str | None = None) -> dict:
     """Multi-view 표기 dict (UHPS_SPEC §1.0).
 
     See Hunmin.views for full docs.

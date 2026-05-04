@@ -78,3 +78,57 @@ _HANGUL_OVERRIDES = {
 - **결정적 출력** — 같은 입력은 항상 같은 출력
 - **NIKL 외래어 표기법 준수** — 한국 표준 컨벤션
 - **rough but mostly right** — 100%는 불가능, 95%+가 목표
+
+## v3.41+ 추가 가이드
+
+### Override 우선순위 (api.py)
+
+1. `_LANG_OVERRIDES[lang]` — lang별 word-specific
+2. `_COMMON_OVERRIDES` — cross-lang 도시/국가/loanword
+3. Wrong-script auto-route (latin lang + Cyrillic input → ru, etc.)
+4. CJK dict 또는 rule 모듈
+5. Universal IPA fallback (epitran)
+
+### Type hints
+
+`api.py`의 공개 함수에 type hint 적용. `hunmin/py.typed` marker로 distributed.
+mypy 검증:
+```bash
+pip install mypy
+mypy hunmin/api.py
+```
+
+### CI 가드
+
+`.github/workflows/test.yml`이 다음을 강제:
+- `pytest tests/` 모두 통과
+- `scripts/eval_heldout_1000.py` → `1015/1015 (100.0%)` 유지 (regression guard)
+- pytest-cov 커버리지 리포트
+- ruff lint (informational)
+- sdist + wheel build + twine check
+
+### Native speaker review 가이드
+
+새 단어/모듈 추가 시 다음 자주 어색한 패턴 검사:
+- `-tion`/`-sion` → 션 (not 슨/슌)
+- `-ful` → 풀 (not 플)
+- `-ch` 어말 → 치 (not 츠)
+- `-er`/`-or` 어말 → 어/터 (시스템적)
+- 모음 + 'l' + 모음 → intervocalic l doubling
+
+**Rule generalization**: `_post_process_hangul()` (english.py)에 패턴 추가하면 override 없이도 자동 정정.
+
+### 새 lang 추가 quickstart
+
+```bash
+# 1. 모듈 작성
+cat > hunmin/core/<lang>.py << 'EOF'
+def transcribe(text, mode='hangul', precise=False, phonetic=False):
+    # ...
+EOF
+
+# 2. core/__init__.py에 export 추가
+# 3. api.py _PRECISE에 등록
+# 4. tests/gold/<lang>_gold.tsv 작성 (최소 30개 entries)
+# 5. pytest 추가
+```

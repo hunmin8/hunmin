@@ -1,5 +1,6 @@
-"""Hunmin CLI — `hunmin --text "student" --lang en --level 1`."""
+"""Hunmin CLI — `hunmin "Mozart" --lang de` or `cat words.txt | hunmin --lang en`."""
 import argparse
+import sys
 from . import transcribe, Hunmin, __version__
 
 
@@ -8,19 +9,28 @@ def main():
         prog='hunmin',
         description='Universal phonetic Hangul transcription. Converts any language to readable Korean Hangul.',
         epilog="""Examples:
-  hunmin --text "student" --lang en
-  hunmin --text "中国" --lang zh --level 4
-  hunmin --text "familia" --lang es --level 3
+  hunmin "Mozart" --lang de              # 모차르트
+  hunmin "中国" --lang zh                 # 중국 (with override)
+  hunmin "familia" --lang es --mode uhps_full   # 옛한글
+  cat words.txt | hunmin --lang en       # stdin pipe
+  echo "Bonjour" | hunmin --lang fr -v   # views
   hunmin --demo
+  hunmin --list-langs
 
 Supported languages:
-  Latin/Cyrillic: en, es, it, de, ru, fr, pt, nl, pl, tr, id
-  CJK (needs pykakasi/pypinyin/hanja): ja, zh, ko
+  Latin: en/es/it/de/fr/pt/nl/pl/tr/id/hu/sk/cs/ro/hr/bs/vi (17)
+  Cyrillic: ru/sr/mk
+  Arabic-script: fa
+  CJK (pykakasi/pypinyin/hanja 필요): ja/zh/ko
+  IPA: 'ipa' lang으로 IPA 직접 입력
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    ap.add_argument('--text', help='Input text')
-    ap.add_argument('--lang', help='Language code')
+    ap.add_argument('input', nargs='?', help='Input text (또는 --text 또는 stdin)')
+    ap.add_argument('--text', help='Input text (대안: positional argument 또는 stdin)')
+    ap.add_argument('--lang', '-l', help='Language code')
+    ap.add_argument('--mode', '-m', choices=['hunmin_nikl','hunmin_phonetic','uhps_core','uhps_jamo','uhps_full'],
+                    help='Output mode (level 대신 mode 사용 권장)')
     ap.add_argument('--level', type=int, default=1, choices=[1, 2, 3, 4, 5],
                     help='1: kid-friendly, 2: natural, 3: UHPS-core, 4: jamo seq, 5: UHPS-full')
     ap.add_argument('--tokens', action='store_true',
@@ -59,10 +69,23 @@ Supported languages:
         run_demo()
         return
 
+    # v3.42: positional input || --text || stdin
+    text = args.input or args.text
+    if text is None and not sys.stdin.isatty():
+        # stdin pipe 입력
+        text = sys.stdin.read().rstrip('\n')
+    if text is not None:
+        args.text = text
+
     # --auto는 --lang 없어도 OK (primary_lang default='en')
     if not args.text or (not args.lang and not args.auto):
         ap.print_help()
         return
+
+    # mode가 지정되었으면 mode 우선, 아니면 level 사용
+
+    # v3.42: --mode이 있으면 mode 사용, 없으면 level 사용
+    transcribe_kwargs = {'mode': args.mode} if args.mode else {'level': args.level}
 
     if args.tokens:
         toks = transcribe(args.text, args.lang, level=args.level, return_tokens=True)
@@ -100,8 +123,13 @@ Supported languages:
                     print(f'{k:12s} {val}')
         return
 
-    out = transcribe(args.text, args.lang, level=args.level)
-    print(out)
+    # 다중 라인 입력은 라인별 변환
+    lines = args.text.split('\n')
+    for line in lines:
+        if line.strip():
+            print(transcribe(line, args.lang, **transcribe_kwargs))
+        else:
+            print()
 
 
 def run_demo():
