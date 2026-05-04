@@ -35,3 +35,4 @@ results/
 eval_results/
 benchmark_*.json
 .benchmarks/
+.mypy_cache/
