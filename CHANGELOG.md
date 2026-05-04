@@ -2,6 +2,20 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.40.2] — 2026-05-04 — Bug fix: Unicode NFC + type validation
+
+### Fixed
+- **Unicode NFD 입력 처리 버그**: `transcribe()` 진입점에서 `unicodedata.normalize('NFC', text)` 적용
+  - 이전: NFD form `café` (= `c+a+f+e+́`) → `'카프́'` (combining acute 잔류)
+  - 이후: NFD/NFC 모두 → `'카페'`
+  - 동일 케이스: NFD `Universität` → `'우니페르지타̈트'` (이전) → `'우니베르지테트'` (이후)
+- **Type validation**: `text`/`lang` 타입 체크 추가
+  - 이전: `transcribe(None,'en')` → `AttributeError: 'NoneType' object has no attribute 'lower'` (불명확)
+  - 이후: `TypeError: transcribe(): text must be str, got NoneType` (명확)
+
+### Tests
+- pytest 551/551 ✓, heldout 1015/1015 (100.0%) 유지
+
 ## [3.40.1] — 2026-05-04 — Cross-language 일관성 + 영어차용어 fix
 
 ### Added

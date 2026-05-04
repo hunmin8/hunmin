@@ -436,6 +436,22 @@ class Hunmin:
 
     def transcribe(self, text, lang, level=1, return_tokens=False,
                    mode=None, phonetic=False):
+        # v3.40.2: Input validation + Unicode NFC normalization
+        if text is None:
+            raise TypeError("transcribe(): text must be str, got None")
+        if not isinstance(text, str):
+            raise TypeError(
+                f"transcribe(): text must be str, got {type(text).__name__}")
+        if not isinstance(lang, str):
+            raise TypeError(
+                f"transcribe(): lang must be str, got {type(lang).__name__}")
+        # Unicode NFC normalization (NFD 'café' → '카프́' 같은 버그 방지)
+        import unicodedata
+        text = unicodedata.normalize('NFC', text)
+        return self._transcribe_impl(text, lang, level, return_tokens, mode, phonetic)
+
+    def _transcribe_impl(self, text, lang, level=1, return_tokens=False,
+                         mode=None, phonetic=False):
         """Convert text to Hangul transcription.
 
         Args:
