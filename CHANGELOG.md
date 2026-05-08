@@ -2,6 +2,49 @@
 
 표준 [Keep a Changelog](https://keepachangelog.com/) 포맷.
 
+## [3.44.0] — 2026-05-08 — 일본어 가나 디그래프 + Phonetic Entity Resolver
+
+### Fixed — Japanese (NIKL 외래어 표기)
+- **가타카나 외래어 작은가나 디그래프 처리.** pykakasi의 `ティ → 'tei'`, `ファ → 'fa'` 같은 비표준 romaji 출력을 우회하기 위해, 순수 가나 입력은 `_kana_to_hangul_direct()`가 직접 변환합니다.
+  - `ファ/フィ/フェ/フォ → 파/피/페/포`
+  - `ティ/ディ → 티/디`
+  - `ウィ/ウェ/ウォ → 위/웨/워`
+  - `ヴァ/ヴィ/ヴェ/ヴォ → 바/비/베/보`
+  - `シェ/ジェ/チェ → 셰/제/체`
+- **`ン` 종성 합성.** 종전엔 `느`로 분리되던 ン을 직전 음절의 ㄴ받침으로 합성. ㅂ/ㅁ/ㅍ 앞에선 ㅁ받침으로 자동 동화.
+  - `ペン → 펜` (was `펜+느` 분리)
+  - `アリアンツ → 알리안츠` (was 아리아느츠)
+- **`ッ` (sokuon) 종성 ㅅ받침**, **`ー` (장음) drop** 일관 처리.
+- 외래 브랜드/식품/인명 60+ `_JA_PHRASE_OVERRIDES` 추가:
+  `ファイザー → 화이자`, `ノバルティス → 노바티스`, `イブプロフェン → 이부프로펜`,
+  `コーヒー → 커피`, `ケーキ → 케이크`, `コンピューター → 컴퓨터`,
+  `スマートフォン → 스마트폰`, `サムスン電子 → 삼성전자`, `モーツァルト → 모차르트`, ...
+
+### Added — Phonetic Entity Resolver (신규 서브시스템)
+- **`hunmin/entity.py`** — `PhoneticEntityIndex`, `Entity`, `EntityMatch`. transcribe API 위에 얹은 alias resolver.
+  - 각 alias를 (문자열 정규화 + Hangul 음운 키 + jamo 키 + initial-only 키)로 멀티-인덱싱.
+  - `difflib.SequenceMatcher` 기반 fuzzy 검색.
+  - 한자/가나/Cyrillic/Arabic/Hangul/Latin 자동 스크립트 감지 (`detect_entity_lang`).
+- **`hunmin/data/entities/sample_entities.jsonl`** — QID/alias 샘플 사전.
+- **`scripts/phonetic_entity_cli.py`** — `build` / `search` 서브커맨드.
+- **`hunmin/__init__.py`** — `PhoneticEntityIndex`, `Entity`, `EntityMatch` 공식 export.
+- **`pyproject.toml`** — `data/entities/*.jsonl` 패키지 포함 추가.
+
+### Added — Repo 구조 정리
+- **`docs/STRUCTURE.md`** — `hunmin_pkg` (공식) vs `hunmin_v1` (실험 repo) 역할 분리 명문화.
+- 트래킹된 `__pycache__` untrack (gitignore와 일치).
+
+### Tests / Validation
+- pytest **562/562** 유지 ✓
+- heldout **1015/1015 = 100.0%** 유지 (21 langs) ✓
+- 5/5 사용자 보고 일본어 버그 수정 검증:
+  - `イブプロフェン → 이부프로펜` ✓
+  - `ファイザー → 화이자` ✓
+  - `ノバルティス → 노바티스` ✓
+  - `アリアンツ → 알리안츠` ✓
+  - `サムスン電子 → 삼성전자` ✓
+- Entity index: `ファイザー` 검색 → Pfizer 1위 매칭 ✓
+
 ## [3.43.0] — 2026-05-04 — 새 언어 + REST API + VS Code + 도구
 
 ### Added — API 강화 (Phase 1)
