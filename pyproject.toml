@@ -86,4 +86,4 @@ hunmin = "hunmin.cli:main"
 packages = ["hunmin", "hunmin.core"]
 
 [tool.setuptools.package-data]
-hunmin = ["*.json", "py.typed", "core/*.json", "core/data/*.json", "data/*.dict"]
+hunmin = ["*.json", "py.typed", "core/*.json", "core/data/*.json", "data/*.dict", "data/entities/*.jsonl"]

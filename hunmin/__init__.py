@@ -35,6 +35,7 @@ from .api import (
 )
 from .auto import transcribe_auto
 from .reverse import to_romanization, hangul_to_ipa, hangul_to_rr
+from .entity import PhoneticEntityIndex, Entity, EntityMatch
 
 __all__ = [
     'Hunmin', 'transcribe', 'transcribe_batch',
@@ -43,5 +44,6 @@ __all__ = [
     'supported_languages', '__version__',
     'transcribe_cache_info', 'transcribe_cache_clear',
     'to_romanization', 'hangul_to_ipa', 'hangul_to_rr',
+    'PhoneticEntityIndex', 'Entity', 'EntityMatch',
     'HUNMIN_NIKL', 'HUNMIN_PHONETIC', 'UHPS_CORE', 'UHPS_JAMO', 'UHPS_FULL',
 ]

@@ -73,6 +73,39 @@ transcribe_auto('Καλημέρα 친구! $100 + 50%')
 # → '카리메라 친구! 달러일영영 플러스 오영퍼센트'
 ```
 
+## Phonetic Entity Layer
+
+Hunmin can also be used as a phonetic entity resolver for multilingual aliases,
+typos, initials, brands, companies, drugs, and places.
+
+```python
+from hunmin import PhoneticEntityIndex
+
+idx = PhoneticEntityIndex.from_jsonl("hunmin/data/entities/sample_entities.jsonl")
+
+idx.search("samzung elec", top_k=1)[0].label   # Samsung Electronics
+idx.search("ㅅㅅㅈㅈ", top_k=1)[0].label         # Samsung Electronics
+idx.search("ファイザー", top_k=1)[0].label       # Pfizer
+idx.search("아세트아미노팬", top_k=1)[0].label   # Acetaminophen
+```
+
+CLI:
+
+```bash
+python scripts/wikidata_dump_to_entities.py latest-all.json.bz2 \
+  --output output/wikidata_entities.jsonl \
+  --types company,brand,drug,chemical,place
+
+python scripts/phonetic_entity_cli.py build --output /tmp/entities.index.jsonl
+python scripts/phonetic_entity_cli.py search "イブプロフェン" --index /tmp/entities.index.jsonl --show-keys
+```
+
+Entity JSONL format:
+
+```json
+{"id":"Q67","label":"Samsung Electronics","type":"company","aliases":{"en":["Samsung Electronics"],"ko":["삼성전자"],"ja":["サムスン電子"],"zh":["三星电子"]},"popularity":100}
+```
+
 ## 정확도 — 두 트랙 분리
 
 ### ⭐ 트랙 1 (primary): UHPS-full IPA-faithful 측정

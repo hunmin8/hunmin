@@ -1,0 +1,17 @@
+{"id":"Q487","label":"Allianz SE","type":"company","aliases":{"en":["Allianz","Allianz SE"],"ko":["알리안츠","알리안스"],"ja":["アリアンツ"],"ru":["Альянц"],"zh":["安联"]},"popularity":95}
+{"id":"Q207","label":"Ibuprofen","type":"drug","aliases":{"en":["ibuprofen","Advil","Brufen"],"ko":["이부프로펜"],"ja":["イブプロフェン"],"zh":["布洛芬"]},"popularity":85}
+{"id":"Q206921","label":"Acetaminophen","type":"drug","aliases":{"en":["acetaminophen","paracetamol","Tylenol"],"ko":["아세트아미노펜","타이레놀"],"ja":["パラセタモール"]},"popularity":85}
+{"id":"Q206212","label":"Pfizer","type":"company","aliases":{"en":["Pfizer"],"ko":["화이자"],"ja":["ファイザー"],"zh":["辉瑞"],"ru":["Файзер"]},"popularity":95}
+{"id":"Q67","label":"Samsung Electronics","type":"company","aliases":{"en":["Samsung Electronics","Samsung Elec"],"ko":["삼성전자","삼전"],"ja":["サムスン電子"],"zh":["三星电子"]},"popularity":100}
+{"id":"Q37156","label":"IBM","type":"company","aliases":{"en":["IBM","International Business Machines"],"ko":["아이비엠"],"ja":["アイビーエム"]},"popularity":95}
+{"id":"Q53268","label":"Toyota","type":"company","aliases":{"en":["Toyota","Toyota Motor"],"ko":["토요타","도요타"],"ja":["トヨタ"],"zh":["丰田"]},"popularity":95}
+{"id":"Q1008014","label":"Louis Vuitton","type":"brand","aliases":{"en":["Louis Vuitton"],"ko":["루이비통","루이뷔통"],"ja":["ルイ・ヴィトン"],"zh":["路易威登"]},"popularity":90}
+{"id":"Q54078","label":"IKEA","type":"company","aliases":{"en":["IKEA"],"ko":["이케아"],"ja":["イケア"],"zh":["宜家"]},"popularity":90}
+{"id":"Q312","label":"Apple Inc.","type":"company","aliases":{"en":["Apple","Apple Inc"],"ko":["애플"],"ja":["アップル"],"zh":["苹果公司"]},"popularity":100}
+{"id":"Q95","label":"Google","type":"company","aliases":{"en":["Google","Google LLC"],"ko":["구글"],"ja":["グーグル"],"zh":["谷歌"]},"popularity":100}
+{"id":"Q383126","label":"Novartis","type":"company","aliases":{"en":["Novartis"],"ko":["노바티스"],"ja":["ノバルティス"],"zh":["诺华"]},"popularity":80}
+{"id":"Q8684","label":"Xiaomi","type":"company","aliases":{"en":["Xiaomi"],"ko":["샤오미"],"zh":["小米"],"ja":["シャオミ"]},"popularity":90}
+{"id":"Q8686","label":"Hyundai Motor Company","type":"company","aliases":{"en":["Hyundai","Hyundai Motor"],"ko":["현대자동차","현대차"],"ja":["ヒュンダイ"],"zh":["现代汽车"]},"popularity":90}
+{"id":"Q8688","label":"Kakao","type":"company","aliases":{"en":["Kakao","Kakao Corp"],"ko":["카카오","카톡"],"ja":["カカオ"]},"popularity":85}
+{"id":"Q404","label":"Seoul","type":"place","aliases":{"en":["Seoul"],"ko":["서울","서울특별시"],"ja":["ソウル"],"zh":["首尔"]},"popularity":95}
+{"id":"Q1490","label":"Tokyo","type":"place","aliases":{"en":["Tokyo"],"ko":["도쿄","토쿄"],"ja":["東京","とうきょう","トーキョー"]},"popularity":95}
