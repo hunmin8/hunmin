@@ -24,7 +24,7 @@ Supported languages (14):
     ja, zh, ko
 """
 
-__version__ = '3.44.0'
+__version__ = '3.44.1'
 __author__ = 'Hunmin Project'
 
 from .api import (

@@ -1,0 +1,100 @@
+{"query":"Allianz","expected_id":"Q487","type":"company"}
+{"query":"Allianz SE","expected_id":"Q487","type":"company"}
+{"query":"알리안츠","expected_id":"Q487","type":"company"}
+{"query":"알리안스","expected_id":"Q487","type":"company"}
+{"query":"アリアンツ","expected_id":"Q487","type":"company","lang":"ja"}
+{"query":"アルリアンツ","expected_id":"Q487","type":"company","lang":"ja"}
+{"query":"Альянц","expected_id":"Q487","type":"company"}
+{"query":"安联","expected_id":"Q487","type":"company","lang":"zh"}
+{"query":"allianz","expected_id":"Q487","type":"company"}
+{"query":"ㅇㄹㅇㅊ","expected_id":"Q487","type":"company"}
+{"query":"ibuprofen","expected_id":"Q207","type":"drug"}
+{"query":"Ibuprofen","expected_id":"Q207","type":"drug"}
+{"query":"Advil","expected_id":"Q207","type":"drug"}
+{"query":"Brufen","expected_id":"Q207","type":"drug"}
+{"query":"이부프로펜","expected_id":"Q207","type":"drug"}
+{"query":"이부프로팬","expected_id":"Q207","type":"drug"}
+{"query":"イブプロフェン","expected_id":"Q207","type":"drug","lang":"ja"}
+{"query":"布洛芬","expected_id":"Q207","type":"drug","lang":"zh"}
+{"query":"ibu profen","expected_id":"Q207","type":"drug"}
+{"query":"ㅇㅂㅍㄹㅍ","expected_id":"Q207","type":"drug"}
+{"query":"acetaminophen","expected_id":"Q206921","type":"drug"}
+{"query":"Acetaminophen","expected_id":"Q206921","type":"drug"}
+{"query":"paracetamol","expected_id":"Q206921","type":"drug"}
+{"query":"Tylenol","expected_id":"Q206921","type":"drug"}
+{"query":"아세트아미노펜","expected_id":"Q206921","type":"drug"}
+{"query":"아세트아미노팬","expected_id":"Q206921","type":"drug"}
+{"query":"타이레놀","expected_id":"Q206921","type":"drug"}
+{"query":"パラセタモール","expected_id":"Q206921","type":"drug","lang":"ja"}
+{"query":"아세트아미노","expected_id":"Q206921","type":"drug"}
+{"query":"ㅇㅅㅌㅇㅁㄴㅍ","expected_id":"Q206921","type":"drug"}
+{"query":"Pfizer","expected_id":"Q206212","type":"company"}
+{"query":"pfizer","expected_id":"Q206212","type":"company"}
+{"query":"화이자","expected_id":"Q206212","type":"company"}
+{"query":"ファイザー","expected_id":"Q206212","type":"company","lang":"ja"}
+{"query":"ファイザ","expected_id":"Q206212","type":"company","lang":"ja"}
+{"query":"辉瑞","expected_id":"Q206212","type":"company","lang":"zh"}
+{"query":"Файзер","expected_id":"Q206212","type":"company"}
+{"query":"pfeizer","expected_id":"Q206212","type":"company"}
+{"query":"화이져","expected_id":"Q206212","type":"company"}
+{"query":"ㅎㅇㅈ","expected_id":"Q206212","type":"company"}
+{"query":"Samsung Electronics","expected_id":"Q67","type":"company"}
+{"query":"Samsung Elec","expected_id":"Q67","type":"company"}
+{"query":"samsung","expected_id":"Q67","type":"company"}
+{"query":"samzung elec","expected_id":"Q67","type":"company"}
+{"query":"삼성전자","expected_id":"Q67","type":"company"}
+{"query":"삼전","expected_id":"Q67","type":"company"}
+{"query":"サムスン電子","expected_id":"Q67","type":"company","lang":"ja"}
+{"query":"三星电子","expected_id":"Q67","type":"company","lang":"zh"}
+{"query":"삼성전저","expected_id":"Q67","type":"company"}
+{"query":"ㅅㅅㅈㅈ","expected_id":"Q67","type":"company"}
+{"query":"IBM","expected_id":"Q37156","type":"company"}
+{"query":"International Business Machines","expected_id":"Q37156","type":"company"}
+{"query":"아이비엠","expected_id":"Q37156","type":"company"}
+{"query":"アイビーエム","expected_id":"Q37156","type":"company","lang":"ja"}
+{"query":"ibm","expected_id":"Q37156","type":"company"}
+{"query":"아이비앰","expected_id":"Q37156","type":"company"}
+{"query":"ㅇㅇㅂㅇ","expected_id":"Q37156","type":"company"}
+{"query":"Toyota","expected_id":"Q53268","type":"company"}
+{"query":"Toyota Motor","expected_id":"Q53268","type":"company"}
+{"query":"토요타","expected_id":"Q53268","type":"company"}
+{"query":"도요타","expected_id":"Q53268","type":"company"}
+{"query":"トヨタ","expected_id":"Q53268","type":"company","lang":"ja"}
+{"query":"丰田","expected_id":"Q53268","type":"company","lang":"zh"}
+{"query":"toyoda","expected_id":"Q53268","type":"company"}
+{"query":"ㄷㅇㅌ","expected_id":"Q53268","type":"company"}
+{"query":"Louis Vuitton","expected_id":"Q1008014","type":"brand"}
+{"query":"루이비통","expected_id":"Q1008014","type":"brand"}
+{"query":"루이뷔통","expected_id":"Q1008014","type":"brand"}
+{"query":"ルイ・ヴィトン","expected_id":"Q1008014","type":"brand","lang":"ja"}
+{"query":"路易威登","expected_id":"Q1008014","type":"brand","lang":"zh"}
+{"query":"louis viton","expected_id":"Q1008014","type":"brand"}
+{"query":"ㄹㅇㅂㅌ","expected_id":"Q1008014","type":"brand"}
+{"query":"IKEA","expected_id":"Q54078","type":"company"}
+{"query":"ikea","expected_id":"Q54078","type":"company"}
+{"query":"이케아","expected_id":"Q54078","type":"company"}
+{"query":"イケア","expected_id":"Q54078","type":"company","lang":"ja"}
+{"query":"宜家","expected_id":"Q54078","type":"company","lang":"zh"}
+{"query":"이케야","expected_id":"Q54078","type":"company"}
+{"query":"ㅇㅋㅇ","expected_id":"Q54078","type":"company"}
+{"query":"Apple","expected_id":"Q312","type":"company"}
+{"query":"Apple Inc","expected_id":"Q312","type":"company"}
+{"query":"애플","expected_id":"Q312","type":"company"}
+{"query":"アップル","expected_id":"Q312","type":"company","lang":"ja"}
+{"query":"苹果公司","expected_id":"Q312","type":"company","lang":"zh"}
+{"query":"aple","expected_id":"Q312","type":"company"}
+{"query":"ㅇㅍ","expected_id":"Q312","type":"company"}
+{"query":"Google","expected_id":"Q95","type":"company"}
+{"query":"Google LLC","expected_id":"Q95","type":"company"}
+{"query":"구글","expected_id":"Q95","type":"company"}
+{"query":"グーグル","expected_id":"Q95","type":"company","lang":"ja"}
+{"query":"谷歌","expected_id":"Q95","type":"company","lang":"zh"}
+{"query":"gogle","expected_id":"Q95","type":"company"}
+{"query":"ㄱㄱ","expected_id":"Q95","type":"company"}
+{"query":"Novartis","expected_id":"Q383126","type":"company"}
+{"query":"노바티스","expected_id":"Q383126","type":"company"}
+{"query":"노바르티스","expected_id":"Q383126","type":"company"}
+{"query":"ノバルティス","expected_id":"Q383126","type":"company","lang":"ja"}
+{"query":"诺华","expected_id":"Q383126","type":"company","lang":"zh"}
+{"query":"novartiz","expected_id":"Q383126","type":"company"}
+{"query":"ㄴㅂㅌㅅ","expected_id":"Q383126","type":"company"}

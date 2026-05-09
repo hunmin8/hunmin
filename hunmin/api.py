@@ -7,6 +7,8 @@ Five explicit modes (UHPS_SPEC §1.0):
   UHPS_JAMO      — 분해된 자모 시퀀스 (ML 입력용)
   UHPS_FULL      — UHPS-core + 운율 (장단/강세/성조)
 """
+from __future__ import annotations
+
 import re
 from .core import (
     transcribe_es, transcribe_it, transcribe_de, transcribe_ru,

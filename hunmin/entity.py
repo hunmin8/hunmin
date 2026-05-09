@@ -65,6 +65,10 @@ def hangul_initials(text: str) -> str:
     return "".join(out)
 
 
+def should_use_initial_key(text: str) -> bool:
+    return bool(re.search(r"[가-힣ㄱ-ㅎ]", str(text)))
+
+
 def safe_transcribe(text: str, lang: str | None = None) -> str:
     lang = lang or detect_entity_lang(text)
     if lang == "ko":
@@ -81,7 +85,7 @@ def keyset(text: str, lang: str | None = None) -> dict[str, set[str]]:
     ko_text = safe_transcribe(raw, lang=lang)
     ko = normalize_text(ko_text)
     jamo = normalize_jamo_key(hangul_to_jamo(ko_text))
-    initial = hangul_initials(ko_text) or hangul_initials(raw)
+    initial = (hangul_initials(ko_text) or hangul_initials(raw)) if should_use_initial_key(raw) else ""
     return {
         "raw": {raw} if raw else set(),
         "norm": {norm} if norm else set(),
@@ -130,6 +134,15 @@ def string_similarity(a: str, b: str) -> float:
     if len(a) >= 3 and len(b) >= 3 and (a in b or b in a):
         return 0.86
     return max(SequenceMatcher(None, a, b).ratio(), jaccard(a, b))
+
+
+def jamo_similarity(a: str, b: str) -> float:
+    if not a or not b:
+        return 0.0
+    if a == b:
+        return 1.0
+    length_ratio = min(len(a), len(b)) / max(len(a), len(b))
+    return max(SequenceMatcher(None, a, b).ratio(), jaccard(a, b)) * length_ratio
 
 
 @dataclass
@@ -244,13 +257,17 @@ class PhoneticEntityIndex:
 
     def _score_entity(self, query_keys: dict[str, set[str]], ent: Entity) -> tuple[float, dict[str, str]]:
         weights = {"norm": 1.0, "ko": 0.96, "jamo": 0.9, "initial": 0.78}
+        min_similarity = {"norm": 0.0, "ko": 0.82, "jamo": 0.56, "initial": 1.0}
         best = {"score": 0.0, "level": "", "query_key": "", "entity_key": ""}
         for level, weight in weights.items():
             for query_key in query_keys.get(level, set()):
                 for entity_key in ent.keys.get(level, set()):
                     if level == "initial" and query_key != entity_key:
                         continue
-                    score = string_similarity(query_key, entity_key) * weight
+                    similarity = jamo_similarity(query_key, entity_key) if level == "jamo" else string_similarity(query_key, entity_key)
+                    if similarity < min_similarity[level]:
+                        continue
+                    score = similarity * weight
                     if level == "initial" and query_key:
                         score = 0.93
                     if score > best["score"]:
